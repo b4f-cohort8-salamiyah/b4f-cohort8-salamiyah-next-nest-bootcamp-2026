@@ -22,4 +22,9 @@ export class WorkspacesController {
   ) {
     return this.workspacesService.update(Number(id), body);
   }
+
+  @Get('slug/:slug')
+  findBySlug(@Param('slug') slug: string) {
+    return this.workspacesService.findBySlug(slug);
+  }
 }
