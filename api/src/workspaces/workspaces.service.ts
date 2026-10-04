@@ -40,6 +40,18 @@ export class WorkspacesService {
     return workspace;
   }
 
+  findBySlug(slug: string): Workspace[] {
+    const workspace = this.workspaces.filter(
+      (candidate) => candidate.slug === slug,
+    );
+
+    if (!workspace || workspace.length === 0) {
+      throw new NotFoundException(`No project found with slug ${slug}.`);
+    }
+
+    return workspace;
+  }
+
   update(id: number, body: { name?: string; slug?: string }): Workspace {
     const workspace = this.findOne(id);
 

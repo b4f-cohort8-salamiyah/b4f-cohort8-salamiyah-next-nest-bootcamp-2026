@@ -15,6 +15,16 @@ export class ProjectsController {
     return this.projectsService.findOne(Number(id));
   }
 
+  @Get('state')
+  state() {
+    return this.projectsService.state();
+  }
+
+  @Get('key/:key')
+  findByKey(@Param('key') key: string) {
+    return this.projectsService.findByKey(key);
+  }
+
   @Patch(':id')
   update(
     @Param('id') id: string,

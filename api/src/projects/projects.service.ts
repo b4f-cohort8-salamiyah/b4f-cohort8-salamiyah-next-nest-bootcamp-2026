@@ -18,6 +18,10 @@ const seedProjects: Project[] = [
   { id: 3, name: 'Mobile App', key: 'MOB', description: 'iOS and Android' },
 ];
 
+export interface projectsState {
+  total: number;
+}
+
 @Injectable()
 export class ProjectsService {
   private readonly projects: Project[] = seedProjects;
@@ -31,6 +35,16 @@ export class ProjectsService {
 
     if (!project) {
       throw new NotFoundException(`No project found with id ${id}.`);
+    }
+
+    return project;
+  }
+
+  findByKey(key: string): Project[] {
+    const project = this.projects.filter((candidate) => candidate.key === key);
+
+    if (!project || project.length === 0) {
+      throw new NotFoundException(`No project found with key ${key}.`);
     }
 
     return project;
@@ -64,5 +78,9 @@ export class ProjectsService {
     }
 
     return project;
+  }
+
+  state(): projectsState {
+    return { total: this.projects.length };
   }
 }
