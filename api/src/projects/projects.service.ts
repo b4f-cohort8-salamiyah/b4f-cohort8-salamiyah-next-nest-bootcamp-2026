@@ -11,6 +11,9 @@ export interface Project {
   key: string;
   description: string;
 }
+export interface ProjectStats {
+  total: number;
+}
 
 const seedProjects: Project[] = [
   { id: 1, name: 'Web App', key: 'WEB', description: 'Customer UI' },
@@ -64,5 +67,21 @@ export class ProjectsService {
     }
 
     return project;
+  }
+
+  findOneByKey(key: string): Project {
+    const findProjectByKey = this.projects.find(
+      (candidate) => candidate.key === key,
+    );
+
+    if (!findProjectByKey) {
+      throw new NotFoundException(`No project found with key ${key}.`);
+    }
+
+    return findProjectByKey;
+  }
+
+  getTotalProjects(): ProjectStats {
+    return { total: this.projects.length };
   }
 }

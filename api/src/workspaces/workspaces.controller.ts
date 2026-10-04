@@ -10,6 +10,11 @@ export class WorkspacesController {
     return this.workspacesService.findAll();
   }
 
+  @Get(':slug')
+  findOneBySluge(@Param('slug') slug: string) {
+    return this.workspacesService.findOneBySluge(slug);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.workspacesService.findOne(Number(id));
