@@ -29,6 +29,15 @@ export class WorkspacesService {
   findAll(): Workspace[] {
     return this.workspaces;
   }
+   findBySlug(slug: string): Workspace {
+    const workspace = this.workspaces.find((w) => w.slug === slug);
+
+    if (!workspace) {
+      throw new NotFoundException(`No workspace found with slug "${slug}".`);
+    }
+
+    return workspace;
+  }
 
   findOne(id: number): Workspace {
     const workspace = this.workspaces.find((candidate) => candidate.id === id);
@@ -68,4 +77,5 @@ export class WorkspacesService {
 
     return workspace;
   }
+
 }
