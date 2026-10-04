@@ -2,17 +2,17 @@ import { Body, Controller, Get, Param, Patch } from '@nestjs/common';
 import { WorkspacesService } from './workspaces.service';
 
 @Controller('workspaces')
-export class WorkspaceController {
-  constructor(private readonly workspaceService: WorkspacesService) {}
+export class WorkspacesController {
+  constructor(private readonly workspacesService: WorkspacesService) {}
 
   @Get()
   findall() {
-    return this.workspaceService.findAll;
+    return this.workspacesService.findAll();
   }
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.workspaceService.findOne(Number(id));
+    return this.workspacesService.findOne(Number(id));
   }
 
   @Patch(':id')
@@ -20,6 +20,6 @@ export class WorkspaceController {
     @Param('id') id: string,
     @Body() body: { name?: string; key?: string },
   ) {
-    return this.workspaceService.update(Number(id), body);
+    return this.workspacesService.update(Number(id), body);
   }
 }
