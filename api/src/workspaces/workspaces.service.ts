@@ -26,6 +26,18 @@ const seedWorkspaces: Workspace[] = [
 export class WorkspacesService {
   private readonly workspaces: Workspace[] = seedWorkspaces;
 
+  findBySlug(slug: string): Workspace {
+    const workspace = this.workspaces.find(
+      (candidate) => candidate.slug === slug,
+    );
+
+    if (!workspace) {
+      throw new NotFoundException(`No workspace found with slug ${slug}.`);
+    }
+
+    return workspace;
+  }
+
   findAll(): Workspace[] {
     return this.workspaces;
   }

@@ -5,6 +5,11 @@ import { WorkspacesService } from './workspaces.service';
 export class WorkspacesController {
   constructor(private readonly workspacesService: WorkspacesService) {}
 
+  @Get('slug/:slug')
+  findBySlug(@Param('slug') slug: string) {
+    return this.workspacesService.findBySlug(slug);
+  }
+
   @Get()
   findAll() {
     return this.workspacesService.findAll();

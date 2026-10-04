@@ -22,6 +22,20 @@ const seedProjects: Project[] = [
 export class ProjectsService {
   private readonly projects: Project[] = seedProjects;
 
+  findByKey(key: string): Project {
+    const project = this.projects.find((candidate) => candidate.key === key);
+
+    if (!project) {
+      throw new NotFoundException(`No project found with key ${key}.`);
+    }
+
+    return project;
+  }
+
+  getStats(): { total: number } {
+    return { total: this.projects.length };
+  }
+
   findAll(): Project[] {
     return this.projects;
   }

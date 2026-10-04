@@ -5,9 +5,20 @@ import { ProjectsService } from './projects.service';
 export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}
 
+  @Get('key/:key')
+  findByKey(@Param('key') key: string) {
+    return this.projectsService.findByKey(key);
+  }
+
+
   @Get()
   findAll() {
     return this.projectsService.findAll();
+  }
+
+  @Get('stats')
+  getStats() {
+    return this.projectsService.getStats();
   }
 
   @Get(':id')
