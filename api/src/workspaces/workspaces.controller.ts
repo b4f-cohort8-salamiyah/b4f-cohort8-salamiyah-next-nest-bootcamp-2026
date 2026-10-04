@@ -5,8 +5,11 @@ import { WorkspacesService } from './workspaces.service';
 export class WorkspacesController {
   constructor(private readonly workspacesService: WorkspacesService) {}
 
+<<<<<<< HEAD
   
 
+=======
+>>>>>>> 62b1a02fa6b759d4f86ed0b7d9cff5c13c3cc355
   @Get()
   findAll() {
     return this.workspacesService.findAll();
@@ -24,6 +27,7 @@ export class WorkspacesController {
   ) {
     return this.workspacesService.update(Number(id), body);
   }
+<<<<<<< HEAD
 
   @Get('slug/:slug')
   findBySlug(@Param('slug') slug:string){
@@ -33,3 +37,6 @@ export class WorkspacesController {
 
 
 }
+=======
+}
+>>>>>>> 62b1a02fa6b759d4f86ed0b7d9cff5c13c3cc355
