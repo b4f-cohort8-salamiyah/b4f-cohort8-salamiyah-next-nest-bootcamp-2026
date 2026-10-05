@@ -13,4 +13,8 @@ export class UpdateProjectDto {
   @Transform(({ value }) => value.trim())
   @IsNotEmpty()
   key?: string;
+
+  @IsOptional()
+  @IsString()
+  description?: string;
 }
