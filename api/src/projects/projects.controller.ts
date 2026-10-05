@@ -10,6 +10,19 @@ export class ProjectsController {
     return this.projectsService.findAll();
   }
 
+  //STRETCH
+  // Keep this static route before :id so "stats" is not treated as an ID.
+  @Get('stats')
+  getStats() {
+    return this.projectsService.getStats();
+  }
+
+  //CORE
+  @Get('key/:key')
+  findByKey(@Param('key') key: string) {
+    return this.projectsService.findByKey(key);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.projectsService.findOne(Number(id));
