@@ -9,6 +9,15 @@ export class ProjectsController {
   findAll() {
     return this.projectsService.findAll();
   }
+  @Get('stats')
+  getStats() {
+    return this.projectsService.getStats();
+  }
+
+  @Get('key/:key')
+  findByKey(@Param('key') key: string) {
+    return this.projectsService.findByKey(key);
+  }
 
   @Get(':id')
   findOne(@Param('id') id: string) {
