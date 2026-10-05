@@ -16,11 +16,22 @@ export interface Workspace {
 const seedWorkspaces: Workspace[] = [
   {
     id: 1,
-    name: 'Acme Robotics',
-    slug: 'acme-robotics',
-    description: 'Internal tools',
+    name: 'Engineering',
+    slug: 'engineering',
+    description: 'Product engineering workspace',
   },
-  { id: 2, name: 'Nova Labs', slug: 'nova-labs', description: 'Prototypes' },
+  {
+    id: 2,
+    name: 'Design',
+    slug: 'design',
+    description: 'Product design workspace',
+  },
+  {
+    id: 3,
+    name: 'Operations',
+    slug: 'operations',
+    description: 'Business operations workspace',
+  },
 ];
 
 @Injectable()
@@ -70,6 +81,7 @@ export class WorkspacesService {
       const taken = this.workspaces.some(
         (candidate) => candidate.id !== id && candidate.slug === dto.slug,
       );
+
       if (taken) {
         throw new ConflictException(
           `slug "${dto.slug}" is already used by another workspace.`,
@@ -99,4 +111,19 @@ export class WorkspacesService {
 
     return workspace;
   }
+
+  findBySlug(slug:string):Workspace{
+    if (slug !== undefined) {
+      const workSpace = this.workspaces.find(
+        (candidate) => candidate.slug === slug
+      );
+      if (!workSpace) {
+        throw new NotFoundException(
+          `there is no workspace with the slug :  "${slug}".`,
+        );
+      }
+      return workSpace;
+    }
+  }
 }
+

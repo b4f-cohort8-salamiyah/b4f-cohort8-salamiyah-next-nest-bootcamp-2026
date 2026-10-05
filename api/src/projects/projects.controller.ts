@@ -7,6 +7,11 @@ import { CreateProjectDto } from './dto/create-project.dto';
 export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}
 
+  @Get('stats')
+  findTotal(){
+    return this.projectsService.findTotal();
+  }
+
   @Get()
   findAll() {
     return this.projectsService.findAll();
@@ -36,4 +41,6 @@ export class ProjectsController {
   findByKey(@Param('key') key: string) {
     return this.projectsService.findByKey(key);
   }
+
+  
 }

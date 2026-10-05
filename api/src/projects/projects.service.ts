@@ -88,6 +88,7 @@ export class ProjectsService {
     return project;
   }
 
+  
 
   findTotal():number{
     return this.projects.length;
