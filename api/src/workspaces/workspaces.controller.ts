@@ -1,5 +1,7 @@
-import { Body, Controller, Get, Param, Patch } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
 import { WorkspacesService } from './workspaces.service';
+import { UpdateWorkspaceDto } from './dto/update-workspace.dto';
+import { CreateWorkspaceDto } from './dto/create-workspace.dto';
 
 @Controller('workspaces')
 export class WorkspacesController {
@@ -15,12 +17,14 @@ export class WorkspacesController {
     return this.workspacesService.findOne(Number(id));
   }
 
+  @Post()
+  create(@Body() dto: CreateWorkspaceDto) {
+    return this.workspacesService.create(dto);
+  }
+
   @Patch(':id')
-  update(
-    @Param('id') id: string,
-    @Body() body: { name?: string; slug?: string },
-  ) {
-    return this.workspacesService.update(Number(id), body);
+  update(@Param('id') id: string, @Body() dto: UpdateWorkspaceDto) {
+    return this.workspacesService.update(Number(id), dto);
   }
 
   @Get('slug/:slug')
