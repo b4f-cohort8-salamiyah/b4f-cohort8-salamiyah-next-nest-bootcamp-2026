@@ -51,7 +51,7 @@ export class ProjectsService {
       id: this.nextId++,
       name: dto.name,
       key: dto.key,
-      description: dto.description,
+      description: dto.description || "",
     };
 
     this.projects.push(project);
@@ -81,9 +81,18 @@ export class ProjectsService {
       project.key = dto.key;
     }
 
+    if (dto?.description !== undefined) {
+      project.description = dto.description;
+    }
+
     return project;
   }
 
+
+  findTotal():number{
+    return this.projects.length;
+  }
+  
   findByKey(key: string): Project {
     const project = this.projects.find((candidate) => candidate.key === key);
 
