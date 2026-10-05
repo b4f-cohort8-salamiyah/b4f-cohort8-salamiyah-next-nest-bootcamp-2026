@@ -68,4 +68,16 @@ export class WorkspacesService {
 
     return workspace;
   }
+
+  findBySlug(slug: string): Workspace {
+    const workspace = this.workspaces.find(
+      (candidate) => candidate.slug === slug,
+    );
+
+    if (!workspace) {
+      throw new NotFoundException(`No workspace found with slug "${slug}".`);
+    }
+
+    return workspace;
+  }
 }

@@ -65,4 +65,18 @@ export class ProjectsService {
 
     return project;
   }
+
+  findByKey(key: string): Project {
+    const project = this.projects.find((candidate) => candidate.key === key);
+
+    if (!project) {
+      throw new NotFoundException(`No project found with key "${key}".`);
+    }
+
+    return project;
+  }
+
+  stats(): { total: number } {
+    return { total: this.projects.length };
+  }
 }

@@ -10,6 +10,11 @@ export class ProjectsController {
     return this.projectsService.findAll();
   }
 
+  @Get('stats')
+  stats() {
+    return this.projectsService.stats();
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.projectsService.findOne(Number(id));
@@ -21,5 +26,10 @@ export class ProjectsController {
     @Body() body: { name?: string; key?: string },
   ) {
     return this.projectsService.update(Number(id), body);
+  }
+
+  @Get('key/:key')
+  findByKey(@Param('key') key: string) {
+    return this.projectsService.findByKey(key);
   }
 }
