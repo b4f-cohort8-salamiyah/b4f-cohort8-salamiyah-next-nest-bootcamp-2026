@@ -39,6 +39,11 @@ export class WorkspacesService {
 
     return workspace;
   }
+  findOneBySlug(slug: string): Workspace {
+    const workspace = this.workspaces.find(
+      (candidate) => candidate.slug === slug,
+    );
+  }
 
   update(id: number, body: { name?: string; slug?: string }): Workspace {
     const workspace = this.findOne(id);
