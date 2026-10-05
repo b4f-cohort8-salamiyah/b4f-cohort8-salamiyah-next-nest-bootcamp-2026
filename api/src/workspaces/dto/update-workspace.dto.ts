@@ -13,4 +13,8 @@ export class UpdateWorkspaceDto {
   @Transform(({ value }) => value.trim())
   @IsNotEmpty()
   slug?: string;
+
+  @IsOptional()
+  @IsString()
+  description?:string;
 }

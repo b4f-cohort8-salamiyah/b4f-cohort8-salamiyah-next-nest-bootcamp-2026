@@ -57,7 +57,7 @@ export class WorkspacesService {
       id: this.nextId++,
       name: dto.name,
       slug: dto.slug,
-      description: dto.description,
+      description: dto.description ?? '',
     };
     this.workspaces.push(workspace);
     return workspace;
@@ -83,6 +83,9 @@ export class WorkspacesService {
 
     if (dto?.slug !== undefined) {
       workspace.slug = dto.slug;
+    }
+    if (dto?.description !== undefined) {
+      workspace.description = dto.description;
     }
 
     return workspace;
