@@ -1,5 +1,7 @@
-import { Body, Controller, Get, Param, Patch } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
 import { ProjectsService } from './projects.service';
+import { UpdateProjectDto } from './dto/update-project.dto';
+import { CreateProjectDto } from './dto/create-project.dto';
 
 @Controller('projects')
 export class ProjectsController {
@@ -10,15 +12,14 @@ export class ProjectsController {
     return this.projectsService.findByKey(key);
   }
 
-
   @Get()
   findAll() {
     return this.projectsService.findAll();
   }
 
   @Get('stats')
-  getStats() {
-    return this.projectsService.getStats();
+  stats() {
+    return this.projectsService.stats();
   }
 
   @Get(':id')
@@ -26,11 +27,18 @@ export class ProjectsController {
     return this.projectsService.findOne(Number(id));
   }
 
+  @Post()
+  create(@Body() dto: CreateProjectDto) {
+    return this.projectsService.create(dto);
+  }
+
   @Patch(':id')
-  update(
-    @Param('id') id: string,
-    @Body() body: { name?: string; key?: string },
-  ) {
-    return this.projectsService.update(Number(id), body);
+  update(@Param('id') id: string, @Body() dto: UpdateProjectDto) {
+    return this.projectsService.update(Number(id), dto);
+  }
+
+  @Get('key/:key')
+  findByKey(@Param('key') key: string) {
+    return this.projectsService.findByKey(key);
   }
 }
