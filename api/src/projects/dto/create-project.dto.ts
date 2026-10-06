@@ -1,15 +1,18 @@
+import { Transform } from 'class-transformer';
 import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class CreateProjectDto {
   @IsString()
+  @Transform(({ value }) => value.trim())
   @IsNotEmpty()
-  name?: string;
+  name: string;
 
   @IsString()
+  @Transform(({ value }) => value.trim())
   @IsNotEmpty()
-  key?: string;
+  key: string;
 
   @IsOptional()
   @IsString()
-  description?:string;
+  description?: string;
 }

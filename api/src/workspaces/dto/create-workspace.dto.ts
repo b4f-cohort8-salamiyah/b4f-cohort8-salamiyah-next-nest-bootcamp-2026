@@ -11,5 +11,5 @@ export class CreateWorkspaceDto {
 
   @IsOptional()
   @IsString()
-  description?:string;
+  description?: string;
 }
