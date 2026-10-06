@@ -11,6 +11,7 @@ export class ProjectsController {
   findAll() {
     return this.projectsService.findAll();
   }
+
   @Get('stats')
   stats() {
     return this.projectsService.stats();

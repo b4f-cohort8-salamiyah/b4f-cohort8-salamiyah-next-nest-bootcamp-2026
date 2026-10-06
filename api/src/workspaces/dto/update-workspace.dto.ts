@@ -14,7 +14,7 @@ export class UpdateWorkspaceDto {
   @IsNotEmpty()
   slug?: string;
 
-  @IsString()
   @IsOptional()
+  @IsString()
   description?: string;
 }
