@@ -51,7 +51,7 @@ export class ProjectsService {
       id: this.nextId++,
       name: dto.name,
       key: dto.key,
-      description: dto.description ?? '',
+      description: dto.description || '',
     };
 
     this.projects.push(project);

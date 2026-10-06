@@ -57,7 +57,7 @@ export class WorkspacesService {
       id: this.nextId++,
       name: dto.name,
       slug: dto.slug,
-      description: dto.description ?? '',
+      description: dto.description || '',
     };
     this.workspaces.push(workspace);
     return workspace;
@@ -99,18 +99,6 @@ export class WorkspacesService {
 
     if (!workspace) {
       throw new NotFoundException(`No workspace found with slug "${slug}".`);
-    }
-
-    return workspace;
-  }
-
-  findOneBySluge(slug: string): Workspace {
-    const workspace = this.workspaces.find(
-      (candidate) => candidate.slug === slug,
-    );
-
-    if (!workspace) {
-      throw new NotFoundException(`No workspace found with slug ${slug}.`);
     }
 
     return workspace;

@@ -14,7 +14,7 @@ export class UpdateProjectDto {
   @IsNotEmpty()
   key?: string;
 
-  @IsString()
   @IsOptional()
+  @IsString()
   description?: string;
 }

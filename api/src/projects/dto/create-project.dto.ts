@@ -9,8 +9,7 @@ export class CreateProjectDto {
   @IsNotEmpty()
   key: string;
 
-  @IsString()
-  // @IsNotEmpty()
   @IsOptional()
+  @IsString()
   description?: string;
 }
