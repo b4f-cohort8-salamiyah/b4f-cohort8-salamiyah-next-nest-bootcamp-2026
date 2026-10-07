@@ -13,6 +13,7 @@ export class CreateProjectDto {
   key: string;
 
   @IsOptional()
+  @Transform(({ value }) => value.trim())
   @IsString()
   description?: string;
 }
