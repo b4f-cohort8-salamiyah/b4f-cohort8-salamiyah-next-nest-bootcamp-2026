@@ -14,7 +14,7 @@ export class WorkspacesController {
 
   @Get(':slug')
   findOneBySluge(@Param('slug') slug: string) {
-    return this.workspacesService.findOneBySluge(slug);
+    return this.workspacesService.findBySlug(slug);
   }
 
   @Get(':id')

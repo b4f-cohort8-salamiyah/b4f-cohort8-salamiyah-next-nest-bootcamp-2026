@@ -14,5 +14,6 @@ export class CreateProjectDto {
 
   @IsOptional()
   @IsString()
+  @Transform(({ value }) => value.trim())
   description?: string;
 }
