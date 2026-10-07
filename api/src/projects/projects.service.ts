@@ -67,7 +67,7 @@ export class ProjectsService {
       id: this.nextId++,
       name: dto.name,
       key: dto.key,
-      description: dto.description,
+      description: dto.description || '',
     };
 
     this.projects.push(project);
@@ -95,6 +95,10 @@ export class ProjectsService {
 
     if (dto?.key !== undefined) {
       project.key = dto.key;
+    }
+
+    if (dto?.description !== undefined) {
+      project.description = dto.description;
     }
 
     return project;
