@@ -6,7 +6,9 @@ export class CreateProjectDto {
   @Transform(({ value }) => value.trim())
   @IsNotEmpty()
   name: string;
-
+   // Trimmed before validation because ProjectsService checks key uniqueness:
+  // without trimming, " WEB" could be stored alongside "WEB" as if they
+  // were different keys
   @IsString()
   @Transform(({ value }) => value.trim())
   @IsNotEmpty()
@@ -14,5 +16,6 @@ export class CreateProjectDto {
 
   @IsOptional()
   @IsString()
+  @Transform(({ value }) => value.trim())
   description?: string;
 }

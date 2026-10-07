@@ -12,7 +12,8 @@ export class CreateWorkspaceDto {
   @IsNotEmpty()
   slug: string;
 
-  @IsOptional()
+ @IsOptional()
   @IsString()
+  @Transform(({ value }) => value.trim())
   description?: string;
 }
