@@ -7,12 +7,16 @@ export class CreateWorkspaceDto {
   @IsNotEmpty()
   name: string;
 
+  // challenge
+  // Trim so padded slugs cannot bypass slug uniqueness; descriptions need not be unique.
   @IsString()
   @Transform(({ value }) => value.trim())
   @IsNotEmpty()
   slug: string;
 
+  // stretch
   @IsOptional()
   @IsString()
+  @Transform(({ value }) => value.trim())
   description?: string;
 }
