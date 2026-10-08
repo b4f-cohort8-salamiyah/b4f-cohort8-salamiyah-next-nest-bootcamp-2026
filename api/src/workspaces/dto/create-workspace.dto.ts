@@ -7,6 +7,8 @@ export class CreateWorkspaceDto {
   @IsNotEmpty()
   name: string;
 
+  // The slug must be unique. If we don't trim it, " acme" and "acme" look
+  // different, but they are the same slug.
   @IsString()
   @Transform(({ value }) => value.trim())
   @IsNotEmpty()
@@ -14,5 +16,6 @@ export class CreateWorkspaceDto {
 
   @IsOptional()
   @IsString()
+  @Transform(({ value }) => value.trim())
   description?: string;
 }

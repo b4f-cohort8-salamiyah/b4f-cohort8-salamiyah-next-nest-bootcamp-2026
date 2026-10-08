@@ -6,7 +6,8 @@ export class CreateProjectDto {
   @Transform(({ value }) => value.trim())
   @IsNotEmpty()
   name: string;
-
+  // The key must be unique. If we don't trim it, " WEB" and "WEB" look
+  // different, but they are the same key.
   @IsString()
   @Transform(({ value }) => value.trim())
   @IsNotEmpty()
@@ -14,5 +15,6 @@ export class CreateProjectDto {
 
   @IsOptional()
   @IsString()
+  @Transform(({ value }) => value.trim())
   description?: string;
 }
