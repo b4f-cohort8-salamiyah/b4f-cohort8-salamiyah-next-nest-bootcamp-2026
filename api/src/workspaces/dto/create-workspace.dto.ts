@@ -13,6 +13,7 @@ export class CreateWorkspaceDto {
   slug: string;
 
   @IsOptional()
+  @Transform(({ value }) => value.trim())
   @IsString()
   description?: string;
 }
