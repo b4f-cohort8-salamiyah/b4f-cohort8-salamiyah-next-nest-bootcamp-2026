@@ -1,16 +1,4 @@
-import { Transform } from 'class-transformer';
-import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { PartialType } from '@nestjs/mapped-types';
+import { CreateWorkspaceDto } from './create-workspace.dto';
 
-export class UpdateWorkspaceDto {
-  @IsOptional()
-  @IsString()
-  @Transform(({ value }) => value.trim())
-  @IsNotEmpty()
-  name?: string;
-
-  @IsOptional()
-  @IsString()
-  @Transform(({ value }) => value.trim())
-  @IsNotEmpty()
-  slug?: string;
-}
+export class UpdateWorkspaceDto extends PartialType(CreateWorkspaceDto) {}
