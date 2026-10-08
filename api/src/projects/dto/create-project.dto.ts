@@ -8,11 +8,15 @@ export class CreateProjectDto {
   name: string;
 
   @IsString()
+  // Trimming 'key' is critical because it enforces uniqueness.
+  // Without trimming, values like " WEB" and "WEB" would be treated as distinct keys,
+  // bypassing duplicate checks and causing conflicting identifiers.
   @Transform(({ value }) => value.trim())
   @IsNotEmpty()
   key: string;
 
   @IsOptional()
   @IsString()
+  @Transform(({ value }) => value.trim())
   description?: string;
 }
