@@ -7,11 +7,6 @@ import { CreateWorkspaceDto } from './dto/create-workspace.dto';
 export class WorkspacesController {
   constructor(private readonly workspacesService: WorkspacesService) {}
 
-  @Get('slug/:slug')
-  findBySlug(@Param('slug') slug: string) {
-    return this.workspacesService.findBySlug(slug);
-  }
-
   @Get()
   findAll() {
     return this.workspacesService.findAll();

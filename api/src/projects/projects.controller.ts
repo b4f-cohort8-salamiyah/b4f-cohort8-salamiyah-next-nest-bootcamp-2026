@@ -7,11 +7,6 @@ import { CreateProjectDto } from './dto/create-project.dto';
 export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}
 
-  @Get('key/:key')
-  findByKey(@Param('key') key: string) {
-    return this.projectsService.findByKey(key);
-  }
-
   @Get()
   findAll() {
     return this.projectsService.findAll();

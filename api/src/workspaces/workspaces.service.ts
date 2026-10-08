@@ -28,18 +28,6 @@ export class WorkspacesService {
   private readonly workspaces: Workspace[] = seedWorkspaces;
   private nextId = seedWorkspaces.length + 1;
 
-  findBySlug(slug: string): Workspace {
-    const workspace = this.workspaces.find(
-      (candidate) => candidate.slug === slug,
-    );
-
-    if (!workspace) {
-      throw new NotFoundException(`No workspace found with slug ${slug}.`);
-    }
-
-    return workspace;
-  }
-
   findAll(): Workspace[] {
     return this.workspaces;
   }
@@ -69,7 +57,7 @@ export class WorkspacesService {
       id: this.nextId++,
       name: dto.name,
       slug: dto.slug,
-      description: dto.description,
+      description: dto.description || '',
     };
     this.workspaces.push(workspace);
     return workspace;
@@ -95,6 +83,10 @@ export class WorkspacesService {
 
     if (dto?.slug !== undefined) {
       workspace.slug = dto.slug;
+    }
+
+    if (dto?.description !== undefined) {
+      workspace.description = dto.description;
     }
 
     return workspace;

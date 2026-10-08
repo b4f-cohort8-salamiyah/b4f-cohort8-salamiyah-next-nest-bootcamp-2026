@@ -24,20 +24,6 @@ export class ProjectsService {
   private readonly projects: Project[] = seedProjects;
   private nextId = seedProjects.length + 1;
 
-  findByKey(key: string): Project {
-    const project = this.projects.find((candidate) => candidate.key === key);
-
-    if (!project) {
-      throw new NotFoundException(`No project found with key ${key}.`);
-    }
-
-    return project;
-  }
-
-  getStats(): { total: number } {
-    return { total: this.projects.length };
-  }
-
   findAll(): Project[] {
     return this.projects;
   }
@@ -65,7 +51,7 @@ export class ProjectsService {
       id: this.nextId++,
       name: dto.name,
       key: dto.key,
-      description: dto.description,
+      description: dto.description || '',
     };
 
     this.projects.push(project);
@@ -93,6 +79,10 @@ export class ProjectsService {
 
     if (dto?.key !== undefined) {
       project.key = dto.key;
+    }
+
+    if (dto?.description !== undefined) {
+      project.description = dto.description;
     }
 
     return project;
