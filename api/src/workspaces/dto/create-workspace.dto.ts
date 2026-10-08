@@ -16,5 +16,6 @@ export class CreateWorkspaceDto {
 
   @IsOptional()
   @IsString()
+  @Transform(({ value }) => value.trim())
   description?: string;
 }
