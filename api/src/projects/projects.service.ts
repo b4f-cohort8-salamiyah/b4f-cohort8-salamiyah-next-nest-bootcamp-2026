@@ -1,9 +1,10 @@
 import {
-  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { UpdateProjectDto } from './dto/update-project.dto';
+import { CreateProjectDto } from './dto/create-project.dto';
 
 export interface Project {
   id: number;
@@ -21,6 +22,7 @@ const seedProjects: Project[] = [
 @Injectable()
 export class ProjectsService {
   private readonly projects: Project[] = seedProjects;
+  private nextId = seedProjects.length + 1;
 
   findAll(): Project[] {
     return this.projects;
@@ -36,33 +38,67 @@ export class ProjectsService {
     return project;
   }
 
-  update(id: number, body: { name?: string; key?: string }): Project {
-    const project = this.findOne(id);
+  create(dto: CreateProjectDto): Project {
+    const taken = this.projects.some((candidate) => candidate.key === dto.key);
 
-    if (body?.name !== undefined && body.name.trim().length === 0) {
-      throw new BadRequestException('name must not be empty.');
+    if (taken) {
+      throw new ConflictException(
+        `key "${dto.key}" is already used by another project.`,
+      );
     }
 
-    if (body?.key !== undefined) {
+    const project: Project = {
+      id: this.nextId++,
+      name: dto.name,
+      key: dto.key,
+      description: dto.description || '',
+    };
+
+    this.projects.push(project);
+    return project;
+  }
+
+  update(id: number, dto: UpdateProjectDto): Project {
+    const project = this.findOne(id);
+
+    if (dto?.key !== undefined) {
       const taken = this.projects.some(
-        (candidate) => candidate.id !== id && candidate.key === body.key,
+        (candidate) => candidate.id !== id && candidate.key === dto.key,
       );
 
       if (taken) {
         throw new ConflictException(
-          `key "${body.key}" is already used by another project.`,
+          `key "${dto.key}" is already used by another project.`,
         );
       }
     }
 
-    if (body?.name !== undefined) {
-      project.name = body.name;
+    if (dto?.name !== undefined) {
+      project.name = dto.name;
     }
 
-    if (body?.key !== undefined) {
-      project.key = body.key;
+    if (dto?.key !== undefined) {
+      project.key = dto.key;
+    }
+
+    if (dto?.description !== undefined) {
+      project.description = dto.description;
     }
 
     return project;
+  }
+
+  findByKey(key: string): Project {
+    const project = this.projects.find((candidate) => candidate.key === key);
+
+    if (!project) {
+      throw new NotFoundException(`No project found with key "${key}".`);
+    }
+
+    return project;
+  }
+
+  stats(): { total: number } {
+    return { total: this.projects.length };
   }
 }

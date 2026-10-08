@@ -1,21 +1,32 @@
 import {
-  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { UpdateWorkspaceDto } from './dto/update-workspace.dto';
+import { CreateWorkspaceDto } from './dto/create-workspace.dto';
+
 export interface Workspace {
   id: number;
   name: string;
   slug: string;
   description: string;
 }
+
 const seedWorkspaces: Workspace[] = [
-  { id: 1, name: 'Web App', slug: 'WeueuEB', description: 'Cuseueutomer UI' },
+  {
+    id: 1,
+    name: 'Acme Robotics',
+    slug: 'acme-robotics',
+    description: 'Internal tools',
+  },
+  { id: 2, name: 'Nova Labs', slug: 'nova-labs', description: 'Prototypes' },
 ];
+
 @Injectable()
 export class WorkspacesService {
   private readonly workspaces: Workspace[] = seedWorkspaces;
+  private nextId = seedWorkspaces.length + 1;
 
   findAll(): Workspace[] {
     return this.workspaces;
@@ -25,37 +36,69 @@ export class WorkspacesService {
     const workspace = this.workspaces.find((candidate) => candidate.id === id);
 
     if (!workspace) {
-      throw new NotFoundException(`No Workspace found with id ${id}.`);
+      throw new NotFoundException(`No workspace found with id ${id}.`);
     }
 
     return workspace;
   }
 
-  update(id: number, body: { name?: string; slug?: string }): Workspace {
-    const workspace = this.findOne(id);
+  create(dto: CreateWorkspaceDto): Workspace {
+    const taken = this.workspaces.some(
+      (candidate) => candidate.slug === dto.slug,
+    );
 
-    if (body?.name !== undefined && body.name.trim().length === 0) {
-      throw new BadRequestException('name must not be empty.');
+    if (taken) {
+      throw new ConflictException(
+        `slug "${dto.slug}" is already used by another workspace.`,
+      );
     }
 
-    if (body?.slug !== undefined) {
-      const taken = this.workspaces.some(
-        (candidate) => candidate.id !== id && candidate.slug === body.slug,
-      );
+    const workspace: Workspace = {
+      id: this.nextId++,
+      name: dto.name,
+      slug: dto.slug,
+      description: dto.description || '',
+    };
+    this.workspaces.push(workspace);
+    return workspace;
+  }
 
+  update(id: number, dto: UpdateWorkspaceDto): Workspace {
+    const workspace = this.findOne(id);
+
+    if (dto?.slug !== undefined) {
+      const taken = this.workspaces.some(
+        (candidate) => candidate.id !== id && candidate.slug === dto.slug,
+      );
       if (taken) {
         throw new ConflictException(
-          `slug "${body.slug}" is already used by another workspace.`,
+          `slug "${dto.slug}" is already used by another workspace.`,
         );
       }
     }
 
-    if (body?.name !== undefined) {
-      workspace.name = body.name;
+    if (dto?.name !== undefined) {
+      workspace.name = dto.name;
     }
 
-    if (body?.slug !== undefined) {
-      workspace.slug = body.slug;
+    if (dto?.slug !== undefined) {
+      workspace.slug = dto.slug;
+    }
+
+    if (dto?.description !== undefined) {
+      workspace.description = dto.description;
+    }
+
+    return workspace;
+  }
+
+  findBySlug(slug: string): Workspace {
+    const workspace = this.workspaces.find(
+      (candidate) => candidate.slug === slug,
+    );
+
+    if (!workspace) {
+      throw new NotFoundException(`No workspace found with slug "${slug}".`);
     }
 
     return workspace;
