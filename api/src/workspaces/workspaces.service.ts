@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
@@ -14,13 +15,9 @@ export interface Workspace {
 }
 
 const seedWorkspaces: Workspace[] = [
-  {
-    id: 1,
-    name: 'Acme Robotics',
-    slug: 'acme-robotics',
-    description: 'Internal tools',
-  },
-  { id: 2, name: 'Nova Labs', slug: 'nova-labs', description: 'Prototypes' },
+  { id: 1, name: 'Web App', slug: 'WEB', description: 'Customer UI' },
+  { id: 2, name: 'Backend API', slug: 'API', description: 'Core services' },
+  { id: 3, name: 'Mobile App', slug: 'MOB', description: 'iOS and Android' },
 ];
 
 @Injectable()
@@ -42,14 +39,12 @@ export class WorkspacesService {
     return workspace;
   }
 
-  create(dto: CreateWorkspaceDto): Workspace {
-    const taken = this.workspaces.some(
-      (candidate) => candidate.slug === dto.slug,
-    );
+    create(dto: CreateWorkspaceDto): Workspace {
+    const taken = this.workspaces.some((candidate) => candidate.slug === dto.slug);
 
     if (taken) {
       throw new ConflictException(
-        `slug "${dto.slug}" is already used by another workspace.`,
+        `key "${dto.slug}" is already used by another project.`,
       );
     }
 
@@ -59,6 +54,7 @@ export class WorkspacesService {
       slug: dto.slug,
       description: dto.description || '',
     };
+
     this.workspaces.push(workspace);
     return workspace;
   }
@@ -66,13 +62,18 @@ export class WorkspacesService {
   update(id: number, dto: UpdateWorkspaceDto): Workspace {
     const workspace = this.findOne(id);
 
+    if (dto?.name !== undefined && dto.name.trim().length === 0) {
+      throw new BadRequestException('name must not be empty.');
+    }
+
     if (dto?.slug !== undefined) {
       const taken = this.workspaces.some(
         (candidate) => candidate.id !== id && candidate.slug === dto.slug,
       );
+
       if (taken) {
         throw new ConflictException(
-          `slug "${dto.slug}" is already used by another workspace.`,
+          `key "${dto.slug}" is already used by another project.`,
         );
       }
     }
@@ -92,15 +93,17 @@ export class WorkspacesService {
     return workspace;
   }
 
-  findBySlug(slug: string): Workspace {
-    const workspace = this.workspaces.find(
-      (candidate) => candidate.slug === slug,
-    );
+    findBySlug(slug: string): Workspace {
+    const workspace = this.workspaces.find((candidate) => candidate.slug === slug);
 
     if (!workspace) {
-      throw new NotFoundException(`No workspace found with slug "${slug}".`);
+      throw new NotFoundException(`No project found with key "${slug}".`);
     }
 
     return workspace;
+  }
+
+  stats(): { total: number } {
+    return { total: this.workspaces.length };
   }
 }
