@@ -33,17 +33,6 @@ export class ProjectsService {
     return { total: this.projects.length };
   }
 
-  //CORE
-  findByKey(key: string): Project {
-    const project = this.projects.find((candidate) => candidate.key === key);
-
-    if (!project) {
-      throw new NotFoundException(`No project found with key ${key}.`);
-    }
-
-    return project;
-  }
-
   findOne(id: number): Project {
     const project = this.projects.find((candidate) => candidate.id === id);
 
@@ -104,6 +93,7 @@ export class ProjectsService {
     return project;
   }
 
+  //CORE
   findByKey(key: string): Project {
     const project = this.projects.find((candidate) => candidate.key === key);
 

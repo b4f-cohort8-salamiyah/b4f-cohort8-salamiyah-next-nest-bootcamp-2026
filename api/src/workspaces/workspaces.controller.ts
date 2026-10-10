@@ -32,9 +32,4 @@ export class WorkspacesController {
   update(@Param('id') id: string, @Body() dto: UpdateWorkspaceDto) {
     return this.workspacesService.update(Number(id), dto);
   }
-
-  @Get('slug/:slug')
-  findBySlug(@Param('slug') slug: string) {
-    return this.workspacesService.findBySlug(slug);
-  }
 }

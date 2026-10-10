@@ -32,19 +32,6 @@ export class WorkspacesService {
     return this.workspaces;
   }
 
-  //CHALLENGE
-  findBySlug(slug: string): Workspace {
-    const workspace = this.workspaces.find(
-      (candidate) => candidate.slug === slug,
-    );
-
-    if (!workspace) {
-      throw new NotFoundException(`No workspace found with slug ${slug}.`);
-    }
-
-    return workspace;
-  }
-
   findOne(id: number): Workspace {
     const workspace = this.workspaces.find((candidate) => candidate.id === id);
 
@@ -105,6 +92,7 @@ export class WorkspacesService {
     return workspace;
   }
 
+  //CHALLENGE
   findBySlug(slug: string): Workspace {
     const workspace = this.workspaces.find(
       (candidate) => candidate.slug === slug,
