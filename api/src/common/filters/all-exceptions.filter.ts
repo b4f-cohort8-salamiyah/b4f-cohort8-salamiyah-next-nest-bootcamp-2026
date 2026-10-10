@@ -16,7 +16,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
-
+    // Keep the app's own correct errors (404, 409, 400) unchanged — without this, they'd be turned into a generic 500
     if (exception instanceof HttpException) {
       response.status(exception.getStatus()).json(exception.getResponse());
       return;
@@ -27,6 +27,8 @@ export class AllExceptionsFilter implements ExceptionFilter {
       statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
       message: 'Internal server error',
       path: request.url,
+      timestamp: new Date().toISOString(),
+      method: request.method,
       team: 'B4F',
     });
   }
