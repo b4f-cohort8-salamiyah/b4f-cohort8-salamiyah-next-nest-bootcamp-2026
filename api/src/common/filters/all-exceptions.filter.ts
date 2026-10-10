@@ -16,7 +16,10 @@ export class AllExceptionsFilter implements ExceptionFilter {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
-
+    //CHALLENGE:
+    // This check is crucial because it allows our application's intentional errors
+    // (like 404 NotFound or 400 Validation errors) to pass through to the client exactly as they are.
+    // It prevents the filter from overwriting our correct error responses with a generic 500 error.
     if (exception instanceof HttpException) {
       response.status(exception.getStatus()).json(exception.getResponse());
       return;
@@ -28,6 +31,8 @@ export class AllExceptionsFilter implements ExceptionFilter {
       message: 'Internal server error',
       path: request.url,
       team: 'B4F',
+      timestamp: new Date().toISOString(),
+      method: request.method,
     });
   }
 }
