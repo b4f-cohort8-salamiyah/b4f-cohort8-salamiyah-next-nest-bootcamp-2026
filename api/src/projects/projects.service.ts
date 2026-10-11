@@ -2,27 +2,43 @@ import {
   ConflictException,
   Injectable,
   NotFoundException,
+  OnModuleInit,
 } from '@nestjs/common';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { CreateProjectDto } from './dto/create-project.dto';
+import { InjectModel } from '@nestjs/mongoose';
+import { Project, ProjectDocument } from './schemas/project.schema';
+import { Model } from 'mongoose';
 
-export interface Project {
-  id: number;
-  name: string;
-  key: string;
-  description: string;
-}
+// export interface Project {
+//   id: number;
+//   name: string;
+//   key: string;
+//   description: string;
+// }
 
-const seedProjects: Project[] = [
+const seedProjects = [
   { id: 1, name: 'Web App', key: 'WEB', description: 'Customer UI' },
   { id: 2, name: 'Backend API', key: 'API', description: 'Core services' },
   { id: 3, name: 'Mobile App', key: 'MOB', description: 'iOS and Android' },
 ];
 
 @Injectable()
-export class ProjectsService {
+export class ProjectsService implements OnModuleInit {
   private readonly projects: Project[] = seedProjects;
   private nextId = seedProjects.length + 1;
+  constructor(
+    @InjectModel(Project.name)
+    private readonly model: Model<ProjectDocument>,
+  ) {}
+
+  async onModuleInit() {
+    const existing = await this.model.countDocuments();
+
+    if (existing === 0) {
+      await this.model.insertMany(seedProjects);
+    }
+  }
 
   findAll(): Project[] {
     return this.projects;
