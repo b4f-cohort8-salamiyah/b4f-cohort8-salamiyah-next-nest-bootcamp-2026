@@ -3,7 +3,7 @@ import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class CreateProjectDto {
   @IsString()
-  @Transform(({ value }) => value.trim())
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
   @IsNotEmpty()
   name: string;
 
@@ -17,6 +17,5 @@ export class CreateProjectDto {
 
   @IsOptional()
   @IsString()
-  @Transform(({ value }) => value.trim())
   description?: string;
 }
