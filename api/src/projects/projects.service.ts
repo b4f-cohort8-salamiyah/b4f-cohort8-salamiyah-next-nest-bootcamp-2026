@@ -9,13 +9,7 @@ import { CreateProjectDto } from './dto/create-project.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Project, ProjectDocument } from './schemas/project.schema';
 import { Model } from 'mongoose';
-
-// export interface Project {
-//   id: number;
-//   name: string;
-//   key: string;
-//   description: string;
-// }
+import { FindProjectsQueryDto } from './dto/find-projects-query.dto';
 
 const seedProjects = [
   { id: 1, name: 'Web App', key: 'WEB', description: 'Customer UI' },
@@ -25,8 +19,6 @@ const seedProjects = [
 
 @Injectable()
 export class ProjectsService implements OnModuleInit {
-  private readonly projects: Project[] = seedProjects;
-  private nextId = seedProjects.length + 1;
   constructor(
     @InjectModel(Project.name)
     private readonly model: Model<ProjectDocument>,
@@ -40,12 +32,22 @@ export class ProjectsService implements OnModuleInit {
     }
   }
 
-  async findAll(): Promise<ProjectDocument[]> {
-    return this.model.find();
+  async findAll(query: FindProjectsQueryDto): Promise<ProjectDocument[]> {
+    const filter: Record<string, unknown> = {};
+
+    if (query.name) {
+      filter.name = { $regex: query.name, $options: 'i' };
+    }
+
+    if (query.key) {
+      filter.key = query.key;
+    }
+
+    return this.model.find(filter);
   }
 
   async findOne(id: number): Promise<ProjectDocument> {
-    const project = this.model.findOne({ id }).exec();
+    const project = this.model.findOne({ id });
 
     if (!project) {
       throw new NotFoundException(`No project found with id ${id}.`);
@@ -54,7 +56,7 @@ export class ProjectsService implements OnModuleInit {
     return project;
   }
 
-  async create(dto: CreateProjectDto): Promise<Project> {
+  async create(dto: CreateProjectDto): Promise<ProjectDocument> {
     const taken = this.model.findOne({ key: dto.key });
 
     if (taken) {
@@ -73,7 +75,6 @@ export class ProjectsService implements OnModuleInit {
       description: dto.description || '',
     });
 
-    // this.projects.push(project);
     return project;
   }
 
