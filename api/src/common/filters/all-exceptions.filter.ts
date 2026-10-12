@@ -30,6 +30,8 @@ export class AllExceptionsFilter implements ExceptionFilter {
       statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
       message: 'Internal server error',
       path: request.url,
+      timestamp: new Date().toISOString(),
+      method: request.method,
       team: 'B4F',
       timestamp: new Date().toISOString(),
       method: request.method,
