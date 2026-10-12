@@ -55,7 +55,7 @@ export class ProjectsService implements OnModuleInit {
   }
 
   async create(dto: CreateProjectDto): Promise<Project> {
-    const taken = this.model.findOne({ key: dto.key });
+    const taken = await this.model.findOne({ key: dto.key });
 
     if (taken) {
       throw new ConflictException(
@@ -64,7 +64,8 @@ export class ProjectsService implements OnModuleInit {
     }
 
     const last = await this.model.findOne().sort({ id: -1 });
-    const id = (last.id || 0) + 1;
+
+    const id = (last?.id || 0) + 1;
 
     const project = await this.model.insertOne({
       id,
@@ -73,10 +74,8 @@ export class ProjectsService implements OnModuleInit {
       description: dto.description || '',
     });
 
-    // this.projects.push(project);
     return project;
   }
-
   async update(id: number, dto: UpdateProjectDto): Promise<ProjectDocument> {
     const project = await this.findOne(id);
 
