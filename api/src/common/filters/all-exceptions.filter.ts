@@ -7,7 +7,6 @@ import {
   Logger,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
-import { timestamp } from 'rxjs';
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
@@ -17,7 +16,8 @@ export class AllExceptionsFilter implements ExceptionFilter {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
-    //CHALLENGE:
+
+    // CHALLENGE:
     // This check is crucial because it allows our application's intentional errors
     // (like 404 NotFound or 400 Validation errors) to pass through to the client exactly as they are.
     // It prevents the filter from overwriting our correct error responses with a generic 500 error.
@@ -27,6 +27,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
     }
 
     this.logger.error(exception);
+
     response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
       statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
       message: 'Internal server error',
@@ -34,8 +35,6 @@ export class AllExceptionsFilter implements ExceptionFilter {
       timestamp: new Date().toISOString(),
       method: request.method,
       team: 'B4F',
-      timestamp:new Date().toISOString,
-      method: request.method,
     });
   }
 }
