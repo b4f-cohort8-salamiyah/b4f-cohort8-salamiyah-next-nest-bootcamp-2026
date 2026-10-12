@@ -36,8 +36,8 @@ export class ProjectsController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() dto: UpdateProjectDto) {
-    return this.projectsService.update(Number(id), dto);
+  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateProjectDto) {
+    return this.projectsService.update(id, dto);
   }
 
   @Get('key/:key')
