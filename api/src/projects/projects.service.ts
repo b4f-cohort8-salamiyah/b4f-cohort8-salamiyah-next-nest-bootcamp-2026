@@ -17,10 +17,6 @@ const seedProjects = [
   { id: 3, name: 'Mobile App', key: 'MOB', description: 'iOS and Android' },
 ];
 
-export interface projectsState {
-  total: number;
-}
-
 @Injectable()
 export class ProjectsService implements OnModuleInit {
   constructor(
@@ -122,5 +118,15 @@ export class ProjectsService implements OnModuleInit {
 
   async stats(): Promise<{ total: number }> {
     return { total: await this.model.countDocuments() };
+  }
+
+  async findOneAndDelete(id: number): Promise<void> {
+    const match = await this.model.findById(id);
+
+    if (!match) {
+      throw new NotFoundException(`No project found with id ${id}.`);
+    }
+
+    this.model.deleteOne({ id: id });
   }
 }

@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   ParseIntPipe,
@@ -45,5 +46,10 @@ export class ProjectsController {
   @Get('key/:key')
   findByKey(@Param('key') key: string) {
     return this.projectsService.findByKey(key);
+  }
+
+  @Delete(':id')
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.projectsService.findOneAndDelete(id);
   }
 }
