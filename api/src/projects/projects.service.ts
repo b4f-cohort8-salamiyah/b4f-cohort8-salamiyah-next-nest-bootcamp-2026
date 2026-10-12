@@ -47,7 +47,7 @@ export class ProjectsService implements OnModuleInit {
   }
 
   async findOne(id: number): Promise<ProjectDocument> {
-    const project = this.model.findOne({ id });
+    const project = await this.model.findOne({ id });
 
     if (!project) {
       throw new NotFoundException(`No project found with id ${id}.`);
@@ -56,10 +56,10 @@ export class ProjectsService implements OnModuleInit {
     return project;
   }
 
-  async create(dto: CreateProjectDto): Promise<Project> {
+
+  async create(dto: CreateProjectDto): Promise<ProjectDocument> {
     const taken = await this.model.findOne({ key: dto.key });
-
-
+s
     if (taken) {
       throw new ConflictException(
         `key "${dto.key}" is already used by another project.`,
