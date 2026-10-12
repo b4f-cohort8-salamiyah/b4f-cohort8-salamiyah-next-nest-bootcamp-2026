@@ -106,6 +106,17 @@ export class ProjectsService implements OnModuleInit {
     return project.save();
   }
 
+  // Every method in this service queries by the app's own `id` field instead of MongoDB's `_id` because the app treats `id` as the stable business key that every controller, API consumer, and database check uses. If even one method queried by `_id` instead, the app would break its own contract: a GET/DELETE/UPDATE by the API-facing numeric id would no longer match the document that was created and read via the app's custom id values, and the app could silently fail to find records that exist in MongoDB under the business id.
+  async remove(id: number): Promise<ProjectDocument> {
+    const project = await this.model.findOneAndDelete({ id });
+
+    if (!project) {
+      throw new NotFoundException(`No project found with id ${id}.`);
+    }
+
+    return project;
+  }
+
   async findByKey(key: string): Promise<ProjectDocument> {
     const project = await this.model.findOne({ key: key });
 

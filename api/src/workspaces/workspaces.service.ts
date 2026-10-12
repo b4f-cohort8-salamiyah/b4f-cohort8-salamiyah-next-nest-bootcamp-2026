@@ -113,6 +113,16 @@ export class WorkspacesService implements OnModuleInit {
     return workspace.save();
   }
 
+  async remove(id: number): Promise<WorkspaceDocument> {
+    const workspace = await this.model.findOneAndDelete({ id }).exec();
+
+    if (!workspace) {
+      throw new NotFoundException(`No workspace found with id ${id}.`);
+    }
+
+    return workspace;
+  }
+
   async findBySlug(slug: string): Promise<WorkspaceDocument> {
     const workspace = await this.model.findOne({ slug }).exec();
 

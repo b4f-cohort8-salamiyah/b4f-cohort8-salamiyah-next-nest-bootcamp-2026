@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   ParseIntPipe,
@@ -38,6 +39,11 @@ export class WorkspacesController {
     @Body() dto: UpdateWorkspaceDto,
   ) {
     return this.workspacesService.update(id, dto);
+  }
+
+  @Delete(':id')
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.workspacesService.remove(id);
   }
 
   @Get('slug/:slug')
