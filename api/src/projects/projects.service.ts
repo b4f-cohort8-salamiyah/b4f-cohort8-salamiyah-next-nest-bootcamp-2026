@@ -9,13 +9,7 @@ import { CreateProjectDto } from './dto/create-project.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Project, ProjectDocument } from './schemas/project.schema';
 import { Model } from 'mongoose';
-
-// export interface Project {
-//   id: number;
-//   name: string;
-//   key: string;
-//   description: string;
-// }
+import { FindProjectsQueryDto } from './dto/find-projects-query.dto';
 
 const seedProjects = [
   { id: 1, name: 'Web App', key: 'WEB', description: 'Customer UI' },
@@ -25,8 +19,6 @@ const seedProjects = [
 
 @Injectable()
 export class ProjectsService implements OnModuleInit {
-  private readonly projects: Project[] = seedProjects;
-  private nextId = seedProjects.length + 1;
   constructor(
     @InjectModel(Project.name)
     private readonly model: Model<ProjectDocument>,
@@ -40,12 +32,22 @@ export class ProjectsService implements OnModuleInit {
     }
   }
 
-  findAll(): Project[] {
-    return this.projects;
+  async findAll(query: FindProjectsQueryDto): Promise<ProjectDocument[]> {
+    const filter: Record<string, unknown> = {};
+
+    if (query.name) {
+      filter.name = { $regex: query.name, $options: 'i' };
+    }
+
+    if (query.key) {
+      filter.key = query.key;
+    }
+
+    return this.model.find(filter);
   }
 
-  findOne(id: number): Project {
-    const project = this.projects.find((candidate) => candidate.id === id);
+  async findOne(id: number): Promise<ProjectDocument> {
+    const project = this.model.findOne({ id });
 
     if (!project) {
       throw new NotFoundException(`No project found with id ${id}.`);
@@ -54,8 +56,8 @@ export class ProjectsService implements OnModuleInit {
     return project;
   }
 
-  create(dto: CreateProjectDto): Project {
-    const taken = this.projects.some((candidate) => candidate.key === dto.key);
+  async create(dto: CreateProjectDto): Promise<ProjectDocument> {
+    const taken = this.model.findOne({ key: dto.key });
 
     if (taken) {
       throw new ConflictException(
@@ -63,24 +65,24 @@ export class ProjectsService implements OnModuleInit {
       );
     }
 
-    const project: Project = {
-      id: this.nextId++,
+    const last = await this.model.findOne().sort({ id: -1 });
+    const id = (last.id || 0) + 1;
+
+    const project = await this.model.insertOne({
+      id,
       name: dto.name,
       key: dto.key,
       description: dto.description || '',
-    };
+    });
 
-    this.projects.push(project);
     return project;
   }
 
-  update(id: number, dto: UpdateProjectDto): Project {
-    const project = this.findOne(id);
+  async update(id: number, dto: UpdateProjectDto): Promise<ProjectDocument> {
+    const project = await this.findOne(id);
 
     if (dto?.key !== undefined) {
-      const taken = this.projects.some(
-        (candidate) => candidate.id !== id && candidate.key === dto.key,
-      );
+      const taken = await this.model.findOne({ key: dto.key, id: { $ne: id } });
 
       if (taken) {
         throw new ConflictException(
@@ -101,11 +103,11 @@ export class ProjectsService implements OnModuleInit {
       project.description = dto.description;
     }
 
-    return project;
+    return project.save();
   }
 
-  findByKey(key: string): Project {
-    const project = this.projects.find((candidate) => candidate.key === key);
+  async findByKey(key: string): Promise<ProjectDocument> {
+    const project = await this.model.findOne({ key: key });
 
     if (!project) {
       throw new NotFoundException(`No project found with key "${key}".`);
@@ -114,7 +116,7 @@ export class ProjectsService implements OnModuleInit {
     return project;
   }
 
-  stats(): { total: number } {
-    return { total: this.projects.length };
+  async stats(): Promise<{ total: number }> {
+    return { total: await this.model.countDocuments() };
   }
 }
