@@ -7,6 +7,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
+import { timestamp } from 'rxjs';
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
@@ -33,7 +34,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
       timestamp: new Date().toISOString(),
       method: request.method,
       team: 'B4F',
-      timestamp: new Date().toISOString(),
+      timestamp:new Date().toISOString,
       method: request.method,
     });
   }
