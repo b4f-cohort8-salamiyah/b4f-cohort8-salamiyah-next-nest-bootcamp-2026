@@ -56,10 +56,9 @@ export class ProjectsService implements OnModuleInit {
     return project;
   }
 
-
   async create(dto: CreateProjectDto): Promise<ProjectDocument> {
     const taken = await this.model.findOne({ key: dto.key });
-s
+
     if (taken) {
       throw new ConflictException(
         `key "${dto.key}" is already used by another project.`,
@@ -119,5 +118,15 @@ s
 
   async stats(): Promise<{ total: number }> {
     return { total: await this.model.countDocuments() };
+  }
+
+  async remove(id: number): Promise<Project> {
+    const deletedProject = await this.model.findOneAndDelete({ id });
+
+    if (!deletedProject) {
+      throw new NotFoundException(`Project with id ${id} not found`);
+    }
+
+    return deletedProject;
   }
 }

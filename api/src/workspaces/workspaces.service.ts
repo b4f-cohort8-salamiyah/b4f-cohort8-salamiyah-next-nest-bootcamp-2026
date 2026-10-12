@@ -1,106 +1,96 @@
 import {
-  ConflictException,
   Injectable,
+  OnModuleInit,
   NotFoundException,
+  ConflictException,
 } from '@nestjs/common';
-import { UpdateWorkspaceDto } from './dto/update-workspace.dto';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { Workspace } from './schemas/workspace.schema';
 import { CreateWorkspaceDto } from './dto/create-workspace.dto';
-
-export interface Workspace {
-  id: number;
-  name: string;
-  slug: string;
-  description: string;
-}
-
-const seedWorkspaces: Workspace[] = [
-  {
-    id: 1,
-    name: 'Acme Robotics',
-    slug: 'acme-robotics',
-    description: 'Internal tools',
-  },
-  { id: 2, name: 'Nova Labs', slug: 'nova-labs', description: 'Prototypes' },
-];
+import { UpdateWorkspaceDto } from './dto/update-workspace.dto';
+import { FindWorkspacesQueryDto } from './dto/find-workspaces-query.dto';
 
 @Injectable()
-export class WorkspacesService {
-  private readonly workspaces: Workspace[] = seedWorkspaces;
-  private nextId = seedWorkspaces.length + 1;
+export class WorkspacesService implements OnModuleInit {
+  constructor(@InjectModel(Workspace.name) private model: Model<Workspace>) {}
 
-  findAll(): Workspace[] {
-    return this.workspaces;
+  async onModuleInit() {
+    const count = await this.model.countDocuments();
+    if (count === 0) {
+      await this.model.insertMany([
+        {
+          id: 1,
+          name: 'Nova Engineering',
+          slug: 'nova-eng',
+          description: 'Engineering team',
+        },
+        {
+          id: 2,
+          name: 'Acme Robotics',
+          slug: 'acme-robotics',
+          description: 'Robotics lab',
+        },
+      ]);
+    }
   }
 
-  findOne(id: number): Workspace {
-    const workspace = this.workspaces.find((candidate) => candidate.id === id);
+  async findAll(query: FindWorkspacesQueryDto): Promise<Workspace[]> {
+    return this.model.find(query);
+  }
 
+  async findOne(id: number): Promise<Workspace> {
+    const workspace = await this.model.findOne({ id });
     if (!workspace) {
-      throw new NotFoundException(`No workspace found with id ${id}.`);
+      throw new NotFoundException(`Workspace with id ${id} not found`);
     }
-
     return workspace;
   }
 
-  create(dto: CreateWorkspaceDto): Workspace {
-    const taken = this.workspaces.some(
-      (candidate) => candidate.slug === dto.slug,
-    );
-
+  async create(dto: CreateWorkspaceDto): Promise<Workspace> {
+    const taken = await this.model.findOne({ slug: dto.slug });
     if (taken) {
-      throw new ConflictException(
-        `slug "${dto.slug}" is already used by another workspace.`,
-      );
+      throw new ConflictException(`slug "${dto.slug}" is already used.`);
     }
 
-    const workspace: Workspace = {
-      id: this.nextId++,
+    const last = await this.model.findOne().sort({ id: -1 });
+    const id = (last?.id || 0) + 1;
+
+    const workspace = await this.model.create({
+      id,
       name: dto.name,
       slug: dto.slug,
       description: dto.description || '',
-    };
-    this.workspaces.push(workspace);
+    });
+
     return workspace;
   }
+  async remove(id: number): Promise<Workspace> {
+    const deletedWorkspace = await this.model.findOneAndDelete({ id });
 
-  update(id: number, dto: UpdateWorkspaceDto): Workspace {
-    const workspace = this.findOne(id);
+    if (!deletedWorkspace) {
+      throw new NotFoundException(`Workspace with id ${id} not found`);
+    }
 
-    if (dto?.slug !== undefined) {
-      const taken = this.workspaces.some(
-        (candidate) => candidate.id !== id && candidate.slug === dto.slug,
-      );
+    return deletedWorkspace;
+  }
+
+  async update(id: number, dto: UpdateWorkspaceDto): Promise<Workspace> {
+    const workspace = await this.findOne(id); // للتحقق من وجوده
+
+    if (dto.slug && dto.slug !== workspace.slug) {
+      const taken = await this.model.findOne({ slug: dto.slug });
       if (taken) {
-        throw new ConflictException(
-          `slug "${dto.slug}" is already used by another workspace.`,
-        );
+        throw new ConflictException(`slug "${dto.slug}" is already used.`);
       }
     }
 
-    if (dto?.name !== undefined) {
-      workspace.name = dto.name;
-    }
-
-    if (dto?.slug !== undefined) {
-      workspace.slug = dto.slug;
-    }
-
-    if (dto?.description !== undefined) {
-      workspace.description = dto.description;
-    }
-
-    return workspace;
-  }
-
-  findBySlug(slug: string): Workspace {
-    const workspace = this.workspaces.find(
-      (candidate) => candidate.slug === slug,
+    const updated = await this.model.findOneAndUpdate(
+      { id },
+      { $set: dto },
+      { new: true },
     );
 
-    if (!workspace) {
-      throw new NotFoundException(`No workspace found with slug "${slug}".`);
-    }
-
-    return workspace;
+    return updated;
   }
 }

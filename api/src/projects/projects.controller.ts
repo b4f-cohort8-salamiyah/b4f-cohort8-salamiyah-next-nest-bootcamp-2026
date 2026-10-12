@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   ParseIntPipe,
@@ -20,6 +21,11 @@ export class ProjectsController {
   @Get()
   findAll(@Query() query: FindProjectsQueryDto) {
     return this.projectsService.findAll(query);
+  }
+
+  @Delete(':id')
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.projectsService.remove(id);
   }
 
   @Get('stats')
