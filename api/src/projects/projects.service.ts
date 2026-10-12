@@ -119,4 +119,14 @@ export class ProjectsService implements OnModuleInit {
   async stats(): Promise<{ total: number }> {
     return { total: await this.model.countDocuments() };
   }
+  // All project methods use the application's own numeric `id` field consistently.
+  // MongoDB's `_id` is a different identifier. If one method used `_id` instead,
+  // it could fail to find or delete a project even when the application's `id` is correct.
+  async remove(id: number) {
+    const project = await this.model.findOneAndDelete({ id });
+    if (!project) {
+      throw new NotFoundException(`No project found with id ${id}.`);
+    }
+    return project;
+  }
 }
