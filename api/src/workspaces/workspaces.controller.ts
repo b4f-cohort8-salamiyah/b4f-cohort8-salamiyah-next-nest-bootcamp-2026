@@ -1,36 +1,50 @@
-import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Query,
+  ParseIntPipe,
+} from '@nestjs/common';
 import { WorkspacesService } from './workspaces.service';
-import { UpdateWorkspaceDto } from './dto/update-workspace.dto';
 import { CreateWorkspaceDto } from './dto/create-workspace.dto';
+import { UpdateWorkspaceDto } from './dto/update-workspace.dto';
+import { FindWorkspacesQueryDto } from './dto/find-workspaces-query.dto';
 
 @Controller('workspaces')
 export class WorkspacesController {
   constructor(private readonly workspacesService: WorkspacesService) {}
 
-  @Get()
-  findAll() {
-    return this.workspacesService.findAll();
+  @Post()
+  create(@Body() createWorkspaceDto: CreateWorkspaceDto) {
+    return this.workspacesService.create(createWorkspaceDto);
   }
 
-  
+  @Get()
+  findAll(@Query() query: FindWorkspacesQueryDto) {
+    return this.workspacesService.findAll(query);
+  }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.workspacesService.findOne(Number(id));
-  }
-
-  @Post()
-  create(@Body() dto: CreateWorkspaceDto) {
-    return this.workspacesService.create(dto);
+  findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.workspacesService.findOne(id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() dto: UpdateWorkspaceDto) {
-    return this.workspacesService.update(Number(id), dto);
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateWorkspaceDto: UpdateWorkspaceDto,
+  ) {
+    return this.workspacesService.update(id, updateWorkspaceDto);
   }
 
-  @Get('slug/:slug')
-  findBySlug(@Param('slug') slug: string) {
-    return this.workspacesService.findBySlug(slug);
+  @Delete(':id')
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.workspacesService.remove(id);
   }
+
+
 }

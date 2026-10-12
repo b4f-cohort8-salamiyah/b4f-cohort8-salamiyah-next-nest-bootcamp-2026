@@ -5,6 +5,7 @@ import {
   Param,
   ParseIntPipe,
   Patch,
+  Delete,
   Post,
   Query,
 } from '@nestjs/common';
@@ -49,4 +50,8 @@ export class ProjectsController {
     return this.projectsService.findByKey(key);
   }
 
+   @Delete(':id')
+remove(@Param('id', ParseIntPipe) id: number) {
+  return this.projectsService.remove(id);
+}
 }
