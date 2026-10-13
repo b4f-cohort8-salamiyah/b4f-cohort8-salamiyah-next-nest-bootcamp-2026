@@ -11,20 +11,15 @@ import {
 } from '@nestjs/common';
 import { WorkspacesService } from './workspaces.service';
 import { CreateWorkspaceDto } from './dto/create-workspace.dto';
-import { FindWorkspaceQueryDto } from './dto/find-workspace-query.dto';
+import { FindWorkspacesQueryDto } from './dto/find-workspaces-query.dto';
 
 @Controller('workspaces')
 export class WorkspacesController {
   constructor(private readonly workspacesService: WorkspacesService) {}
 
   @Get()
-  findall(@Query() query: FindWorkspaceQueryDto) {
+  findAll(@Query() query: FindWorkspacesQueryDto) {
     return this.workspacesService.findAll(query);
-  }
-
-  @Get('stats')
-  stats() {
-    return this.workspacesService.stats();
   }
 
   @Get(':id')
@@ -40,9 +35,9 @@ export class WorkspacesController {
   @Patch(':id')
   update(
     @Param('id', ParseIntPipe) id: number,
-    @Body() body: { name?: string; key?: string },
+    @Body() dto: UpdateWorkspaceDto,
   ) {
-    return this.workspacesService.update(id, body);
+    return this.workspacesService.update(id, dto);
   }
 
   @Get('slug/:slug')

@@ -10,12 +10,16 @@ import { CreateWorkspaceDto } from './dto/create-workspace.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Workspace, WorkspaceDocument } from './schemas/workspace.schema';
 import { Model } from 'mongoose';
-import { FindWorkspaceQueryDto } from './dto/find-workspace-query.dto';
+import { FindWorkspacesQueryDto } from './dto/find-workspaces-query.dto';
 
 const seedWorkspaces = [
-  { id: 1, name: 'Web App', slug: 'WEB', description: 'Customer UI' },
-  { id: 2, name: 'Backend API', slug: 'API', description: 'Core services' },
-  { id: 3, name: 'Mobile App', slug: 'MOB', description: 'iOS and Android' },
+  {
+    id: 1,
+    name: 'Acme Robotics',
+    slug: 'acme-robotics',
+    description: 'Internal tools',
+  },
+  { id: 2, name: 'Nova Labs', slug: 'nova-labs', description: 'Prototypes' },
 ];
 
 @Injectable()
@@ -33,7 +37,7 @@ export class WorkspacesService implements OnModuleInit {
     }
   }
 
-  findAll(query: FindWorkspaceQueryDto): Promise<WorkspaceDocument[]> {
+  async findAll(query: FindWorkspacesQueryDto): Promise<WorkspaceDocument[]> {
     const filter: Record<string, unknown> = {};
 
     if (query.name) {
@@ -66,17 +70,17 @@ export class WorkspacesService implements OnModuleInit {
       );
     }
 
-    const last = await this.model.findOne().sort({ id: -1 });
-    const id = (last?.id || 0) + 1;
+    const last = await this.model.findOne().sort({ id: -1 }).exec();
+    const id = (last?.id ?? 0) + 1;
 
-    const workspace = await this.model.insertOne({
+    const workspace = new this.model({
       id,
       name: dto.name,
       slug: dto.slug,
       description: dto.description || '',
     });
 
-    return workspace;
+    return workspace.save();
   }
 
   async update(
@@ -86,11 +90,7 @@ export class WorkspacesService implements OnModuleInit {
     const workspace = await this.findOne(id);
 
     if (dto?.slug !== undefined) {
-      const taken = await this.model.findOne({
-        slug: dto.slug,
-        id: { $ne: id },
-      });
-
+      const taken = this.model.findOne({ slug: dto.slug, id: { $ne: id } });
       if (taken) {
         throw new ConflictException(
           `slug "${dto.slug}" is already used by another workspace.`,
@@ -114,17 +114,13 @@ export class WorkspacesService implements OnModuleInit {
   }
 
   async findBySlug(slug: string): Promise<WorkspaceDocument> {
-    const workspace = await this.model.findOne({ slug: slug });
+    const workspace = await this.model.findOne({ slug });
 
     if (!workspace) {
       throw new NotFoundException(`No project found with key "${slug}".`);
     }
 
     return workspace;
-  }
-
-  async stats(): Promise<{ total: number }> {
-    return { total: await this.model.countDocuments() };
   }
 
   async remove(id: number): Promise<WorkspaceDocument> {
