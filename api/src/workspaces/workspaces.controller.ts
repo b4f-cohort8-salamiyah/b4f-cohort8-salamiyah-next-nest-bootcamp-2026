@@ -39,6 +39,14 @@ export class WorkspacesController {
     @Body() dto: UpdateWorkspaceDto,
   ) {
     return this.workspacesService.update(id, dto);
+<<<<<<< HEAD
+=======
+  }
+
+  @Delete(':id')
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.workspacesService.remove(id);
+>>>>>>> c20caf700f10ce2d95db03f86ed7f1ecd3ab1c7e
   }
 
   @Get('slug/:slug')

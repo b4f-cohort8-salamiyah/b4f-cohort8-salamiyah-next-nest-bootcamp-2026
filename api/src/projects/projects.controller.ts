@@ -63,7 +63,15 @@ export class ProjectsController {
     return this.projectsService.update(id, dto);
   }
 
+<<<<<<< HEAD
   @ApiOperation({ summary: 'Get one project by its key' })
+=======
+  @Delete(':id')
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.projectsService.remove(id);
+  }
+
+>>>>>>> c20caf700f10ce2d95db03f86ed7f1ecd3ab1c7e
   @Get('key/:key')
   findByKey(@Param('key') key: string) {
     return this.projectsService.findByKey(key);
