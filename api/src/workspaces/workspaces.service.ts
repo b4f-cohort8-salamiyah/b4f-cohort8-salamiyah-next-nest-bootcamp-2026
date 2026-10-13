@@ -36,6 +36,7 @@ const seedWorkspaces = [
 @Injectable()
 export class WorkspacesService implements OnModuleInit {
   private readonly logger = new Logger(WorkspacesService.name);
+
   constructor(
     @InjectModel(Workspace.name)
     private readonly model: Model<WorkspaceDocument>,
@@ -105,14 +106,8 @@ export class WorkspacesService implements OnModuleInit {
     const workspace = await this.findOne(id);
 
     if (dto?.slug !== undefined) {
-<<<<<<< HEAD
-      const taken = this.model.findOne({ slug: dto.slug, id: { $ne: id } });
-=======
-      const taken = this.workspaces.some(
-        (candidate) => candidate.id !== id && candidate.slug === dto.slug,
-      );
+      const taken = await this.model.findOne({ slug: dto.slug, id: { $ne: id } });
 
->>>>>>> 91be62fcf80969fab353b7583a0dcda3d7136449
       if (taken) {
         throw new ConflictException(
           `slug "${dto.slug}" is already used by another workspace.`,
@@ -149,7 +144,6 @@ export class WorkspacesService implements OnModuleInit {
     return workspace;
   }
 
-<<<<<<< HEAD
   async remove(id: number): Promise<WorkspaceDocument> {
     const deleted = await this.model.findOneAndDelete({ id });
 
@@ -160,20 +154,6 @@ export class WorkspacesService implements OnModuleInit {
     this.logger.log(`Deleted workspace ${id} ("${deleted.name}")`);
 
     return deleted;
-=======
-  findBySlug(slug:string):Workspace{
-    if (slug !== undefined) {
-      const workSpace = this.workspaces.find(
-        (candidate) => candidate.slug === slug
-      );
-      if (!workSpace) {
-        throw new NotFoundException(
-          `there is no workspace with the slug :  "${slug}".`,
-        );
-      }
-      return workSpace;
-    }
->>>>>>> 91be62fcf80969fab353b7583a0dcda3d7136449
   }
 }
 
