@@ -66,7 +66,7 @@ export class ProjectsService implements OnModuleInit {
     }
 
     const last = await this.model.findOne().sort({ id: -1 });
-    const id = (last.id || 0) + 1;
+    const id = (last?.id || 0) + 1;
 
     const project = await this.model.insertOne({
       id,
@@ -118,5 +118,17 @@ export class ProjectsService implements OnModuleInit {
 
   async stats(): Promise<{ total: number }> {
     return { total: await this.model.countDocuments() };
+  }
+
+  // Our routes use the numeric app id; MongoDB's _id is a different ObjectId.
+  // Mixing them would make a valid API id fail to match the same document.
+  async remove(id: number): Promise<ProjectDocument> {
+    const project = await this.model.findOneAndDelete({ id });
+
+    if (!project) {
+      throw new NotFoundException(`No project found with id ${id}.`);
+    }
+
+    return project;
   }
 }

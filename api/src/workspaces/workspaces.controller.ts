@@ -1,4 +1,13 @@
-import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+} from '@nestjs/common';
 import { WorkspacesService } from './workspaces.service';
 import { UpdateWorkspaceDto } from './dto/update-workspace.dto';
 import { CreateWorkspaceDto } from './dto/create-workspace.dto';
@@ -13,8 +22,8 @@ export class WorkspacesController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.workspacesService.findOne(Number(id));
+  findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.workspacesService.findOne(id);
   }
 
   @Post()
@@ -23,12 +32,20 @@ export class WorkspacesController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() dto: UpdateWorkspaceDto) {
-    return this.workspacesService.update(Number(id), dto);
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateWorkspaceDto,
+  ) {
+    return this.workspacesService.update(id, dto);
   }
 
   @Get('slug/:slug')
   findBySlug(@Param('slug') slug: string) {
     return this.workspacesService.findBySlug(slug);
+  }
+
+  @Delete(':id')
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.workspacesService.remove(id);
   }
 }
