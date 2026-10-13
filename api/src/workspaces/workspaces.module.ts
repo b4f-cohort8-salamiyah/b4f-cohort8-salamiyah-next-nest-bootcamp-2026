@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
-import { MongooseModule } from '@nestjs/mongoose';
-import { WorkspacesService } from './workspaces.service';
 import { WorkspacesController } from './workspaces.controller';
+import { WorkspacesService } from './workspaces.service';
+import { MongooseModule } from '@nestjs/mongoose';
 import { Workspace, WorkspaceSchema } from './schemas/workspace.schema';
 
 @Module({

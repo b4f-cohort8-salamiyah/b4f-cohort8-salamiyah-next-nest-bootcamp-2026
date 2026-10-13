@@ -6,8 +6,7 @@ export class CreateWorkspaceDto {
   @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
   @IsNotEmpty()
   name: string;
-  // Trimming the 'Slug' is critical because the ProjectsService checks it for uniqueness.
-  // Without trimming, " Slug" and "Slug" would coexist as if they were different, breaking validation.
+
   @IsString()
   @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
   @IsNotEmpty()

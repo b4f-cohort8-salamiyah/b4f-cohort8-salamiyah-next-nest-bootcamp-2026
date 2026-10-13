@@ -1,6 +1,7 @@
 import {
   ConflictException,
   Injectable,
+  Logger,
   NotFoundException,
   OnModuleInit,
 } from '@nestjs/common';
@@ -19,6 +20,8 @@ const seedProjects = [
 
 @Injectable()
 export class ProjectsService implements OnModuleInit {
+  private readonly logger = new Logger(ProjectsService.name);
+
   constructor(
     @InjectModel(Project.name)
     private readonly model: Model<ProjectDocument>,
@@ -66,8 +69,7 @@ export class ProjectsService implements OnModuleInit {
     }
 
     const last = await this.model.findOne().sort({ id: -1 });
-
-    const id = (last?.id || 0) + 1;
+    const id = (last.id || 0) + 1;
 
     const project = await this.model.insertOne({
       id,
@@ -76,8 +78,11 @@ export class ProjectsService implements OnModuleInit {
       description: dto.description || '',
     });
 
+    this.logger.log(`Created project ${project.id} ("${project.name}")`);
+
     return project;
   }
+
   async update(id: number, dto: UpdateProjectDto): Promise<ProjectDocument> {
     const project = await this.findOne(id);
 
@@ -103,7 +108,11 @@ export class ProjectsService implements OnModuleInit {
       project.description = dto.description;
     }
 
-    return project.save();
+    const saved = await project.save();
+
+    this.logger.log(`Updated project ${saved.id} ("${saved.name}")`);
+
+    return saved;
   }
 
   async findByKey(key: string): Promise<ProjectDocument> {
@@ -120,13 +129,15 @@ export class ProjectsService implements OnModuleInit {
     return { total: await this.model.countDocuments() };
   }
 
-  async remove(id: number): Promise<Project> {
-    const deletedProject = await this.model.findOneAndDelete({ id });
+  async remove(id: number): Promise<ProjectDocument> {
+    const deleted = await this.model.findOneAndDelete({ id });
 
-    if (!deletedProject) {
-      throw new NotFoundException(`Project with id ${id} not found`);
+    if (!deleted) {
+      throw new NotFoundException(`No project found with id ${id}.`);
     }
 
-    return deletedProject;
+    this.logger.log(`Deleted project ${id} ("${deleted.name}")`);
+
+    return deleted;
   }
 }
