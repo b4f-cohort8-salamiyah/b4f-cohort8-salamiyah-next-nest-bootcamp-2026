@@ -36,6 +36,8 @@ export class ProjectsController {
   }
 
   @ApiOperation({ summary: 'Get the number of projects' })
+  @UseGuards(InternalToolGuard)
+  @ApiHeader(INTERNAL_TOOL_HEADER)
   @Get('stats')
   stats() {
     return this.projectsService.stats();

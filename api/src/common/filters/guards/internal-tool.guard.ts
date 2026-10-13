@@ -10,7 +10,9 @@ import { Request } from 'express';
 @Injectable()
 export class InternalToolGuard implements CanActivate {
   constructor(private readonly config: ConfigService) {}
-
+  // this tool guard work like a gate that checks all the incoming requests 
+  // and checks if the user has the access key that only allowed devolopers has it 
+  // and if not returns a 409 response with message telling him he is not allowed to enter this endpoint 
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest<Request>();
     const providedKey = request.headers['x-internal-tool-key'];
