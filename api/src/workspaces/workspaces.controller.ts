@@ -26,7 +26,7 @@ const INTERNAL_TOOL_HEADER = {
 
 @ApiTags('workspaces')
 @Controller('workspaces')
-export class WorkspacesController {
+export class WorkSpacesController {
   constructor(private readonly workspacesService: WorkspacesService) {}
 
   @ApiOperation({

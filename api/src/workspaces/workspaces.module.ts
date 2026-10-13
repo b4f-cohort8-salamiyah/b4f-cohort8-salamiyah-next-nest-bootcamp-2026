@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
-import { WorkspacesController } from './workspaces.controller';
 import { WorkspacesService } from './workspaces.service';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Workspace, WorkspaceSchema } from './schemas/workspace.schema';
 import { InternalToolGuard } from 'src/common/filters/guards/internal-tool.guard';
+import { WorkSpacesController } from './workspaces.controller';
 
 @Module({
   imports: [
@@ -11,11 +11,7 @@ import { InternalToolGuard } from 'src/common/filters/guards/internal-tool.guard
       { name: Workspace.name, schema: WorkspaceSchema },
     ]),
   ],
-  controllers: [WorkspacesController],
+  controllers: [WorkSpacesController],
   providers: [WorkspacesService, InternalToolGuard],
 })
-<<<<<<< HEAD
 export class WorkspacesModule {}
-=======
-export class WorkspacesModule {}
->>>>>>> 62b1a02fa6b759d4f86ed0b7d9cff5c13c3cc355
