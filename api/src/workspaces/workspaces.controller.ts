@@ -52,6 +52,6 @@ export class WorkspacesController {
 
   @Delete(':id')
   remove(@Param('id', ParseIntPipe) id: number) {
-    return this.workspacesService.findOneAndDelete(id);
+    return this.workspacesService.remove(id);
   }
 }

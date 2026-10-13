@@ -67,7 +67,7 @@ export class WorkspacesService implements OnModuleInit {
     }
 
     const last = await this.model.findOne().sort({ id: -1 });
-    const id = (last.id || 0) + 1;
+    const id = (last?.id || 0) + 1;
 
     const workspace = await this.model.insertOne({
       id,
@@ -127,13 +127,13 @@ export class WorkspacesService implements OnModuleInit {
     return { total: await this.model.countDocuments() };
   }
 
-  async findOneAndDelete(id: number): Promise<void> {
-    const match = await this.model.findById(id);
+  async remove(id: number): Promise<WorkspaceDocument> {
+    const deleted = await this.model.findOneAndDelete({ id });
 
-    if (!match) {
+    if (!deleted) {
       throw new NotFoundException(`No workspace found with id ${id}.`);
     }
 
-    this.model.deleteOne({ id: id });
+    return deleted;
   }
 }

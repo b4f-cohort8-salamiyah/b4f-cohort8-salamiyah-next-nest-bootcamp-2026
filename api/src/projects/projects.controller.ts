@@ -50,6 +50,6 @@ export class ProjectsController {
 
   @Delete(':id')
   remove(@Param('id', ParseIntPipe) id: number) {
-    return this.projectsService.findOneAndDelete(id);
+    return this.projectsService.remove(id);
   }
 }
