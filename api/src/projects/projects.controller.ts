@@ -1,23 +1,26 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   ParseIntPipe,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import { ProjectsService } from './projects.service';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { CreateProjectDto } from './dto/create-project.dto';
+import { FindProjectsQueryDto } from './dto/find-projects-query.dto';
 
 @Controller('projects')
 export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}
 
   @Get()
-  findAll() {
-    return this.projectsService.findAll();
+  findAll(@Query() query: FindProjectsQueryDto) {
+    return this.projectsService.findAll(query);
   }
 
   @Get('stats')
@@ -36,12 +39,17 @@ export class ProjectsController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() dto: UpdateProjectDto) {
-    return this.projectsService.update(Number(id), dto);
+  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateProjectDto) {
+    return this.projectsService.update(id, dto);
   }
 
   @Get('key/:key')
   findByKey(@Param('key') key: string) {
     return this.projectsService.findByKey(key);
+  }
+
+  @Delete(':id')
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.projectsService.remove(id);
   }
 }
