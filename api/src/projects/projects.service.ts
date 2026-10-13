@@ -119,4 +119,14 @@ export class ProjectsService implements OnModuleInit {
   async stats(): Promise<{ total: number }> {
     return { total: await this.model.countDocuments() };
   }
+
+  async remove(id: number): Promise<ProjectDocument> {
+    const deleted = await this.model.findOneAndDelete({ id });
+
+    if (!deleted) {
+      throw new NotFoundException(`No project found with id ${id}.`);
+    }
+
+    return deleted;
+  }
 }
