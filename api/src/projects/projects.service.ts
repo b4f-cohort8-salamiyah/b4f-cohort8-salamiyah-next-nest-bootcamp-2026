@@ -1,6 +1,7 @@
 import {
   ConflictException,
   Injectable,
+  Logger,
   NotFoundException,
   OnModuleInit,
 } from '@nestjs/common';
@@ -19,6 +20,8 @@ const seedProjects = [
 
 @Injectable()
 export class ProjectsService implements OnModuleInit {
+  private readonly logger = new Logger(ProjectsService.name);
+
   constructor(
     @InjectModel(Project.name)
     private readonly model: Model<ProjectDocument>,
@@ -75,6 +78,8 @@ export class ProjectsService implements OnModuleInit {
       description: dto.description || '',
     });
 
+    this.logger.log(`Created project ${project.id} ("${project.name}")`);
+
     return project;
   }
 
@@ -103,7 +108,11 @@ export class ProjectsService implements OnModuleInit {
       project.description = dto.description;
     }
 
-    return project.save();
+    const saved = await project.save();
+
+    this.logger.log(`Updated project ${saved.id} ("${saved.name}")`);
+
+    return saved;
   }
 
   async findByKey(key: string): Promise<ProjectDocument> {
@@ -126,6 +135,8 @@ export class ProjectsService implements OnModuleInit {
     if (!deleted) {
       throw new NotFoundException(`No project found with id ${id}.`);
     }
+
+    this.logger.log(`Deleted project ${id} ("${deleted.name}")`);
 
     return deleted;
   }
