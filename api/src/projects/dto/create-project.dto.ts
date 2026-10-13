@@ -1,18 +1,21 @@
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class CreateProjectDto {
+  @ApiProperty({ example: 'Web App ' })
   @IsString()
   @Transform(({ value }) => value.trim())
   @IsNotEmpty()
   name: string;
-  // The key must be unique. If we don't trim it, " WEB" and "WEB" look
-  // different, but they are the same key.
+
+  @ApiProperty({ example: 'WEB ' })
   @IsString()
   @Transform(({ value }) => value.trim())
   @IsNotEmpty()
   key: string;
 
+  @ApiPropertyOptional({ example: 'Customer UI ' })
   @IsOptional()
   @IsString()
   @Transform(({ value }) => value.trim())
