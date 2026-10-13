@@ -47,7 +47,7 @@ export class ProjectsService implements OnModuleInit {
   }
 
   async findOne(id: number): Promise<ProjectDocument> {
-    const project = this.model.findOne({ id });
+    const project = await this.model.findOne({ id });
 
     if (!project) {
       throw new NotFoundException(`No project found with id ${id}.`);
@@ -57,7 +57,7 @@ export class ProjectsService implements OnModuleInit {
   }
 
   async create(dto: CreateProjectDto): Promise<ProjectDocument> {
-    const taken = this.model.findOne({ key: dto.key });
+    const taken = await this.model.findOne({ key: dto.key });
 
     if (taken) {
       throw new ConflictException(
@@ -118,5 +118,15 @@ export class ProjectsService implements OnModuleInit {
 
   async stats(): Promise<{ total: number }> {
     return { total: await this.model.countDocuments() };
+  }
+
+  async remove(id: number): Promise<ProjectDocument> {
+    const deleted = await this.model.findOneAndDelete({ id });
+
+    if (!deleted) {
+      throw new NotFoundException(`No project found with id ${id}.`);
+    }
+
+    return deleted;
   }
 }
