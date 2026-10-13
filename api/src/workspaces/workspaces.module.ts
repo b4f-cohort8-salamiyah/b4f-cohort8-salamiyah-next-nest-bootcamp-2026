@@ -14,4 +14,8 @@ import { InternalToolGuard } from 'src/common/filters/guards/internal-tool.guard
   controllers: [WorkspacesController],
   providers: [WorkspacesService, InternalToolGuard],
 })
+<<<<<<< HEAD
 export class WorkspacesModule {}
+=======
+export class WorkspacesModule {}
+>>>>>>> 62b1a02fa6b759d4f86ed0b7d9cff5c13c3cc355

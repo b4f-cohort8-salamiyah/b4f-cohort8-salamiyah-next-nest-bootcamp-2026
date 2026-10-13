@@ -29,8 +29,8 @@ const INTERNAL_TOOL_HEADER = {
 export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}
 
-  @ApiOperation({ summary: 'Get all projects' })
   @Get()
+  @ApiOperation({ summary: 'Get all projects' })
   findAll(@Query() query: FindProjectsQueryDto) {
     return this.projectsService.findAll(query);
   }
@@ -71,11 +71,12 @@ export class ProjectsController {
     return this.projectsService.findByKey(key);
   }
 
+  @Delete(':id')
   @ApiOperation({ summary: 'Delete a project' })
   @ApiHeader(INTERNAL_TOOL_HEADER)
   @UseGuards(InternalToolGuard)
-  @Delete(':id')
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.projectsService.remove(id);
   }
+  
 }

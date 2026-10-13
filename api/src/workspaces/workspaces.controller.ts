@@ -23,6 +23,7 @@ const INTERNAL_TOOL_HEADER = {
     'Required internal-tool access key (value not published here). This is access control, not authentication -- it does not identify who is calling.',
   required: true,
 };
+
 @ApiTags('workspaces')
 @Controller('workspaces')
 export class WorkspacesController {
@@ -75,3 +76,4 @@ export class WorkspacesController {
     return this.workspacesService.remove(id);
   }
 }
+
