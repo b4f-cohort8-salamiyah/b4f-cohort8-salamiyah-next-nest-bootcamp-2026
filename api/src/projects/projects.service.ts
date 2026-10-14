@@ -1,6 +1,7 @@
 import {
   ConflictException,
   Injectable,
+  Logger,
   NotFoundException,
   OnModuleInit,
 } from '@nestjs/common';
@@ -19,6 +20,8 @@ const seedProjects = [
 
 @Injectable()
 export class ProjectsService implements OnModuleInit {
+  private readonly logger = new Logger(ProjectsService.name);
+
   constructor(
     @InjectModel(Project.name)
     private readonly model: Model<ProjectDocument>,
@@ -68,12 +71,14 @@ export class ProjectsService implements OnModuleInit {
     const last = await this.model.findOne().sort({ id: -1 });
     const id = (last.id || 0) + 1;
 
-    const project = await this.model.create({
+    const project = await this.model.insertOne({
       id,
       name: dto.name,
       key: dto.key,
       description: dto.description || '',
     });
+
+    this.logger.log(`Created project ${project.id} ("${project.name}")`);
 
     return project;
   }
@@ -103,7 +108,11 @@ export class ProjectsService implements OnModuleInit {
       project.description = dto.description;
     }
 
-    return project.save();
+    const saved = await project.save();
+
+    this.logger.log(`Updated project ${saved.id} ("${saved.name}")`);
+
+    return saved;
   }
 
   async findByKey(key: string): Promise<ProjectDocument> {
@@ -119,14 +128,16 @@ export class ProjectsService implements OnModuleInit {
   async stats(): Promise<{ total: number }> {
     return { total: await this.model.countDocuments() };
   }
-  // All project methods use the application's own numeric `id` field consistently.
-  // MongoDB's `_id` is a different identifier. If one method used `_id` instead,
-  // it could fail to find or delete a project even when the application's `id` is correct.
-  async remove(id: number) {
-    const project = await this.model.findOneAndDelete({ id });
-    if (!project) {
+
+  async remove(id: number): Promise<ProjectDocument> {
+    const deleted = await this.model.findOneAndDelete({ id });
+
+    if (!deleted) {
       throw new NotFoundException(`No project found with id ${id}.`);
     }
-    return project;
+
+    this.logger.log(`Deleted project ${id} ("${deleted.name}")`);
+
+    return deleted;
   }
 }
