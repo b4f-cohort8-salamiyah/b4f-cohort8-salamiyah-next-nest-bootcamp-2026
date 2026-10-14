@@ -1,3 +1,10 @@
+/*
+ * Because it only checks if the request possesses the required secret key to proceed (access control), but it does not verify the identity of the specific user making the request (authentication).
+ *
+ * Because it centralizes the security logic in one place. This prevents human errors (like forgetting the check on a new route) and separates the security concern from the core business logic of the controller.
+ *
+ * The system will transition to verifying individual user identities and their specific roles/permissions using unique tokens, rather than relying on a single, static global secret key for all requests.
+ */
 import {
   Body,
   Controller,
@@ -14,8 +21,8 @@ import { ProjectsService } from './projects.service';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { FindProjectsQueryDto } from './dto/find-projects-query.dto';
-import { ApiHeader, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { InternalToolGuard } from 'src/common/filters/guards/internal-tool.guard';
+import { ApiHeader, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { InternalToolGuard } from '../common/filters/guards/internal-tool.guard';
 
 const INTERNAL_TOOL_HEADER = {
   name: 'x-internal-tool-key',
@@ -35,7 +42,16 @@ export class ProjectsController {
     return this.projectsService.findAll(query);
   }
 
-  @ApiOperation({ summary: 'Get the number of projects' })
+  @ApiOperation({
+    summary: 'Count how many projects exist (internal tool only)',
+  })
+  @ApiHeader(INTERNAL_TOOL_HEADER)
+  @ApiResponse({
+    status: 200,
+    description: 'Successfully returned the total count of projects.',
+  })
+  @ApiResponse({ status: 403, description: 'Forbidden.' })
+  @UseGuards(InternalToolGuard)
   @Get('stats')
   stats() {
     return this.projectsService.stats();
