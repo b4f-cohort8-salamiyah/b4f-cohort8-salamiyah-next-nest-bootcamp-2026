@@ -14,7 +14,12 @@ import { ProjectsService } from './projects.service';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { FindProjectsQueryDto } from './dto/find-projects-query.dto';
-import { ApiHeader, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiHeader,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { InternalToolGuard } from 'src/common/filters/guards/internal-tool.guard';
 
 const INTERNAL_TOOL_HEADER = {
@@ -35,7 +40,20 @@ export class ProjectsController {
     return this.projectsService.findAll(query);
   }
 
-  @ApiOperation({ summary: 'Get the number of projects' })
+  @ApiOperation({
+    summary: 'Count how many projects exist (internal tool only)',
+  })
+  @ApiHeader(INTERNAL_TOOL_HEADER)
+  @ApiResponse({
+    status: 200,
+    description: 'Project count returned successfully.',
+  })
+  @ApiResponse({
+    status: 403,
+    description:
+      'Forbidden. The x-internal-tool-key header is missing or invalid.',
+  })
+  @UseGuards(InternalToolGuard)
   @Get('stats')
   stats() {
     return this.projectsService.stats();
@@ -49,6 +67,15 @@ export class ProjectsController {
 
   @ApiOperation({ summary: 'Create a new project' })
   @ApiHeader(INTERNAL_TOOL_HEADER)
+  @ApiResponse({
+    status: 201,
+    description: 'Project created successfully.',
+  })
+  @ApiResponse({
+    status: 403,
+    description:
+      'Forbidden. The x-internal-tool-key header is missing or invalid.',
+  })
   @UseGuards(InternalToolGuard)
   @Post()
   create(@Body() dto: CreateProjectDto) {
@@ -57,21 +84,22 @@ export class ProjectsController {
 
   @ApiOperation({ summary: 'Update a project' })
   @ApiHeader(INTERNAL_TOOL_HEADER)
+  @ApiResponse({
+    status: 200,
+    description: 'Project updated successfully.',
+  })
+  @ApiResponse({
+    status: 403,
+    description:
+      'Forbidden. The x-internal-tool-key header is missing or invalid.',
+  })
   @UseGuards(InternalToolGuard)
   @Patch(':id')
   update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateProjectDto) {
     return this.projectsService.update(id, dto);
   }
 
-<<<<<<< HEAD
   @ApiOperation({ summary: 'Get one project by its key' })
-=======
-  @Delete(':id')
-  remove(@Param('id', ParseIntPipe) id: number) {
-    return this.projectsService.remove(id);
-  }
-
->>>>>>> c20caf700f10ce2d95db03f86ed7f1ecd3ab1c7e
   @Get('key/:key')
   findByKey(@Param('key') key: string) {
     return this.projectsService.findByKey(key);
@@ -79,6 +107,15 @@ export class ProjectsController {
 
   @ApiOperation({ summary: 'Delete a project' })
   @ApiHeader(INTERNAL_TOOL_HEADER)
+  @ApiResponse({
+    status: 200,
+    description: 'Project deleted successfully.',
+  })
+  @ApiResponse({
+    status: 403,
+    description:
+      'Forbidden. The x-internal-tool-key header is missing or invalid.',
+  })
   @UseGuards(InternalToolGuard)
   @Delete(':id')
   remove(@Param('id', ParseIntPipe) id: number) {
