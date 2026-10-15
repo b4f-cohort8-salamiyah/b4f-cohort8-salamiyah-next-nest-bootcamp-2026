@@ -2,12 +2,12 @@ import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsOptional, IsString } from 'class-validator';
 
 export class FindWorkspacesQueryDto {
-  @ApiPropertyOptional({ example: 'Web app' })
+  @ApiPropertyOptional({ example: 'Acme' })
   @IsOptional()
   @IsString()
   name?: string;
 
-  @ApiPropertyOptional({ example: 'WEB' })
+  @ApiPropertyOptional({ example: 'acme-robotics' })
   @IsOptional()
   @IsString()
   slug?: string;

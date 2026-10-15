@@ -13,7 +13,6 @@ import {
 import { WorkspacesService } from './workspaces.service';
 import { CreateWorkspaceDto } from './dto/create-workspace.dto';
 import { FindWorkspacesQueryDto } from './dto/find-workspaces-query.dto';
-import { UpdateWorkspaceDto } from './dto/update-workspace.dto';
 import { ApiHeader, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { InternalToolGuard } from 'src/common/filters/guards/internal-tool.guard';
 
@@ -23,19 +22,20 @@ const INTERNAL_TOOL_HEADER = {
     'Required internal-tool access key (value not published here). This is access control, not authentication -- it does not identify who is calling.',
   required: true,
 };
-
 @ApiTags('workspaces')
 @Controller('workspaces')
 export class WorkspacesController {
   constructor(private readonly workspacesService: WorkspacesService) {}
 
-  @ApiOperation({ summary: 'Get all workspaces' })
+  @ApiOperation({
+    summary: 'List workspaces, optionally filtered by name or slug',
+  })
   @Get()
   findAll(@Query() query: FindWorkspacesQueryDto) {
     return this.workspacesService.findAll(query);
   }
 
-  @ApiOperation({ summary: 'Find a workspace by its id' })
+  @ApiOperation({ summary: 'Get one workspace by its id' })
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.workspacesService.findOne(id);
