@@ -1,10 +1,3 @@
-/*
- * Because it only checks if the request possesses the required secret key to proceed (access control), but it does not verify the identity of the specific user making the request (authentication).
- *
- * Because it centralizes the security logic in one place. This prevents human errors (like forgetting the check on a new route) and separates the security concern from the core business logic of the controller.
- *
- * The system will transition to verifying individual user identities and their specific roles/permissions using unique tokens, rather than relying on a single, static global secret key for all requests.
- */
 import {
   Body,
   Controller,
@@ -42,15 +35,13 @@ export class ProjectsController {
     return this.projectsService.findAll(query);
   }
 
-  @ApiOperation({
-    summary: 'Count how many projects exist (internal tool only)',
-  })
+  @ApiOperation({ summary: 'Get the number of projects' })
   @ApiHeader(INTERNAL_TOOL_HEADER)
+  @ApiResponse({ status: 200, description: 'Returns the total project count.' })
   @ApiResponse({
-    status: 200,
-    description: 'Successfully returned the total count of projects.',
+    status: 403,
+    description: 'Missing or incorrect x-internal-tool-key.',
   })
-  @ApiResponse({ status: 403, description: 'Forbidden.' })
   @UseGuards(InternalToolGuard)
   @Get('stats')
   stats() {
@@ -65,6 +56,11 @@ export class ProjectsController {
 
   @ApiOperation({ summary: 'Create a new project' })
   @ApiHeader(INTERNAL_TOOL_HEADER)
+  @ApiResponse({ status: 201, description: 'The created project.' })
+  @ApiResponse({
+    status: 403,
+    description: 'Missing or incorrect x-internal-tool-key.',
+  })
   @UseGuards(InternalToolGuard)
   @Post()
   create(@Body() dto: CreateProjectDto) {
@@ -73,6 +69,11 @@ export class ProjectsController {
 
   @ApiOperation({ summary: 'Update a project' })
   @ApiHeader(INTERNAL_TOOL_HEADER)
+  @ApiResponse({ status: 200, description: 'The updated project.' })
+  @ApiResponse({
+    status: 403,
+    description: 'Missing or incorrect x-internal-tool-key.',
+  })
   @UseGuards(InternalToolGuard)
   @Patch(':id')
   update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateProjectDto) {
@@ -87,6 +88,11 @@ export class ProjectsController {
 
   @ApiOperation({ summary: 'Delete a project' })
   @ApiHeader(INTERNAL_TOOL_HEADER)
+  @ApiResponse({ status: 200, description: 'The deleted project.' })
+  @ApiResponse({
+    status: 403,
+    description: 'Missing or incorrect x-internal-tool-key.',
+  })
   @UseGuards(InternalToolGuard)
   @Delete(':id')
   remove(@Param('id', ParseIntPipe) id: number) {
