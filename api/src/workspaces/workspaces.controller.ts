@@ -13,7 +13,7 @@ import {
 import { WorkspacesService } from './workspaces.service';
 import { CreateWorkspaceDto } from './dto/create-workspace.dto';
 import { FindWorkspacesQueryDto } from './dto/find-workspaces-query.dto';
-import { ApiHeader, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiHeader, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { InternalToolGuard } from 'src/common/filters/guards/internal-tool.guard';
 import { UpdateWorkspaceDto } from './dto/update-workspace.dto';
 
@@ -44,6 +44,11 @@ export class WorkspacesController {
 
   @ApiOperation({ summary: 'Create a new workspace' })
   @ApiHeader(INTERNAL_TOOL_HEADER)
+  @ApiResponse({ status: 201, description: 'The created workspace.' })
+  @ApiResponse({
+    status: 403,
+    description: 'Missing or incorrect x-internal-tool-key.',
+  })
   @UseGuards(InternalToolGuard)
   @Post()
   create(@Body() dto: CreateWorkspaceDto) {
@@ -52,6 +57,11 @@ export class WorkspacesController {
 
   @ApiOperation({ summary: 'Update a workspace' })
   @ApiHeader(INTERNAL_TOOL_HEADER)
+  @ApiResponse({ status: 200, description: 'The updated workspace.' })
+  @ApiResponse({
+    status: 403,
+    description: 'Missing or incorrect x-internal-tool-key.',
+  })
   @UseGuards(InternalToolGuard)
   @Patch(':id')
   update(
@@ -69,6 +79,11 @@ export class WorkspacesController {
 
   @ApiOperation({ summary: 'Delete a workspace' })
   @ApiHeader(INTERNAL_TOOL_HEADER)
+  @ApiResponse({ status: 200, description: 'The deleted workspace.' })
+  @ApiResponse({
+    status: 403,
+    description: 'Missing or incorrect x-internal-tool-key.',
+  })
   @UseGuards(InternalToolGuard)
   @Delete(':id')
   remove(@Param('id', ParseIntPipe) id: number) {

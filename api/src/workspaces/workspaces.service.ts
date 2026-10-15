@@ -95,7 +95,10 @@ export class WorkspacesService implements OnModuleInit {
     const workspace = await this.findOne(id);
 
     if (dto?.slug !== undefined) {
-      const taken = this.model.findOne({ slug: dto.slug, id: { $ne: id } });
+      const taken = await this.model.findOne({
+        slug: dto.slug,
+        id: { $ne: id },
+      });
       if (taken) {
         throw new ConflictException(
           `slug "${dto.slug}" is already used by another workspace.`,
