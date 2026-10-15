@@ -14,12 +14,7 @@ import { WorkspacesService } from './workspaces.service';
 import { UpdateWorkspaceDto } from './dto/update-workspace.dto';
 import { CreateWorkspaceDto } from './dto/create-workspace.dto';
 import { FindWorkspacesQueryDto } from './dto/find-workspaces-query.dto';
-import {
-  ApiHeader,
-  ApiOperation,
-  ApiResponse,
-  ApiTags,
-} from '@nestjs/swagger';
+import { ApiHeader, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { InternalToolGuard } from 'src/common/filters/guards/internal-tool.guard';
 
 const INTERNAL_TOOL_HEADER = {
@@ -28,7 +23,6 @@ const INTERNAL_TOOL_HEADER = {
     'Required internal-tool access key (value not published here). This is access control, not authentication -- it does not identify who is calling.',
   required: true,
 };
-
 @ApiTags('workspaces')
 @Controller('workspaces')
 export class WorkspacesController {
@@ -50,15 +44,6 @@ export class WorkspacesController {
 
   @ApiOperation({ summary: 'Create a new workspace' })
   @ApiHeader(INTERNAL_TOOL_HEADER)
-  @ApiResponse({
-    status: 201,
-    description: 'Workspace created successfully.',
-  })
-  @ApiResponse({
-    status: 403,
-    description:
-      'Forbidden. The x-internal-tool-key header is missing or invalid.',
-  })
   @UseGuards(InternalToolGuard)
   @Post()
   create(@Body() dto: CreateWorkspaceDto) {
@@ -67,15 +52,6 @@ export class WorkspacesController {
 
   @ApiOperation({ summary: 'Update a workspace' })
   @ApiHeader(INTERNAL_TOOL_HEADER)
-  @ApiResponse({
-    status: 200,
-    description: 'Workspace updated successfully.',
-  })
-  @ApiResponse({
-    status: 403,
-    description:
-      'Forbidden. The x-internal-tool-key header is missing or invalid.',
-  })
   @UseGuards(InternalToolGuard)
   @Patch(':id')
   update(
@@ -93,15 +69,6 @@ export class WorkspacesController {
 
   @ApiOperation({ summary: 'Delete a workspace' })
   @ApiHeader(INTERNAL_TOOL_HEADER)
-  @ApiResponse({
-    status: 200,
-    description: 'Workspace deleted successfully.',
-  })
-  @ApiResponse({
-    status: 403,
-    description:
-      'Forbidden. The x-internal-tool-key header is missing or invalid.',
-  })
   @UseGuards(InternalToolGuard)
   @Delete(':id')
   remove(@Param('id', ParseIntPipe) id: number) {

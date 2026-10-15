@@ -25,7 +25,6 @@ const seedWorkspaces: Workspace[] = [
 @Injectable()
 export class WorkspacesService implements OnModuleInit {
   private readonly logger = new Logger(WorkspacesService.name);
-
   constructor(
     @InjectModel(Workspace.name)
     private readonly model: Model<WorkspaceDocument>,
@@ -80,8 +79,10 @@ export class WorkspacesService implements OnModuleInit {
       description: dto.description || '',
     });
 
-    this.logger.log(`Created workspace ${workspace.id} ("${workspace.name}")`);
-    return workspace;
+    const saved = await workspace.save();
+    this.logger.log(`Created workspace ${saved.id} ("${saved.name}")`);
+
+    return saved;
   }
 
   async update(
@@ -115,19 +116,10 @@ export class WorkspacesService implements OnModuleInit {
     }
 
     const saved = await workspace.save();
+
     this.logger.log(`Updated workspace ${saved.id} ("${saved.name}")`);
+
     return saved;
-  }
-
-  async remove(id: number): Promise<WorkspaceDocument> {
-    const workspace = await this.model.findOneAndDelete({ id }).exec();
-
-    if (!workspace) {
-      throw new NotFoundException(`No workspace found with id ${id}.`);
-    }
-
-    this.logger.log(`Deleted workspace ${workspace.id} ("${workspace.name}")`);
-    return workspace;
   }
 
   async findBySlug(slug: string): Promise<WorkspaceDocument> {
@@ -138,5 +130,17 @@ export class WorkspacesService implements OnModuleInit {
     }
 
     return workspace;
+  }
+
+  async remove(id: number): Promise<WorkspaceDocument> {
+    const deleted = await this.model.findOneAndDelete({ id });
+
+    if (!deleted) {
+      throw new NotFoundException(`No workspace found with id ${id}.`);
+    }
+
+    this.logger.log(`Deleted workspace ${id} ("${deleted.name}")`);
+
+    return deleted;
   }
 }
