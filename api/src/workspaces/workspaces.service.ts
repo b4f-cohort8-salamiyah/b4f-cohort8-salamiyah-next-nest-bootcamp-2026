@@ -1,6 +1,7 @@
 import {
   ConflictException,
   Injectable,
+  Logger,
   NotFoundException,
   OnModuleInit,
 } from '@nestjs/common';
@@ -23,6 +24,7 @@ const seedWorkspaces = [
 
 @Injectable()
 export class WorkspacesService implements OnModuleInit {
+  private readonly logger = new Logger(WorkspacesService.name);
   constructor(
     @InjectModel(Workspace.name)
     private readonly model: Model<WorkspaceDocument>,
@@ -79,7 +81,10 @@ export class WorkspacesService implements OnModuleInit {
       description: dto.description || '',
     });
 
-    return workspace.save();
+    const saved = await workspace.save();
+    this.logger.log(`Created workspace ${saved.id} ("${saved.name}")`);
+
+    return saved;
   }
 
   async update(
@@ -89,7 +94,10 @@ export class WorkspacesService implements OnModuleInit {
     const workspace = await this.findOne(id);
 
     if (dto?.slug !== undefined) {
-      const taken = this.model.findOne({ slug: dto.slug, id: { $ne: id } });
+      const taken = await this.model.findOne({
+        slug: dto.slug,
+        id: { $ne: id },
+      });
       if (taken) {
         throw new ConflictException(
           `slug "${dto.slug}" is already used by another workspace.`,
@@ -109,7 +117,11 @@ export class WorkspacesService implements OnModuleInit {
       workspace.description = dto.description;
     }
 
-    return workspace.save();
+    const saved = await workspace.save();
+
+    this.logger.log(`Updated workspace ${saved.id} ("${saved.name}")`);
+
+    return saved;
   }
 
   async findBySlug(slug: string): Promise<WorkspaceDocument> {
@@ -128,6 +140,8 @@ export class WorkspacesService implements OnModuleInit {
     if (!deleted) {
       throw new NotFoundException(`No workspace found with id ${id}.`);
     }
+
+    this.logger.log(`Deleted workspace ${id} ("${deleted.name}")`);
 
     return deleted;
   }
