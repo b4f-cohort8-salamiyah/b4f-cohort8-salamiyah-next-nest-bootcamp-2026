@@ -127,8 +127,8 @@ export class ProjectsService implements OnModuleInit {
 
   async stats(): Promise<{ total: number }> {
     const total = await this.model.countDocuments();
-    this.logger.log(`Projects stats requested: total=${total}`);
-    return { total};
+    this.logger.log(`Internal tool read project stats (total: ${total})`);
+    return { total };
   }
 
   async remove(id: number): Promise<ProjectDocument> {

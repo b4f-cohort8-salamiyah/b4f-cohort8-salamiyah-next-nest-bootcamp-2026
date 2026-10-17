@@ -35,11 +35,14 @@ export class ProjectsController {
     return this.projectsService.findAll(query);
   }
 
-  @ApiOperation({ summary: 'Count how many projects exist (internal tool only)' }) 
-  @ApiResponse({ status: 200, description: 'Total number of projects' })
-  @ApiResponse({ status: 403, description: 'Missing or invalid internal tool key' })
-  @UseGuards(InternalToolGuard)
+  @ApiOperation({ summary: 'Get the number of projects' })
   @ApiHeader(INTERNAL_TOOL_HEADER)
+  @ApiResponse({ status: 200, description: 'Returns the total project count.' })
+  @ApiResponse({
+    status: 403,
+    description: 'Missing or incorrect x-internal-tool-key.',
+  })
+  @UseGuards(InternalToolGuard)
   @Get('stats')
   stats() {
     return this.projectsService.stats();
@@ -52,9 +55,12 @@ export class ProjectsController {
   }
 
   @ApiOperation({ summary: 'Create a new project' })
-  @ApiResponse({ status: 201, description: 'Project created' })
-@ApiResponse({ status: 403, description: 'Missing or invalid internal tool key' })
   @ApiHeader(INTERNAL_TOOL_HEADER)
+  @ApiResponse({ status: 201, description: 'The created project.' })
+  @ApiResponse({
+    status: 403,
+    description: 'Missing or incorrect x-internal-tool-key.',
+  })
   @UseGuards(InternalToolGuard)
   @Post()
   create(@Body() dto: CreateProjectDto) {
@@ -62,9 +68,12 @@ export class ProjectsController {
   }
 
   @ApiOperation({ summary: 'Update a project' })
-    @ApiResponse({ status: 200, description: 'Project updated' })
-@ApiResponse({ status: 403, description: 'Missing or invalid internal tool key' })
   @ApiHeader(INTERNAL_TOOL_HEADER)
+  @ApiResponse({ status: 200, description: 'The updated project.' })
+  @ApiResponse({
+    status: 403,
+    description: 'Missing or incorrect x-internal-tool-key.',
+  })
   @UseGuards(InternalToolGuard)
   @Patch(':id')
   update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateProjectDto) {
@@ -78,9 +87,12 @@ export class ProjectsController {
   }
 
   @ApiOperation({ summary: 'Delete a project' })
-    @ApiResponse({ status: 200, description: 'Project deleted' })
-@ApiResponse({ status: 403, description: 'Missing or invalid internal tool key' })
   @ApiHeader(INTERNAL_TOOL_HEADER)
+  @ApiResponse({ status: 200, description: 'The deleted project.' })
+  @ApiResponse({
+    status: 403,
+    description: 'Missing or incorrect x-internal-tool-key.',
+  })
   @UseGuards(InternalToolGuard)
   @Delete(':id')
   remove(@Param('id', ParseIntPipe) id: number) {
