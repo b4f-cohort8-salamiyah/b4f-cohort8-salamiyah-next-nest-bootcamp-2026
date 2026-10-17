@@ -3,7 +3,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { IssuesController } from './issues.controller';
 import { IssuesService } from './issues.service';
 import { Issue, IssueSchema } from './schemas/issue.schema';
-import { InternalToolGuard } from 'src/common/filters/guards/internal-tool.guard';
+import { InternalToolGuard } from '../common/filters/guards/internal-tool.guard';
 
 @Module({
   imports: [

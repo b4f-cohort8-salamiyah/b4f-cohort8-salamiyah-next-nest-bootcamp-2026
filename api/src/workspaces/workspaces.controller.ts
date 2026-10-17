@@ -15,7 +15,7 @@ import { UpdateWorkspaceDto } from './dto/update-workspace.dto';
 import { CreateWorkspaceDto } from './dto/create-workspace.dto';
 import { FindWorkspacesQueryDto } from './dto/find-workspaces-query.dto';
 import { ApiHeader, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { InternalToolGuard } from 'src/common/filters/guards/internal-tool.guard';
+import { InternalToolGuard } from '../common/filters/guards/internal-tool.guard';
 
 const INTERNAL_TOOL_HEADER = {
   name: 'x-internal-tool-key',

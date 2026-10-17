@@ -13,7 +13,7 @@ import {
 import { ApiHeader, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { IssuesService } from './issues.service';
 import { FindIssuesQueryDto } from './dto/find-issues-query.dto';
-import { InternalToolGuard } from 'src/common/filters/guards/internal-tool.guard';
+import { InternalToolGuard } from '../common/filters/guards/internal-tool.guard';
 import { CreateIssueDto } from './dto/create-issue.dto';
 import { UpdateIssueDto } from './dto/update-issue.dto';
 
