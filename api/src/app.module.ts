@@ -3,6 +3,7 @@ import { ProjectsModule } from './projects/projects.module';
 import { WorkspacesModule } from './workspaces/workspaces.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
+import { IssuesModule } from './issues/issues.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { MongooseModule } from '@nestjs/mongoose';
     }),
     ProjectsModule,
     WorkspacesModule,
+    IssuesModule,
   ],
   controllers: [],
   providers: [],
