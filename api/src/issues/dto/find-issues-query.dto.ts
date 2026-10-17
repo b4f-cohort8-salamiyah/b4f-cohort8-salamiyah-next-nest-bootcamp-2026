@@ -1,6 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsIn, IsInt, IsOptional } from 'class-validator';
+import { IsIn, IsInt, IsOptional, IsString } from 'class-validator';
 
 export class FindIssuesQueryDto {
   @ApiPropertyOptional({ example: 1 })
@@ -16,4 +16,9 @@ export class FindIssuesQueryDto {
   @IsOptional()
   @IsIn(['todo', 'in_progress', 'review', 'done'])
   status?: string;
+
+  @ApiPropertyOptional({ example: 'Fix the login button' })
+  @IsOptional()
+  @IsString()
+  title?: string;
 }

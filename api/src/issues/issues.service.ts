@@ -65,6 +65,9 @@ export class IssuesService implements OnModuleInit {
     if (query.status !== undefined) {
       filter.status = query.status;
     }
+    if (query.title !== undefined) {
+      filter.title = { $regex: query.title, $options: 'i' };
+    }
 
     return this.model.find(filter);
   }
