@@ -65,6 +65,20 @@ export class IssuesService implements OnModuleInit {
     if (query.status !== undefined) {
       filter.status = query.status;
     }
+
+    // Does the existing { projectId: 1, status: 1 } index help this title search?
+    // Measured with explain("executionStats") on 180 issues:
+    // - title only:             NO. COLLSCAN, 180 docs examined, 0 keys. The index
+    //                           does not contain title at all.
+    // - title + projectId:      PARTIALLY. IXSCAN on the projectId prefix narrows
+    //                           the candidates to 60 docs, but the title regex is
+    //                           still applied after FETCH. Only projectId helps,
+    //                           never the title match itself.
+    // - title + status (no projectId): NO. COLLSCAN, 180 docs. status is the
+    //                           second field, so the index is unusable without
+    //                           its projectId prefix.
+    // No new index is added: a case-insensitive unanchored regex cannot use a
+    // normal index on title anyway.
     if (query.title !== undefined) {
       filter.title = { $regex: query.title, $options: 'i' };
     }
