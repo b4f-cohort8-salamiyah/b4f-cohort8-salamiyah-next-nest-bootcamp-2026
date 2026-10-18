@@ -4,6 +4,7 @@ import { WorkspacesModule } from './workspaces/workspaces.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { IssuesModule } from './issues/issues.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { IssuesModule } from './issues/issues.module';
     ProjectsModule,
     WorkspacesModule,
     IssuesModule,
+    AuthModule,
   ],
   controllers: [],
   providers: [],
