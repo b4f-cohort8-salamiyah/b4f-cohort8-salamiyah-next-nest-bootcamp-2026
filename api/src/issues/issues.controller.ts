@@ -10,7 +10,7 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { ApiHeader, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiHeader, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { IssuesService } from './issues.service';
 import { FindIssuesQueryDto } from './dto/find-issues-query.dto';
 import { InternalToolGuard } from '../common/filters/guards/internal-tool.guard';
@@ -29,7 +29,10 @@ const INTERNAL_TOOL_HEADER = {
 export class IssuesController {
   constructor(private readonly issuesService: IssuesService) {}
 
-  @ApiOperation({ summary: 'List issues, optionally filtered by projectId' })
+  @ApiOperation({
+    summary:
+      'List issues, optionally filtered by projectId, status and title (partial, case-insensitive)',
+  })
   @Get()
   findAll(@Query() query: FindIssuesQueryDto) {
     return this.issuesService.findAll(query);
@@ -43,6 +46,11 @@ export class IssuesController {
 
   @ApiOperation({ summary: 'Create an issue (internal tool only)' })
   @ApiHeader(INTERNAL_TOOL_HEADER)
+  @ApiResponse({ status: 201, description: 'The created issue.' })
+  @ApiResponse({
+    status: 403,
+    description: 'Missing or incorrect x-internal-tool-key.',
+  })
   @UseGuards(InternalToolGuard)
   @Post()
   create(@Body() dto: CreateIssueDto) {
@@ -51,6 +59,11 @@ export class IssuesController {
 
   @ApiOperation({ summary: 'Update an issue (internal tool only)' })
   @ApiHeader(INTERNAL_TOOL_HEADER)
+  @ApiResponse({ status: 200, description: 'The updated issue.' })
+  @ApiResponse({
+    status: 403,
+    description: 'Missing or incorrect x-internal-tool-key.',
+  })
   @UseGuards(InternalToolGuard)
   @Patch(':id')
   update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateIssueDto) {
@@ -59,6 +72,11 @@ export class IssuesController {
 
   @ApiOperation({ summary: 'Delete an issue (internal tool only)' })
   @ApiHeader(INTERNAL_TOOL_HEADER)
+  @ApiResponse({ status: 200, description: 'The deleted issue.' })
+  @ApiResponse({
+    status: 403,
+    description: 'Missing or incorrect x-internal-tool-key.',
+  })
   @UseGuards(InternalToolGuard)
   @Delete(':id')
   remove(@Param('id', ParseIntPipe) id: number) {
