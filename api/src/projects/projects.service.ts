@@ -69,7 +69,7 @@ export class ProjectsService implements OnModuleInit {
     }
 
     const last = await this.model.findOne().sort({ id: -1 });
-    const id = (last.id || 0) + 1;
+    const id = (last?.id || 0) + 1;
 
     const project = await this.model.insertOne({
       id,
@@ -127,7 +127,11 @@ export class ProjectsService implements OnModuleInit {
 
   async stats(): Promise<{ total: number }> {
     const total = await this.model.countDocuments();
+<<<<<<< HEAD
     this.logger.log(`Project count requested: ${total}`);
+=======
+    this.logger.log(`Internal tool read project stats (total: ${total})`);
+>>>>>>> origin/main
     return { total };
   }
 
