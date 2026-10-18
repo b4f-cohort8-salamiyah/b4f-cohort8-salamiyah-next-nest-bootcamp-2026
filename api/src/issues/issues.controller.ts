@@ -13,7 +13,7 @@ import {
 import { ApiHeader, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { IssuesService } from './issues.service';
 import { FindIssuesQueryDto } from './dto/find-issues-query.dto';
-import { InternalToolGuard } from '../common/filters/guards/internal-tool.guard';
+import { InternalToolGuard } from 'src/common/filters/guards/internal-tool.guard';
 import { CreateIssueDto } from './dto/create-issue.dto';
 import { UpdateIssueDto } from './dto/update-issue.dto';
 
@@ -30,8 +30,7 @@ export class IssuesController {
   constructor(private readonly issuesService: IssuesService) {}
 
   @ApiOperation({
-    summary:
-      'List issues, optionally filtered by projectId, status and title (partial, case-insensitive)',
+    summary: 'List issues, optionally filtered by projectId and/or status',
   })
   @Get()
   findAll(@Query() query: FindIssuesQueryDto) {

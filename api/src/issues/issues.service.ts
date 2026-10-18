@@ -66,20 +66,6 @@ export class IssuesService implements OnModuleInit {
       filter.status = query.status;
     }
 
-    // Does the { projectId: 1, status: 1 } index help this title search?
-    // - title alone: NO. title is not in the index, and the index can only be
-    //   used when its leading field (projectId) is in the query -> COLLSCAN.
-    // - title + projectId (and/or status): PARTLY. The projectId prefix (plus
-    //   status, if given) narrows the IXSCAN to that project's issues, then
-    //   the $regex runs on each fetched document (FETCH stage filter). The
-    //   index shrinks how many docs get regex-checked; it does nothing for
-    //   the title match itself.
-    // Measured with explain("executionStats") on 180 seeded issues:
-    //   title only             -> COLLSCAN, 180 docs examined
-    //   title + projectId      -> IXSCAN + FETCH, 60 keys / 60 docs
-    //   title + projectId + st -> IXSCAN + FETCH, 15 keys / 15 docs
-    // A case-insensitive, unanchored regex could not use a title index
-    // efficiently anyway -- it would still have to scan every key.
     if (query.title) {
       filter.title = { $regex: query.title, $options: 'i' };
     }
