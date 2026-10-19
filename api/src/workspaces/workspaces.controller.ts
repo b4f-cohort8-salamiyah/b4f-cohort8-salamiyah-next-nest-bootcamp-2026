@@ -14,15 +14,13 @@ import { WorkspacesService } from './workspaces.service';
 import { UpdateWorkspaceDto } from './dto/update-workspace.dto';
 import { CreateWorkspaceDto } from './dto/create-workspace.dto';
 import { FindWorkspacesQueryDto } from './dto/find-workspaces-query.dto';
-import { ApiHeader, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { InternalToolGuard } from 'src/common/filters/guards/internal-tool.guard';
-
-const INTERNAL_TOOL_HEADER = {
-  name: 'x-internal-tool-key',
-  description:
-    'Required internal-tool access key (value not published here). This is access control, not authentication -- it does not identify who is calling.',
-  required: true,
-};
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
+import { JwtAuthGuard } from 'src/common/filters/guards/jwt-auth.guard';
 @ApiTags('workspaces')
 @Controller('workspaces')
 export class WorkspacesController {
@@ -43,26 +41,26 @@ export class WorkspacesController {
   }
 
   @ApiOperation({ summary: 'Create a new workspace' })
-  @ApiHeader(INTERNAL_TOOL_HEADER)
+  @ApiBearerAuth()
   @ApiResponse({ status: 201, description: 'The created workspace.' })
   @ApiResponse({
-    status: 403,
-    description: 'Missing or incorrect x-internal-tool-key.',
+    status: 401,
+    description: 'Missing or invalid authentication token.',
   })
-  @UseGuards(InternalToolGuard)
+  @UseGuards(JwtAuthGuard)
   @Post()
   create(@Body() dto: CreateWorkspaceDto) {
     return this.workspacesService.create(dto);
   }
 
   @ApiOperation({ summary: 'Update a workspace' })
-  @ApiHeader(INTERNAL_TOOL_HEADER)
+  @ApiBearerAuth()
   @ApiResponse({ status: 200, description: 'The updated workspace.' })
   @ApiResponse({
-    status: 403,
-    description: 'Missing or incorrect x-internal-tool-key.',
+    status: 401,
+    description: 'Missing or invalid authentication token.',
   })
-  @UseGuards(InternalToolGuard)
+  @UseGuards(JwtAuthGuard)
   @Patch(':id')
   update(
     @Param('id', ParseIntPipe) id: number,
@@ -78,13 +76,13 @@ export class WorkspacesController {
   }
 
   @ApiOperation({ summary: 'Delete a workspace' })
-  @ApiHeader(INTERNAL_TOOL_HEADER)
+  @ApiBearerAuth()
   @ApiResponse({ status: 200, description: 'The deleted workspace.' })
   @ApiResponse({
-    status: 403,
-    description: 'Missing or incorrect x-internal-tool-key.',
+    status: 401,
+    description: 'Missing or invalid authentication token.',
   })
-  @UseGuards(InternalToolGuard)
+  @UseGuards(JwtAuthGuard)
   @Delete(':id')
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.workspacesService.remove(id);

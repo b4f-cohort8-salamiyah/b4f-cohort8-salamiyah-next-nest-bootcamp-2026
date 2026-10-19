@@ -14,15 +14,14 @@ import { ProjectsService } from './projects.service';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { FindProjectsQueryDto } from './dto/find-projects-query.dto';
-import { ApiHeader, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
+import { JwtAuthGuard } from 'src/common/filters/guards/jwt-auth.guard';
 import { InternalToolGuard } from 'src/common/filters/guards/internal-tool.guard';
-
-const INTERNAL_TOOL_HEADER = {
-  name: 'x-internal-tool-key',
-  description:
-    'Required internal-tool access key (value not published here). This is access control, not authentication -- it does not identify who is calling.',
-  required: true,
-};
 
 @ApiTags('projects')
 @Controller('projects')
@@ -35,10 +34,12 @@ export class ProjectsController {
     return this.projectsService.findAll(query);
   }
 
+  // This endpoint deliberately keeps InternalToolGuard because it is an internal tooling stats endpoint,
+  // not a user-authenticated write action. JwtAuthGuard answers "is this a valid signed-in user?";
+  // InternalToolGuard answers "does this request carry the shared backend key?". They solve different problems.
   @ApiOperation({
     summary: 'Count how many projects exist (internal tool only)',
   })
-  @ApiHeader(INTERNAL_TOOL_HEADER)
   @ApiResponse({
     status: 200,
     description: 'Project count returned successfully.',
@@ -61,34 +62,32 @@ export class ProjectsController {
   }
 
   @ApiOperation({ summary: 'Create a new project' })
-  @ApiHeader(INTERNAL_TOOL_HEADER)
+  @ApiBearerAuth()
   @ApiResponse({
     status: 201,
     description: 'Project created successfully.',
   })
   @ApiResponse({
-    status: 403,
-    description:
-      'Forbidden. The x-internal-tool-key header is missing or invalid.',
+    status: 401,
+    description: 'Missing or invalid authentication token.',
   })
-  @UseGuards(InternalToolGuard)
+  @UseGuards(JwtAuthGuard)
   @Post()
   create(@Body() dto: CreateProjectDto) {
     return this.projectsService.create(dto);
   }
 
   @ApiOperation({ summary: 'Update a project' })
-  @ApiHeader(INTERNAL_TOOL_HEADER)
+  @ApiBearerAuth()
   @ApiResponse({
     status: 200,
     description: 'Project updated successfully.',
   })
   @ApiResponse({
-    status: 403,
-    description:
-      'Forbidden. The x-internal-tool-key header is missing or invalid.',
+    status: 401,
+    description: 'Missing or invalid authentication token.',
   })
-  @UseGuards(InternalToolGuard)
+  @UseGuards(JwtAuthGuard)
   @Patch(':id')
   update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateProjectDto) {
     return this.projectsService.update(id, dto);
@@ -101,17 +100,16 @@ export class ProjectsController {
   }
 
   @ApiOperation({ summary: 'Delete a project' })
-  @ApiHeader(INTERNAL_TOOL_HEADER)
+  @ApiBearerAuth()
   @ApiResponse({
     status: 200,
     description: 'Project deleted successfully.',
   })
   @ApiResponse({
-    status: 403,
-    description:
-      'Forbidden. The x-internal-tool-key header is missing or invalid.',
+    status: 401,
+    description: 'Missing or invalid authentication token.',
   })
-  @UseGuards(InternalToolGuard)
+  @UseGuards(JwtAuthGuard)
   @Delete(':id')
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.projectsService.remove(id);
