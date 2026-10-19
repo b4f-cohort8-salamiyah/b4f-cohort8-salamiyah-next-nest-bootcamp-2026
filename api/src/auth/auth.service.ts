@@ -2,12 +2,14 @@ import {
   ConflictException,
   Injectable,
   Logger,
-  NotImplementedException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { SafeUser, UsersService } from 'src/users/users.service';
 import { RegisterDto } from './dto/register.dto';
 import * as bcrypt from 'bcrypt';
 import { LoginDto } from './dto/login.dto';
+import { JwtService } from '@nestjs/jwt';
+import { JwtPayload } from './jwt-payload.interface';
 
 const BCRYPT_SALT_ROUNDS = 10;
 
@@ -15,7 +17,10 @@ const BCRYPT_SALT_ROUNDS = 10;
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
 
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly jwtService: JwtService,
+  ) {}
 
   async register(dto: RegisterDto): Promise<SafeUser> {
     const existing = await this.usersService.findByEmail(dto.email);
@@ -27,7 +32,6 @@ export class AuthService {
     }
 
     const passwordHash = await bcrypt.hash(dto.password, BCRYPT_SALT_ROUNDS);
-    this.logger.error(passwordHash);
 
     const user = await this.usersService.create({
       name: dto.name,
@@ -41,9 +45,27 @@ export class AuthService {
   }
 
   async login(dto: LoginDto): Promise<{ accessToken: string; user: SafeUser }> {
-    void dto;
-    throw new NotImplementedException(
-      'POST /auth/login is not implemented yet -- this is the teamwork task.',
+    const user = await this.usersService.findByEmail(dto.email);
+
+    if (!user) {
+      this.logger.warn(`Login failed for ${dto.email}`);
+      throw new UnauthorizedException('Invalid email or password.');
+    }
+
+    const passwordMatches = await bcrypt.compare(
+      dto.password,
+      user.passwordHash,
     );
+
+    if (!passwordMatches) {
+      this.logger.warn(`Login failed for ${dto.email}`);
+      throw new UnauthorizedException('Invalid email or password.');
+    }
+
+    const payload: JwtPayload = { sub: user.id, email: user.email };
+    const accessToken = await this.jwtService.signAsync(payload);
+    this.logger.log(`Logged in user ${user.id} (${user.email})`);
+
+    return { accessToken, user: this.usersService.toSafeUser(user) };
   }
 }
