@@ -14,7 +14,7 @@ import { ProjectsService } from './projects.service';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { FindProjectsQueryDto } from './dto/find-projects-query.dto';
-import { ApiHeader, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiHeader, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { InternalToolGuard } from 'src/common/filters/guards/internal-tool.guard';
 
 const INTERNAL_TOOL_HEADER = {
@@ -36,6 +36,13 @@ export class ProjectsController {
   }
 
   @ApiOperation({ summary: 'Get the number of projects' })
+  @ApiHeader(INTERNAL_TOOL_HEADER)
+  @ApiResponse({ status: 200, description: 'Returns the total project count.' })
+  @ApiResponse({
+    status: 403,
+    description: 'Missing or incorrect x-internal-tool-key.',
+  })
+  @UseGuards(InternalToolGuard)
   @Get('stats')
   stats() {
     return this.projectsService.stats();
@@ -49,6 +56,11 @@ export class ProjectsController {
 
   @ApiOperation({ summary: 'Create a new project' })
   @ApiHeader(INTERNAL_TOOL_HEADER)
+  @ApiResponse({ status: 201, description: 'The created project.' })
+  @ApiResponse({
+    status: 403,
+    description: 'Missing or incorrect x-internal-tool-key.',
+  })
   @UseGuards(InternalToolGuard)
   @Post()
   create(@Body() dto: CreateProjectDto) {
@@ -57,6 +69,11 @@ export class ProjectsController {
 
   @ApiOperation({ summary: 'Update a project' })
   @ApiHeader(INTERNAL_TOOL_HEADER)
+  @ApiResponse({ status: 200, description: 'The updated project.' })
+  @ApiResponse({
+    status: 403,
+    description: 'Missing or incorrect x-internal-tool-key.',
+  })
   @UseGuards(InternalToolGuard)
   @Patch(':id')
   update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateProjectDto) {
@@ -71,6 +88,11 @@ export class ProjectsController {
 
   @ApiOperation({ summary: 'Delete a project' })
   @ApiHeader(INTERNAL_TOOL_HEADER)
+  @ApiResponse({ status: 200, description: 'The deleted project.' })
+  @ApiResponse({
+    status: 403,
+    description: 'Missing or incorrect x-internal-tool-key.',
+  })
   @UseGuards(InternalToolGuard)
   @Delete(':id')
   remove(@Param('id', ParseIntPipe) id: number) {
