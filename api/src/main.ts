@@ -13,6 +13,7 @@ async function bootstrap() {
   const swaggerConfig = new DocumentBuilder()
     .setTitle('B4F Board API')
     .setDescription('Projects and Workspaces, backed by MongoDB.')
+    .addBearerAuth()
     .setVersion('1.0')
     .build();
   const swaggerDocument = SwaggerModule.createDocument(app, swaggerConfig);
