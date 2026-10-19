@@ -1,7 +1,13 @@
-import { ConflictException, Injectable, Logger } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  Logger,
+  NotImplementedException,
+} from '@nestjs/common';
 import { SafeUser, UsersService } from 'src/users/users.service';
 import { RegisterDto } from './dto/register.dto';
 import * as bcrypt from 'bcrypt';
+import { LoginDto } from './dto/login.dto';
 
 const BCRYPT_SALT_ROUNDS = 10;
 
@@ -32,5 +38,12 @@ export class AuthService {
     this.logger.log(`Registered user ${user.id} (${user.email})`);
 
     return this.usersService.toSafeUser(user);
+  }
+
+  async login(dto: LoginDto): Promise<{ accessToken: string; user: SafeUser }> {
+    void dto;
+    throw new NotImplementedException(
+      'POST /auth/login is not implemented yet -- this is the teamwork task.',
+    );
   }
 }
