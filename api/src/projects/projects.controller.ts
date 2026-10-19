@@ -14,8 +14,15 @@ import { ProjectsService } from './projects.service';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { FindProjectsQueryDto } from './dto/find-projects-query.dto';
-import { ApiHeader, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiHeader,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { InternalToolGuard } from 'src/common/filters/guards/internal-tool.guard';
+import { JwtAuthGuard } from 'src/common/filters/guards/jwt-auth.guard';
 
 const INTERNAL_TOOL_HEADER = {
   name: 'x-internal-tool-key',
@@ -54,27 +61,27 @@ export class ProjectsController {
     return this.projectsService.findOne(id);
   }
 
-  @ApiOperation({ summary: 'Create a new project' })
-  @ApiHeader(INTERNAL_TOOL_HEADER)
+  @ApiOperation({ summary: 'Create a new project (requires a signed-in user)' })
+  @ApiBearerAuth()
   @ApiResponse({ status: 201, description: 'The created project.' })
   @ApiResponse({
-    status: 403,
-    description: 'Missing or incorrect x-internal-tool-key.',
+    status: 401,
+    description: 'Missing or invalid authentication token.',
   })
-  @UseGuards(InternalToolGuard)
+  @UseGuards(JwtAuthGuard)
   @Post()
   create(@Body() dto: CreateProjectDto) {
     return this.projectsService.create(dto);
   }
 
-  @ApiOperation({ summary: 'Update a project' })
-  @ApiHeader(INTERNAL_TOOL_HEADER)
+  @ApiOperation({ summary: 'Update a project (requires a signed-in user)' })
+  @ApiBearerAuth()
   @ApiResponse({ status: 200, description: 'The updated project.' })
   @ApiResponse({
-    status: 403,
-    description: 'Missing or incorrect x-internal-tool-key.',
+    status: 401,
+    description: 'Missing or invalid authentication token.',
   })
-  @UseGuards(InternalToolGuard)
+  @UseGuards(JwtAuthGuard)
   @Patch(':id')
   update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateProjectDto) {
     return this.projectsService.update(id, dto);
@@ -86,14 +93,14 @@ export class ProjectsController {
     return this.projectsService.findByKey(key);
   }
 
-  @ApiOperation({ summary: 'Delete a project' })
-  @ApiHeader(INTERNAL_TOOL_HEADER)
+  @ApiOperation({ summary: 'Delete a project (requires a signed-in user)' })
+  @ApiBearerAuth()
   @ApiResponse({ status: 200, description: 'The deleted project.' })
   @ApiResponse({
-    status: 403,
-    description: 'Missing or incorrect x-internal-tool-key.',
+    status: 401,
+    description: 'Missing or invalid authentication token.',
   })
-  @UseGuards(InternalToolGuard)
+  @UseGuards(JwtAuthGuard)
   @Delete(':id')
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.projectsService.remove(id);
