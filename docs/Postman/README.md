@@ -15,8 +15,8 @@ collection identity and requests, and covers all 21 current application endpoint
 Set these variables in your private Postman environment:
 
 - `baseUrl`: API origin; defaults to `http://localhost:3000`.
-- `internalToolKey`: the server's `INTERNAL_TOOL_KEY`. Required for all project,
-  workspace and issue writes, and for project stats.
+- `internalToolKey`: the server's `INTERNAL_TOOL_KEY`. Required only for project
+  stats. The old key alone no longer grants access to resource writes.
 - `authEmail`, `authPassword`: your account credentials. Passwords need at least
   eight characters. Use an unused email when registering.
 - `authName`: display name for registration; defaults to `Postman User`.
@@ -25,9 +25,11 @@ Passwords, tool keys and JWTs are blank in the committed collection. Keep real
 values private and out of exported/shared files.
 
 `Login` captures `accessToken`; `Get current user` sends it as a Bearer token.
-The current server issues tokens lasting **30 seconds**, so log in again when
+The current server issues tokens lasting **2 hours**, so log in again when
 needed. Register returns a user, not a token. JWT auth does not replace the
-separate internal-tool key. Resource reads are public except project stats.
+separate internal-tool key for stats. All nine project/workspace/issue write
+requests send the captured Bearer token. Resource reads are public except
+project stats.
 
 ## Using the requests
 
@@ -54,7 +56,8 @@ separate internal-tool key. Resource reads are public except project stats.
   ids, keys and slugs when using automatic chaining.
 
 Existing success/error examples were retained and refreshed for MongoDB and
-internal-tool access control. New endpoints include illustrative examples and
+JWT authentication (401 on the nine writes, 403 for internal-tool stats).
+Endpoints include illustrative examples and
 status assertions. Examples are documentation, not captures from your current DB.
 
 ## Coverage and verification
@@ -72,7 +75,7 @@ The application build passed. Postman CLI ran the complete collection against
 the real API on port 3101 and an isolated local MongoDB test database using
 disposable credentials: **21 requests, 30 assertions, zero failures, exit 0**.
 This verified registration/login/current user, public reads, internal-tool
-access on successful guarded calls, create/update/delete, and response chaining.
+access on stats, JWT-protected create/update/delete, and response chaining.
 Disabled query filters and saved negative examples were checked structurally;
 they were not sent as separate live requests in this run.
 
@@ -81,3 +84,8 @@ verification. The normal application database was not used for the run. Only
 the collection and this README were edited. The collection remains v2.1 for
 normal Postman import; nothing was pushed to a shared workspace, and the run
 used `--no-report-events`.
+
+For the full Session 15 rejection/regression audit (all nine writes, six token
+failure cases, stats contrast, filtering, validation and Swagger), run
+`npm run test:session15` from `api/` with local MongoDB running. See
+`docs/sessions/session-15/TEAMWORK-SOLUTION.md` for the implementation audit.

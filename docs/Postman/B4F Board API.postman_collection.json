@@ -2,14 +2,14 @@
 	"info": {
 		"_postman_id": "76a38ab3-3551-42de-ae66-53acb7873121",
 		"name": "B4F Board API",
-		"description": "B4F Board API — all 21 current controller operations. MongoDB-backed Projects, Workspaces and Issues, plus JWT authentication. Updated from Nest Swagger metadata and controller/DTO/service source.\n\nSet baseUrl, internalToolKey, authEmail and authPassword privately before use. Login captures accessToken; /auth/me uses Bearer authentication. The JWT currently expires after 30 seconds. Write endpoints and GET /projects/stats use x-internal-tool-key; JWT does not replace that key.\n\nOptional list filters are present but disabled. Enable them in Params. Run folders in order: Auth, Projects, Workspaces, Issues, Deletes. Creates generate unique keys/slugs and capture numeric ids; Deletes removes only the captured targets, issues first. Register leaves an account in the database (no user-delete endpoint exists); for an existing account, skip Register and use Login. Run only against an intended test database when running the whole collection. Environment variables override collection values; remove id/key/slug overrides when using automatic chaining.\n\nSaved examples are illustrative, not captures from the current database. Existing examples and status assertions have been retained and refreshed for MongoDB and access-control behavior. See README.md beside this file for setup and verification limitations.",
+		"description": "B4F Board API — all 21 current controller operations. MongoDB-backed Projects, Workspaces and Issues, plus JWT authentication. Updated from Nest Swagger metadata and controller/DTO/service source.\n\nSet baseUrl, internalToolKey, authEmail and authPassword privately before use. Login captures accessToken; /auth/me uses Bearer authentication. The JWT currently expires after 2 hours. All nine resource write endpoints use Bearer JWT authentication. Only GET /projects/stats keeps x-internal-tool-key; a JWT alone does not grant stats access.\n\nOptional list filters are present but disabled. Enable them in Params. Run folders in order: Auth, Projects, Workspaces, Issues, Deletes. Creates generate unique keys/slugs and capture numeric ids; Deletes removes only the captured targets, issues first. Register leaves an account in the database (no user-delete endpoint exists); for an existing account, skip Register and use Login. Run only against an intended test database when running the whole collection. Environment variables override collection values; remove id/key/slug overrides when using automatic chaining.\n\nSaved examples are illustrative, not captures from the current database. Existing examples and status assertions have been retained and refreshed for MongoDB and access-control behavior. See README.md beside this file for setup and verification limitations.",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "3657318"
 	},
 	"item": [
 		{
 			"name": "Auth",
-			"description": "Register once, Login, then Get current user before the 30-second token expires. No internal-tool key is needed.",
+			"description": "Register once, Login, then Get current user before the 2-hour token expires. No internal-tool key is needed.",
 			"item": [
 				{
 					"name": "Register",
@@ -183,7 +183,7 @@
 								"type": "text"
 							}
 						],
-						"description": "Authenticate with email and password.\n\nSource: Swagger operation AuthController_login.\n\nJSON fields: email (required), password (required). Invalid types, blank required text, or extra fields: 400.\n\nUses authEmail/authPassword; invalid credentials: 401. Successful Login replaces accessToken. Current JWT expiry: 30 seconds.",
+						"description": "Authenticate with email and password.\n\nSource: Swagger operation AuthController_login.\n\nJSON fields: email (required), password (required). Invalid types, blank required text, or extra fields: 400.\n\nUses authEmail/authPassword; invalid credentials: 401. Successful Login replaces accessToken. Current JWT expiry: 2 hours.",
 						"body": {
 							"mode": "raw",
 							"raw": "{\n  \"email\": \"{{authEmail}}\",\n  \"password\": \"{{authPassword}}\"\n}",
@@ -442,16 +442,17 @@
 					"name": "Create new project",
 					"request": {
 						"auth": {
-							"type": "noauth"
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
 						},
 						"method": "POST",
 						"header": [
-							{
-								"key": "x-internal-tool-key",
-								"value": "{{internalToolKey}}",
-								"type": "text",
-								"description": "Set internalToolKey privately; this is separate from JWT authentication."
-							},
 							{
 								"key": "Content-Type",
 								"value": "application/json",
@@ -476,19 +477,14 @@
 								"projects"
 							]
 						},
-						"description": "Create a new project.\n\nSource: Swagger operation ProjectsController_create.\n\nRequires x-internal-tool-key: {{internalToolKey}}. Missing/incorrect key: 403. A JWT does not replace this key.\n\nJSON fields: name (required), key (required), description (optional). Invalid types, blank required text, or extra fields: 400.\n\nDuplicate key: 409."
+						"description": "Create a new project.\n\nSource: Swagger operation ProjectsController_create.\n\nRequires Authorization: Bearer {{accessToken}} from Login. Missing, invalid, or expired token: 401. The old internal-tool key alone does not authenticate these routes.\n\nJSON fields: name (required), key (required), description (optional). Invalid types, blank required text, or extra fields: 400.\n\nDuplicate key: 409."
 					},
 					"response": [
 						{
 							"name": "409 - Conflict",
 							"originalRequest": {
 								"method": "POST",
-								"header": [
-									{
-										"key": "x-internal-tool-key",
-										"value": "{{internalToolKey}}"
-									}
-								],
+								"header": [],
 								"body": {
 									"mode": "raw",
 									"raw": "{\n    \"name\": \"New Project\",\n    \"key\": \"PRJ\",\n    \"description\": \"It is a test project\"\n}",
@@ -505,6 +501,16 @@
 									],
 									"path": [
 										"projects"
+									]
+								},
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{accessToken}}",
+											"type": "string"
+										}
 									]
 								}
 							},
@@ -524,12 +530,7 @@
 							"name": "201 - Created",
 							"originalRequest": {
 								"method": "POST",
-								"header": [
-									{
-										"key": "x-internal-tool-key",
-										"value": "{{internalToolKey}}"
-									}
-								],
+								"header": [],
 								"body": {
 									"mode": "raw",
 									"raw": "{\n    \"name\": \"New Project\",\n    \"key\": \"PRJ1\",\n    \"description\": \"It is a test project\"\n}",
@@ -547,6 +548,16 @@
 									"path": [
 										"projects"
 									]
+								},
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{accessToken}}",
+											"type": "string"
+										}
+									]
 								}
 							},
 							"status": "Created",
@@ -562,7 +573,7 @@
 							"body": "{\n  \"_id\": \"507f1f77bcf86cd700000005\",\n  \"id\": 5,\n  \"name\": \"New Project\",\n  \"key\": \"PRJ1\",\n  \"description\": \"It is a test project\",\n  \"__v\": 0\n}"
 						},
 						{
-							"name": "403 — Missing or incorrect internal-tool key (illustrative)",
+							"name": "401 — Missing, invalid, or expired JWT (illustrative)",
 							"originalRequest": {
 								"auth": {
 									"type": "noauth"
@@ -595,8 +606,8 @@
 								},
 								"description": "Create a new project.\n\nSource: Swagger operation ProjectsController_create.\n\nRequires x-internal-tool-key: {{internalToolKey}}. Missing/incorrect key: 403. A JWT does not replace this key.\n\nJSON fields: name (required), key (required), description (optional). Invalid types, blank required text, or extra fields: 400.\n\nDuplicate key: 409."
 							},
-							"status": "Forbidden",
-							"code": 403,
+							"status": "Unauthorized",
+							"code": 401,
 							"_postman_previewlanguage": "json",
 							"header": [
 								{
@@ -605,7 +616,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n  \"message\": \"This operation is restricted to B4F Board's own internal tooling.\",\n  \"error\": \"Forbidden\",\n  \"statusCode\": 403\n}"
+							"body": "{\n  \"message\": \"Invalid or missing authentication token.\",\n  \"error\": \"Unauthorized\",\n  \"statusCode\": 401\n}"
 						}
 					],
 					"event": [
@@ -977,12 +988,6 @@
 						"method": "PATCH",
 						"header": [
 							{
-								"key": "x-internal-tool-key",
-								"value": "{{internalToolKey}}",
-								"type": "text",
-								"description": "Set internalToolKey privately; this is separate from JWT authentication."
-							},
-							{
 								"key": "Content-Type",
 								"value": "application/json",
 								"type": "text"
@@ -1007,9 +1012,16 @@
 								"{{projectId}}"
 							]
 						},
-						"description": "Update a project.\n\nSource: Swagger operation ProjectsController_update.\n\nPath id is a numeric application id (not MongoDB _id). Malformed id: 400. Missing record: 404.\n\nRequires x-internal-tool-key: {{internalToolKey}}. Missing/incorrect key: 403. A JWT does not replace this key.\n\nJSON fields: name (optional), key (optional), description (optional). Invalid types, blank required text, or extra fields: 400.\n\nDuplicate key: 409.",
+						"description": "Update a project.\n\nSource: Swagger operation ProjectsController_update.\n\nPath id is a numeric application id (not MongoDB _id). Malformed id: 400. Missing record: 404.\n\nRequires Authorization: Bearer {{accessToken}} from Login. Missing, invalid, or expired token: 401. The old internal-tool key alone does not authenticate these routes.\n\nJSON fields: name (optional), key (optional), description (optional). Invalid types, blank required text, or extra fields: 400.\n\nDuplicate key: 409.",
 						"auth": {
-							"type": "noauth"
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
 						}
 					},
 					"response": [
@@ -1021,10 +1033,6 @@
 									{
 										"key": "Content-Type",
 										"value": "application/json"
-									},
-									{
-										"key": "x-internal-tool-key",
-										"value": "{{internalToolKey}}"
 									}
 								],
 								"body": {
@@ -1044,6 +1052,16 @@
 									"path": [
 										"projects",
 										"1"
+									]
+								},
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{accessToken}}",
+											"type": "string"
+										}
 									]
 								}
 							},
@@ -1067,10 +1085,6 @@
 									{
 										"key": "Content-Type",
 										"value": "application/json"
-									},
-									{
-										"key": "x-internal-tool-key",
-										"value": "{{internalToolKey}}"
 									}
 								],
 								"body": {
@@ -1090,6 +1104,16 @@
 									"path": [
 										"projects",
 										"1"
+									]
+								},
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{accessToken}}",
+											"type": "string"
+										}
 									]
 								}
 							},
@@ -1113,10 +1137,6 @@
 									{
 										"key": "Content-Type",
 										"value": "application/json"
-									},
-									{
-										"key": "x-internal-tool-key",
-										"value": "{{internalToolKey}}"
 									}
 								],
 								"body": {
@@ -1136,6 +1156,16 @@
 									"path": [
 										"projects",
 										"1"
+									]
+								},
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{accessToken}}",
+											"type": "string"
+										}
 									]
 								}
 							},
@@ -1159,10 +1189,6 @@
 									{
 										"key": "Content-Type",
 										"value": "application/json"
-									},
-									{
-										"key": "x-internal-tool-key",
-										"value": "{{internalToolKey}}"
 									}
 								],
 								"body": {
@@ -1182,6 +1208,16 @@
 									"path": [
 										"projects",
 										"1"
+									]
+								},
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{accessToken}}",
+											"type": "string"
+										}
 									]
 								}
 							},
@@ -1205,10 +1241,6 @@
 									{
 										"key": "Content-Type",
 										"value": "application/json"
-									},
-									{
-										"key": "x-internal-tool-key",
-										"value": "{{internalToolKey}}"
 									}
 								],
 								"body": {
@@ -1228,6 +1260,16 @@
 									"path": [
 										"projects",
 										"999"
+									]
+								},
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{accessToken}}",
+											"type": "string"
+										}
 									]
 								}
 							},
@@ -1251,10 +1293,6 @@
 									{
 										"key": "Content-Type",
 										"value": "application/json"
-									},
-									{
-										"key": "x-internal-tool-key",
-										"value": "{{internalToolKey}}"
 									}
 								],
 								"body": {
@@ -1275,6 +1313,16 @@
 										"projects",
 										"1"
 									]
+								},
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{accessToken}}",
+											"type": "string"
+										}
+									]
 								}
 							},
 							"status": "Conflict",
@@ -1290,7 +1338,7 @@
 							"body": "{\n  \"message\": \"key \\\"API\\\" is already used by another project.\",\n  \"error\": \"Conflict\",\n  \"statusCode\": 409\n}"
 						},
 						{
-							"name": "403 — Missing or incorrect internal-tool key (illustrative)",
+							"name": "401 — Missing, invalid, or expired JWT (illustrative)",
 							"originalRequest": {
 								"method": "PATCH",
 								"header": [
@@ -1324,8 +1372,8 @@
 									"type": "noauth"
 								}
 							},
-							"status": "Forbidden",
-							"code": 403,
+							"status": "Unauthorized",
+							"code": 401,
 							"_postman_previewlanguage": "json",
 							"header": [
 								{
@@ -1334,7 +1382,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n  \"message\": \"This operation is restricted to B4F Board's own internal tooling.\",\n  \"error\": \"Forbidden\",\n  \"statusCode\": 403\n}"
+							"body": "{\n  \"message\": \"Invalid or missing authentication token.\",\n  \"error\": \"Unauthorized\",\n  \"statusCode\": 401\n}"
 						}
 					]
 				},
@@ -1442,16 +1490,17 @@
 					"name": "Create new workspace",
 					"request": {
 						"auth": {
-							"type": "noauth"
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
 						},
 						"method": "POST",
 						"header": [
-							{
-								"key": "x-internal-tool-key",
-								"value": "{{internalToolKey}}",
-								"type": "text",
-								"description": "Set internalToolKey privately; this is separate from JWT authentication."
-							},
 							{
 								"key": "Content-Type",
 								"value": "application/json",
@@ -1476,19 +1525,14 @@
 								"workspaces"
 							]
 						},
-						"description": "Create a new workspace.\n\nSource: Swagger operation WorkspacesController_create.\n\nRequires x-internal-tool-key: {{internalToolKey}}. Missing/incorrect key: 403. A JWT does not replace this key.\n\nJSON fields: name (required), slug (required), description (optional). Invalid types, blank required text, or extra fields: 400.\n\nDuplicate slug: 409."
+						"description": "Create a new workspace.\n\nSource: Swagger operation WorkspacesController_create.\n\nRequires Authorization: Bearer {{accessToken}} from Login. Missing, invalid, or expired token: 401. The old internal-tool key alone does not authenticate these routes.\n\nJSON fields: name (required), slug (required), description (optional). Invalid types, blank required text, or extra fields: 400.\n\nDuplicate slug: 409."
 					},
 					"response": [
 						{
 							"name": "201 - Created",
 							"originalRequest": {
 								"method": "POST",
-								"header": [
-									{
-										"key": "x-internal-tool-key",
-										"value": "{{internalToolKey}}"
-									}
-								],
+								"header": [],
 								"body": {
 									"mode": "raw",
 									"raw": "{\n    \"name\": \"New workspace\",\n    \"slug\": \"new-workspace-1\",\n    \"description\": \"It is a test workspace\"\n}",
@@ -1505,6 +1549,16 @@
 									],
 									"path": [
 										"workspaces"
+									]
+								},
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{accessToken}}",
+											"type": "string"
+										}
 									]
 								}
 							},
@@ -1524,12 +1578,7 @@
 							"name": "409 - Conflict",
 							"originalRequest": {
 								"method": "POST",
-								"header": [
-									{
-										"key": "x-internal-tool-key",
-										"value": "{{internalToolKey}}"
-									}
-								],
+								"header": [],
 								"body": {
 									"mode": "raw",
 									"raw": "{\n    \"name\": \"New workspace\",\n    \"slug\": \"new-workspace-1\",\n    \"description\": \"It is a test workspace\"\n}",
@@ -1547,6 +1596,16 @@
 									"path": [
 										"workspaces"
 									]
+								},
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{accessToken}}",
+											"type": "string"
+										}
+									]
 								}
 							},
 							"status": "Conflict",
@@ -1562,7 +1621,7 @@
 							"body": "{\n    \"message\": \"slug \\\"new-workspace-1\\\" is already used by another workspace.\",\n    \"error\": \"Conflict\",\n    \"statusCode\": 409\n}"
 						},
 						{
-							"name": "403 — Missing or incorrect internal-tool key (illustrative)",
+							"name": "401 — Missing, invalid, or expired JWT (illustrative)",
 							"originalRequest": {
 								"auth": {
 									"type": "noauth"
@@ -1595,8 +1654,8 @@
 								},
 								"description": "Create a new workspace.\n\nSource: Swagger operation WorkspacesController_create.\n\nRequires x-internal-tool-key: {{internalToolKey}}. Missing/incorrect key: 403. A JWT does not replace this key.\n\nJSON fields: name (required), slug (required), description (optional). Invalid types, blank required text, or extra fields: 400.\n\nDuplicate slug: 409."
 							},
-							"status": "Forbidden",
-							"code": 403,
+							"status": "Unauthorized",
+							"code": 401,
 							"_postman_previewlanguage": "json",
 							"header": [
 								{
@@ -1605,7 +1664,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n  \"message\": \"This operation is restricted to B4F Board's own internal tooling.\",\n  \"error\": \"Forbidden\",\n  \"statusCode\": 403\n}"
+							"body": "{\n  \"message\": \"Invalid or missing authentication token.\",\n  \"error\": \"Unauthorized\",\n  \"statusCode\": 401\n}"
 						}
 					],
 					"event": [
@@ -1863,12 +1922,6 @@
 						"method": "PATCH",
 						"header": [
 							{
-								"key": "x-internal-tool-key",
-								"value": "{{internalToolKey}}",
-								"type": "text",
-								"description": "Set internalToolKey privately; this is separate from JWT authentication."
-							},
-							{
 								"key": "Content-Type",
 								"value": "application/json",
 								"type": "text"
@@ -1893,9 +1946,16 @@
 								"{{workspaceId}}"
 							]
 						},
-						"description": "Update a workspace.\n\nSource: Swagger operation WorkspacesController_update.\n\nPath id is a numeric application id (not MongoDB _id). Malformed id: 400. Missing record: 404.\n\nRequires x-internal-tool-key: {{internalToolKey}}. Missing/incorrect key: 403. A JWT does not replace this key.\n\nJSON fields: name (optional), slug (optional), description (optional). Invalid types, blank required text, or extra fields: 400.\n\nDuplicate slug: 409.",
+						"description": "Update a workspace.\n\nSource: Swagger operation WorkspacesController_update.\n\nPath id is a numeric application id (not MongoDB _id). Malformed id: 400. Missing record: 404.\n\nRequires Authorization: Bearer {{accessToken}} from Login. Missing, invalid, or expired token: 401. The old internal-tool key alone does not authenticate these routes.\n\nJSON fields: name (optional), slug (optional), description (optional). Invalid types, blank required text, or extra fields: 400.\n\nDuplicate slug: 409.",
 						"auth": {
-							"type": "noauth"
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
 						}
 					},
 					"response": [
@@ -1907,10 +1967,6 @@
 									{
 										"key": "Content-Type",
 										"value": "application/json"
-									},
-									{
-										"key": "x-internal-tool-key",
-										"value": "{{internalToolKey}}"
 									}
 								],
 								"body": {
@@ -1930,6 +1986,16 @@
 									"path": [
 										"workspaces",
 										"1"
+									]
+								},
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{accessToken}}",
+											"type": "string"
+										}
 									]
 								}
 							},
@@ -1953,10 +2019,6 @@
 									{
 										"key": "Content-Type",
 										"value": "application/json"
-									},
-									{
-										"key": "x-internal-tool-key",
-										"value": "{{internalToolKey}}"
 									}
 								],
 								"body": {
@@ -1976,6 +2038,16 @@
 									"path": [
 										"workspaces",
 										"1"
+									]
+								},
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{accessToken}}",
+											"type": "string"
+										}
 									]
 								}
 							},
@@ -1999,10 +2071,6 @@
 									{
 										"key": "Content-Type",
 										"value": "application/json"
-									},
-									{
-										"key": "x-internal-tool-key",
-										"value": "{{internalToolKey}}"
 									}
 								],
 								"body": {
@@ -2022,6 +2090,16 @@
 									"path": [
 										"workspaces",
 										"1"
+									]
+								},
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{accessToken}}",
+											"type": "string"
+										}
 									]
 								}
 							},
@@ -2045,10 +2123,6 @@
 									{
 										"key": "Content-Type",
 										"value": "application/json"
-									},
-									{
-										"key": "x-internal-tool-key",
-										"value": "{{internalToolKey}}"
 									}
 								],
 								"body": {
@@ -2068,6 +2142,16 @@
 									"path": [
 										"workspaces",
 										"1"
+									]
+								},
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{accessToken}}",
+											"type": "string"
+										}
 									]
 								}
 							},
@@ -2091,10 +2175,6 @@
 									{
 										"key": "Content-Type",
 										"value": "application/json"
-									},
-									{
-										"key": "x-internal-tool-key",
-										"value": "{{internalToolKey}}"
 									}
 								],
 								"body": {
@@ -2114,6 +2194,16 @@
 									"path": [
 										"workspaces",
 										"999"
+									]
+								},
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{accessToken}}",
+											"type": "string"
+										}
 									]
 								}
 							},
@@ -2137,10 +2227,6 @@
 									{
 										"key": "Content-Type",
 										"value": "application/json"
-									},
-									{
-										"key": "x-internal-tool-key",
-										"value": "{{internalToolKey}}"
 									}
 								],
 								"body": {
@@ -2161,6 +2247,16 @@
 										"workspaces",
 										"1"
 									]
+								},
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{accessToken}}",
+											"type": "string"
+										}
+									]
 								}
 							},
 							"status": "Conflict",
@@ -2176,7 +2272,7 @@
 							"body": "{\n  \"message\": \"slug \\\"nova-labs\\\" is already used by another workspace.\",\n  \"error\": \"Conflict\",\n  \"statusCode\": 409\n}"
 						},
 						{
-							"name": "403 — Missing or incorrect internal-tool key (illustrative)",
+							"name": "401 — Missing, invalid, or expired JWT (illustrative)",
 							"originalRequest": {
 								"method": "PATCH",
 								"header": [
@@ -2210,8 +2306,8 @@
 									"type": "noauth"
 								}
 							},
-							"status": "Forbidden",
-							"code": 403,
+							"status": "Unauthorized",
+							"code": 401,
 							"_postman_previewlanguage": "json",
 							"header": [
 								{
@@ -2220,7 +2316,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n  \"message\": \"This operation is restricted to B4F Board's own internal tooling.\",\n  \"error\": \"Forbidden\",\n  \"statusCode\": 403\n}"
+							"body": "{\n  \"message\": \"Invalid or missing authentication token.\",\n  \"error\": \"Unauthorized\",\n  \"statusCode\": 401\n}"
 						}
 					]
 				},
@@ -2323,7 +2419,7 @@
 		},
 		{
 			"name": "Issues",
-			"description": "Create using projectId captured by Projects, then read and update. Reads are public; writes require internalToolKey.",
+			"description": "Create using projectId captured by Projects, then read and update. Reads are public; writes require a Bearer accessToken.",
 			"item": [
 				{
 					"name": "Create issue",
@@ -2339,22 +2435,23 @@
 							]
 						},
 						"auth": {
-							"type": "noauth"
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
 						},
 						"header": [
-							{
-								"key": "x-internal-tool-key",
-								"value": "{{internalToolKey}}",
-								"type": "text",
-								"description": "Set internalToolKey privately; this is separate from JWT authentication."
-							},
 							{
 								"key": "Content-Type",
 								"value": "application/json",
 								"type": "text"
 							}
 						],
-						"description": "Create an issue (internal tool only).\n\nSource: Swagger operation IssuesController_create.\n\nRequires x-internal-tool-key: {{internalToolKey}}. Missing/incorrect key: 403. A JWT does not replace this key.\n\nJSON fields: projectId (required), title (required), description (optional). Invalid types, blank required text, or extra fields: 400.\n\nprojectId must be a JSON integer. New issues start with status \"todo\"; status is not a create field.",
+						"description": "Create an issue.\n\nSource: Swagger operation IssuesController_create.\n\nRequires Authorization: Bearer {{accessToken}} from Login. Missing, invalid, or expired token: 401. The old internal-tool key alone does not authenticate these routes.\n\nJSON fields: projectId (required), title (required), description (optional). Invalid types, blank required text, or extra fields: 400.\n\nprojectId must be a JSON integer. New issues start with status \"todo\"; status is not a create field.",
 						"body": {
 							"mode": "raw",
 							"raw": "{\n  \"projectId\": {{projectId}},\n  \"title\": \"Fix the login button\",\n  \"description\": \"Created with Postman\"\n}",
@@ -2380,15 +2477,16 @@
 									]
 								},
 								"auth": {
-									"type": "noauth"
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{accessToken}}",
+											"type": "string"
+										}
+									]
 								},
 								"header": [
-									{
-										"key": "x-internal-tool-key",
-										"value": "{{internalToolKey}}",
-										"type": "text",
-										"description": "Set internalToolKey privately; this is separate from JWT authentication."
-									},
 									{
 										"key": "Content-Type",
 										"value": "application/json",
@@ -2419,7 +2517,7 @@
 							"body": "{\n  \"_id\": \"507f1f77bcf86cd700000001\",\n  \"id\": 1,\n  \"projectId\": 1,\n  \"title\": \"Fix the login button\",\n  \"description\": \"\",\n  \"status\": \"todo\",\n  \"__v\": 0\n}"
 						},
 						{
-							"name": "403 — Missing or incorrect internal-tool key (illustrative)",
+							"name": "401 — Missing, invalid, or expired JWT (illustrative)",
 							"originalRequest": {
 								"method": "POST",
 								"url": {
@@ -2452,8 +2550,8 @@
 									}
 								}
 							},
-							"status": "Forbidden",
-							"code": 403,
+							"status": "Unauthorized",
+							"code": 401,
 							"_postman_previewlanguage": "json",
 							"header": [
 								{
@@ -2462,7 +2560,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n  \"message\": \"This operation is restricted to B4F Board's own internal tooling.\",\n  \"error\": \"Forbidden\",\n  \"statusCode\": 403\n}"
+							"body": "{\n  \"message\": \"Invalid or missing authentication token.\",\n  \"error\": \"Unauthorized\",\n  \"statusCode\": 401\n}"
 						}
 					],
 					"event": [
@@ -2751,22 +2849,23 @@
 							]
 						},
 						"auth": {
-							"type": "noauth"
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
 						},
 						"header": [
-							{
-								"key": "x-internal-tool-key",
-								"value": "{{internalToolKey}}",
-								"type": "text",
-								"description": "Set internalToolKey privately; this is separate from JWT authentication."
-							},
 							{
 								"key": "Content-Type",
 								"value": "application/json",
 								"type": "text"
 							}
 						],
-						"description": "Update an issue (internal tool only).\n\nSource: Swagger operation IssuesController_update.\n\nPath id is a numeric application id (not MongoDB _id). Malformed id: 400. Missing record: 404.\n\nRequires x-internal-tool-key: {{internalToolKey}}. Missing/incorrect key: 403. A JWT does not replace this key.\n\nJSON fields: projectId (optional), title (optional), description (optional), status (optional). Invalid types, blank required text, or extra fields: 400.\n\nstatus: todo, in_progress, review, done. The DTO accepts projectId, but the current service does not update it; this example changes title/description/status only.",
+						"description": "Update an issue.\n\nSource: Swagger operation IssuesController_update.\n\nPath id is a numeric application id (not MongoDB _id). Malformed id: 400. Missing record: 404.\n\nRequires Authorization: Bearer {{accessToken}} from Login. Missing, invalid, or expired token: 401. The old internal-tool key alone does not authenticate these routes.\n\nJSON fields: projectId (optional), title (optional), description (optional), status (optional). Invalid types, blank required text, or extra fields: 400.\n\nstatus: todo, in_progress, review, done. The DTO accepts projectId, but the current service does not update it; this example changes title/description/status only.",
 						"body": {
 							"mode": "raw",
 							"raw": "{\n  \"title\": \"Fix the login button\",\n  \"description\": \"Updated with Postman\",\n  \"status\": \"in_progress\"\n}",
@@ -2793,15 +2892,16 @@
 									]
 								},
 								"auth": {
-									"type": "noauth"
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{accessToken}}",
+											"type": "string"
+										}
+									]
 								},
 								"header": [
-									{
-										"key": "x-internal-tool-key",
-										"value": "{{internalToolKey}}",
-										"type": "text",
-										"description": "Set internalToolKey privately; this is separate from JWT authentication."
-									},
 									{
 										"key": "Content-Type",
 										"value": "application/json",
@@ -2832,7 +2932,7 @@
 							"body": "{\n  \"_id\": \"507f1f77bcf86cd700000001\",\n  \"id\": 1,\n  \"projectId\": 1,\n  \"title\": \"Fix the login button\",\n  \"description\": \"\",\n  \"status\": \"in_progress\",\n  \"__v\": 0\n}"
 						},
 						{
-							"name": "403 — Missing or incorrect internal-tool key (illustrative)",
+							"name": "401 — Missing, invalid, or expired JWT (illustrative)",
 							"originalRequest": {
 								"method": "PATCH",
 								"url": {
@@ -2866,8 +2966,8 @@
 									}
 								}
 							},
-							"status": "Forbidden",
-							"code": 403,
+							"status": "Unauthorized",
+							"code": 401,
 							"_postman_previewlanguage": "json",
 							"header": [
 								{
@@ -2876,7 +2976,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n  \"message\": \"This operation is restricted to B4F Board's own internal tooling.\",\n  \"error\": \"Forbidden\",\n  \"statusCode\": 403\n}"
+							"body": "{\n  \"message\": \"Invalid or missing authentication token.\",\n  \"error\": \"Unauthorized\",\n  \"statusCode\": 401\n}"
 						},
 						{
 							"name": "404 — Record not found (illustrative)",
@@ -2893,15 +2993,16 @@
 									]
 								},
 								"auth": {
-									"type": "noauth"
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{accessToken}}",
+											"type": "string"
+										}
+									]
 								},
 								"header": [
-									{
-										"key": "x-internal-tool-key",
-										"value": "{{internalToolKey}}",
-										"type": "text",
-										"description": "Set internalToolKey privately; this is separate from JWT authentication."
-									},
 									{
 										"key": "Content-Type",
 										"value": "application/json",
@@ -2946,15 +3047,16 @@
 									]
 								},
 								"auth": {
-									"type": "noauth"
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{accessToken}}",
+											"type": "string"
+										}
+									]
 								},
 								"header": [
-									{
-										"key": "x-internal-tool-key",
-										"value": "{{internalToolKey}}",
-										"type": "text",
-										"description": "Set internalToolKey privately; this is separate from JWT authentication."
-									},
 									{
 										"key": "Content-Type",
 										"value": "application/json",
@@ -3020,17 +3122,17 @@
 							]
 						},
 						"auth": {
-							"type": "noauth"
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
 						},
-						"header": [
-							{
-								"key": "x-internal-tool-key",
-								"value": "{{internalToolKey}}",
-								"type": "text",
-								"description": "Set internalToolKey privately; this is separate from JWT authentication."
-							}
-						],
-						"description": "Delete an issue (internal tool only).\n\nSource: Swagger operation IssuesController_remove.\n\nPath id is a numeric application id (not MongoDB _id). Malformed id: 400. Missing record: 404.\n\nRequires x-internal-tool-key: {{internalToolKey}}. Missing/incorrect key: 403. A JWT does not replace this key.\n\nPermanently deletes and returns the document (200). No cascading deletion. Create the corresponding test record first; its response captures this delete target."
+						"header": [],
+						"description": "Delete an issue.\n\nSource: Swagger operation IssuesController_remove.\n\nPath id is a numeric application id (not MongoDB _id). Malformed id: 400. Missing record: 404.\n\nRequires Authorization: Bearer {{accessToken}} from Login. Missing, invalid, or expired token: 401. The old internal-tool key alone does not authenticate these routes.\n\nPermanently deletes and returns the document (200). No cascading deletion. Create the corresponding test record first; its response captures this delete target."
 					},
 					"response": [
 						{
@@ -3048,16 +3150,16 @@
 									]
 								},
 								"auth": {
-									"type": "noauth"
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{accessToken}}",
+											"type": "string"
+										}
+									]
 								},
-								"header": [
-									{
-										"key": "x-internal-tool-key",
-										"value": "{{internalToolKey}}",
-										"type": "text",
-										"description": "Set internalToolKey privately; this is separate from JWT authentication."
-									}
-								],
+								"header": [],
 								"description": "Delete an issue (internal tool only).\n\nSource: Swagger operation IssuesController_remove.\n\nPath id is a numeric application id (not MongoDB _id). Malformed id: 400. Missing record: 404.\n\nRequires x-internal-tool-key: {{internalToolKey}}. Missing/incorrect key: 403. A JWT does not replace this key.\n\nPermanently deletes and returns the document (200). No cascading deletion. Create the corresponding test record first; its response captures this delete target."
 							},
 							"status": "OK",
@@ -3073,7 +3175,7 @@
 							"body": "{\n  \"_id\": \"507f1f77bcf86cd700000001\",\n  \"id\": 1,\n  \"projectId\": 1,\n  \"title\": \"Fix the login button\",\n  \"description\": \"\",\n  \"status\": \"todo\",\n  \"__v\": 0\n}"
 						},
 						{
-							"name": "403 — Missing or incorrect internal-tool key (illustrative)",
+							"name": "401 — Missing, invalid, or expired JWT (illustrative)",
 							"originalRequest": {
 								"method": "DELETE",
 								"url": {
@@ -3092,8 +3194,8 @@
 								"header": [],
 								"description": "Delete an issue (internal tool only).\n\nSource: Swagger operation IssuesController_remove.\n\nPath id is a numeric application id (not MongoDB _id). Malformed id: 400. Missing record: 404.\n\nRequires x-internal-tool-key: {{internalToolKey}}. Missing/incorrect key: 403. A JWT does not replace this key.\n\nPermanently deletes and returns the document (200). No cascading deletion. Create the corresponding test record first; its response captures this delete target."
 							},
-							"status": "Forbidden",
-							"code": 403,
+							"status": "Unauthorized",
+							"code": 401,
 							"_postman_previewlanguage": "json",
 							"header": [
 								{
@@ -3102,7 +3204,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n  \"message\": \"This operation is restricted to B4F Board's own internal tooling.\",\n  \"error\": \"Forbidden\",\n  \"statusCode\": 403\n}"
+							"body": "{\n  \"message\": \"Invalid or missing authentication token.\",\n  \"error\": \"Unauthorized\",\n  \"statusCode\": 401\n}"
 						},
 						{
 							"name": "404 — Record not found (illustrative)",
@@ -3119,16 +3221,16 @@
 									]
 								},
 								"auth": {
-									"type": "noauth"
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{accessToken}}",
+											"type": "string"
+										}
+									]
 								},
-								"header": [
-									{
-										"key": "x-internal-tool-key",
-										"value": "{{internalToolKey}}",
-										"type": "text",
-										"description": "Set internalToolKey privately; this is separate from JWT authentication."
-									}
-								],
+								"header": [],
 								"description": "Delete an issue (internal tool only).\n\nSource: Swagger operation IssuesController_remove.\n\nPath id is a numeric application id (not MongoDB _id). Malformed id: 400. Missing record: 404.\n\nRequires x-internal-tool-key: {{internalToolKey}}. Missing/incorrect key: 403. A JWT does not replace this key.\n\nPermanently deletes and returns the document (200). No cascading deletion. Create the corresponding test record first; its response captures this delete target."
 							},
 							"status": "Not Found",
@@ -3158,16 +3260,16 @@
 									]
 								},
 								"auth": {
-									"type": "noauth"
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{accessToken}}",
+											"type": "string"
+										}
+									]
 								},
-								"header": [
-									{
-										"key": "x-internal-tool-key",
-										"value": "{{internalToolKey}}",
-										"type": "text",
-										"description": "Set internalToolKey privately; this is separate from JWT authentication."
-									}
-								],
+								"header": [],
 								"description": "Delete an issue (internal tool only).\n\nSource: Swagger operation IssuesController_remove.\n\nPath id is a numeric application id (not MongoDB _id). Malformed id: 400. Missing record: 404.\n\nRequires x-internal-tool-key: {{internalToolKey}}. Missing/incorrect key: 403. A JWT does not replace this key.\n\nPermanently deletes and returns the document (200). No cascading deletion. Create the corresponding test record first; its response captures this delete target."
 							},
 							"status": "Bad Request",
@@ -3212,17 +3314,17 @@
 							]
 						},
 						"auth": {
-							"type": "noauth"
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
 						},
-						"header": [
-							{
-								"key": "x-internal-tool-key",
-								"value": "{{internalToolKey}}",
-								"type": "text",
-								"description": "Set internalToolKey privately; this is separate from JWT authentication."
-							}
-						],
-						"description": "Delete a project.\n\nSource: Swagger operation ProjectsController_remove.\n\nPath id is a numeric application id (not MongoDB _id). Malformed id: 400. Missing record: 404.\n\nRequires x-internal-tool-key: {{internalToolKey}}. Missing/incorrect key: 403. A JWT does not replace this key.\n\nPermanently deletes and returns the document (200). No cascading deletion. Create the corresponding test record first; its response captures this delete target."
+						"header": [],
+						"description": "Delete a project.\n\nSource: Swagger operation ProjectsController_remove.\n\nPath id is a numeric application id (not MongoDB _id). Malformed id: 400. Missing record: 404.\n\nRequires Authorization: Bearer {{accessToken}} from Login. Missing, invalid, or expired token: 401. The old internal-tool key alone does not authenticate these routes.\n\nPermanently deletes and returns the document (200). No cascading deletion. Create the corresponding test record first; its response captures this delete target."
 					},
 					"response": [
 						{
@@ -3240,16 +3342,16 @@
 									]
 								},
 								"auth": {
-									"type": "noauth"
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{accessToken}}",
+											"type": "string"
+										}
+									]
 								},
-								"header": [
-									{
-										"key": "x-internal-tool-key",
-										"value": "{{internalToolKey}}",
-										"type": "text",
-										"description": "Set internalToolKey privately; this is separate from JWT authentication."
-									}
-								],
+								"header": [],
 								"description": "Delete a project.\n\nSource: Swagger operation ProjectsController_remove.\n\nPath id is a numeric application id (not MongoDB _id). Malformed id: 400. Missing record: 404.\n\nRequires x-internal-tool-key: {{internalToolKey}}. Missing/incorrect key: 403. A JWT does not replace this key.\n\nPermanently deletes and returns the document (200). No cascading deletion. Create the corresponding test record first; its response captures this delete target."
 							},
 							"status": "OK",
@@ -3265,7 +3367,7 @@
 							"body": "{\n  \"_id\": \"507f1f77bcf86cd700000001\",\n  \"id\": 1,\n  \"name\": \"Web App\",\n  \"key\": \"WEB\",\n  \"description\": \"Customer UI\",\n  \"__v\": 0\n}"
 						},
 						{
-							"name": "403 — Missing or incorrect internal-tool key (illustrative)",
+							"name": "401 — Missing, invalid, or expired JWT (illustrative)",
 							"originalRequest": {
 								"method": "DELETE",
 								"url": {
@@ -3284,8 +3386,8 @@
 								"header": [],
 								"description": "Delete a project.\n\nSource: Swagger operation ProjectsController_remove.\n\nPath id is a numeric application id (not MongoDB _id). Malformed id: 400. Missing record: 404.\n\nRequires x-internal-tool-key: {{internalToolKey}}. Missing/incorrect key: 403. A JWT does not replace this key.\n\nPermanently deletes and returns the document (200). No cascading deletion. Create the corresponding test record first; its response captures this delete target."
 							},
-							"status": "Forbidden",
-							"code": 403,
+							"status": "Unauthorized",
+							"code": 401,
 							"_postman_previewlanguage": "json",
 							"header": [
 								{
@@ -3294,7 +3396,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n  \"message\": \"This operation is restricted to B4F Board's own internal tooling.\",\n  \"error\": \"Forbidden\",\n  \"statusCode\": 403\n}"
+							"body": "{\n  \"message\": \"Invalid or missing authentication token.\",\n  \"error\": \"Unauthorized\",\n  \"statusCode\": 401\n}"
 						},
 						{
 							"name": "404 — Record not found (illustrative)",
@@ -3311,16 +3413,16 @@
 									]
 								},
 								"auth": {
-									"type": "noauth"
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{accessToken}}",
+											"type": "string"
+										}
+									]
 								},
-								"header": [
-									{
-										"key": "x-internal-tool-key",
-										"value": "{{internalToolKey}}",
-										"type": "text",
-										"description": "Set internalToolKey privately; this is separate from JWT authentication."
-									}
-								],
+								"header": [],
 								"description": "Delete a project.\n\nSource: Swagger operation ProjectsController_remove.\n\nPath id is a numeric application id (not MongoDB _id). Malformed id: 400. Missing record: 404.\n\nRequires x-internal-tool-key: {{internalToolKey}}. Missing/incorrect key: 403. A JWT does not replace this key.\n\nPermanently deletes and returns the document (200). No cascading deletion. Create the corresponding test record first; its response captures this delete target."
 							},
 							"status": "Not Found",
@@ -3350,16 +3452,16 @@
 									]
 								},
 								"auth": {
-									"type": "noauth"
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{accessToken}}",
+											"type": "string"
+										}
+									]
 								},
-								"header": [
-									{
-										"key": "x-internal-tool-key",
-										"value": "{{internalToolKey}}",
-										"type": "text",
-										"description": "Set internalToolKey privately; this is separate from JWT authentication."
-									}
-								],
+								"header": [],
 								"description": "Delete a project.\n\nSource: Swagger operation ProjectsController_remove.\n\nPath id is a numeric application id (not MongoDB _id). Malformed id: 400. Missing record: 404.\n\nRequires x-internal-tool-key: {{internalToolKey}}. Missing/incorrect key: 403. A JWT does not replace this key.\n\nPermanently deletes and returns the document (200). No cascading deletion. Create the corresponding test record first; its response captures this delete target."
 							},
 							"status": "Bad Request",
@@ -3404,17 +3506,17 @@
 							]
 						},
 						"auth": {
-							"type": "noauth"
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
 						},
-						"header": [
-							{
-								"key": "x-internal-tool-key",
-								"value": "{{internalToolKey}}",
-								"type": "text",
-								"description": "Set internalToolKey privately; this is separate from JWT authentication."
-							}
-						],
-						"description": "Delete a workspace.\n\nSource: Swagger operation WorkspacesController_remove.\n\nPath id is a numeric application id (not MongoDB _id). Malformed id: 400. Missing record: 404.\n\nRequires x-internal-tool-key: {{internalToolKey}}. Missing/incorrect key: 403. A JWT does not replace this key.\n\nPermanently deletes and returns the document (200). No cascading deletion. Create the corresponding test record first; its response captures this delete target."
+						"header": [],
+						"description": "Delete a workspace.\n\nSource: Swagger operation WorkspacesController_remove.\n\nPath id is a numeric application id (not MongoDB _id). Malformed id: 400. Missing record: 404.\n\nRequires Authorization: Bearer {{accessToken}} from Login. Missing, invalid, or expired token: 401. The old internal-tool key alone does not authenticate these routes.\n\nPermanently deletes and returns the document (200). No cascading deletion. Create the corresponding test record first; its response captures this delete target."
 					},
 					"response": [
 						{
@@ -3432,16 +3534,16 @@
 									]
 								},
 								"auth": {
-									"type": "noauth"
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{accessToken}}",
+											"type": "string"
+										}
+									]
 								},
-								"header": [
-									{
-										"key": "x-internal-tool-key",
-										"value": "{{internalToolKey}}",
-										"type": "text",
-										"description": "Set internalToolKey privately; this is separate from JWT authentication."
-									}
-								],
+								"header": [],
 								"description": "Delete a workspace.\n\nSource: Swagger operation WorkspacesController_remove.\n\nPath id is a numeric application id (not MongoDB _id). Malformed id: 400. Missing record: 404.\n\nRequires x-internal-tool-key: {{internalToolKey}}. Missing/incorrect key: 403. A JWT does not replace this key.\n\nPermanently deletes and returns the document (200). No cascading deletion. Create the corresponding test record first; its response captures this delete target."
 							},
 							"status": "OK",
@@ -3457,7 +3559,7 @@
 							"body": "{\n  \"_id\": \"507f1f77bcf86cd700000001\",\n  \"id\": 1,\n  \"name\": \"Acme Robotics\",\n  \"slug\": \"acme-robotics\",\n  \"description\": \"Internal tools\",\n  \"__v\": 0\n}"
 						},
 						{
-							"name": "403 — Missing or incorrect internal-tool key (illustrative)",
+							"name": "401 — Missing, invalid, or expired JWT (illustrative)",
 							"originalRequest": {
 								"method": "DELETE",
 								"url": {
@@ -3476,8 +3578,8 @@
 								"header": [],
 								"description": "Delete a workspace.\n\nSource: Swagger operation WorkspacesController_remove.\n\nPath id is a numeric application id (not MongoDB _id). Malformed id: 400. Missing record: 404.\n\nRequires x-internal-tool-key: {{internalToolKey}}. Missing/incorrect key: 403. A JWT does not replace this key.\n\nPermanently deletes and returns the document (200). No cascading deletion. Create the corresponding test record first; its response captures this delete target."
 							},
-							"status": "Forbidden",
-							"code": 403,
+							"status": "Unauthorized",
+							"code": 401,
 							"_postman_previewlanguage": "json",
 							"header": [
 								{
@@ -3486,7 +3588,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n  \"message\": \"This operation is restricted to B4F Board's own internal tooling.\",\n  \"error\": \"Forbidden\",\n  \"statusCode\": 403\n}"
+							"body": "{\n  \"message\": \"Invalid or missing authentication token.\",\n  \"error\": \"Unauthorized\",\n  \"statusCode\": 401\n}"
 						},
 						{
 							"name": "404 — Record not found (illustrative)",
@@ -3503,16 +3605,16 @@
 									]
 								},
 								"auth": {
-									"type": "noauth"
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{accessToken}}",
+											"type": "string"
+										}
+									]
 								},
-								"header": [
-									{
-										"key": "x-internal-tool-key",
-										"value": "{{internalToolKey}}",
-										"type": "text",
-										"description": "Set internalToolKey privately; this is separate from JWT authentication."
-									}
-								],
+								"header": [],
 								"description": "Delete a workspace.\n\nSource: Swagger operation WorkspacesController_remove.\n\nPath id is a numeric application id (not MongoDB _id). Malformed id: 400. Missing record: 404.\n\nRequires x-internal-tool-key: {{internalToolKey}}. Missing/incorrect key: 403. A JWT does not replace this key.\n\nPermanently deletes and returns the document (200). No cascading deletion. Create the corresponding test record first; its response captures this delete target."
 							},
 							"status": "Not Found",
@@ -3542,16 +3644,16 @@
 									]
 								},
 								"auth": {
-									"type": "noauth"
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{accessToken}}",
+											"type": "string"
+										}
+									]
 								},
-								"header": [
-									{
-										"key": "x-internal-tool-key",
-										"value": "{{internalToolKey}}",
-										"type": "text",
-										"description": "Set internalToolKey privately; this is separate from JWT authentication."
-									}
-								],
+								"header": [],
 								"description": "Delete a workspace.\n\nSource: Swagger operation WorkspacesController_remove.\n\nPath id is a numeric application id (not MongoDB _id). Malformed id: 400. Missing record: 404.\n\nRequires x-internal-tool-key: {{internalToolKey}}. Missing/incorrect key: 403. A JWT does not replace this key.\n\nPermanently deletes and returns the document (200). No cascading deletion. Create the corresponding test record first; its response captures this delete target."
 							},
 							"status": "Bad Request",
@@ -3595,7 +3697,7 @@
 			"key": "internalToolKey",
 			"value": "",
 			"type": "string",
-			"description": "Set privately to INTERNAL_TOOL_KEY from your server. Required for writes and project stats."
+			"description": "Set privately to INTERNAL_TOOL_KEY; used only by GET /projects/stats."
 		},
 		{
 			"key": "authName",
@@ -3619,7 +3721,7 @@
 			"key": "accessToken",
 			"value": "",
 			"type": "string",
-			"description": "Login captures the JWT here. Current server token lifetime is 30 seconds; log in again when expired."
+			"description": "Login captures the JWT here. Current server token lifetime is 2 hours; log in again when expired."
 		},
 		{
 			"key": "projectId",
