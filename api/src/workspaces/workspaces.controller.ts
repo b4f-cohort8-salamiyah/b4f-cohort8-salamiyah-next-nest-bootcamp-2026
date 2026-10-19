@@ -20,7 +20,7 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { JwtAuthGuard } from 'src/common/filters/guards/jwt-auth.guard';
+import { JwtAuthGuard } from '../common/filters/guards/jwt-auth.guard';
 @ApiTags('workspaces')
 @Controller('workspaces')
 export class WorkspacesController {

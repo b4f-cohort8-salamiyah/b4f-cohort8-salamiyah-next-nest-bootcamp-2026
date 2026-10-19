@@ -17,8 +17,8 @@ import {
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
-import { JwtAuthGuard } from 'src/common/filters/guards/jwt-auth.guard';
-import { UsersService } from 'src/users/users.service';
+import { JwtAuthGuard } from '../common/filters/guards/jwt-auth.guard';
+import { UsersService } from '../users/users.service';
 import { CurrentUser } from './current-user.decorator';
 import { JwtPayload } from './jwt-payload.interface';
 

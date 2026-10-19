@@ -20,7 +20,7 @@ import { IssuesService } from './issues.service';
 import { FindIssuesQueryDto } from './dto/find-issues-query.dto';
 import { CreateIssueDto } from './dto/create-issue.dto';
 import { UpdateIssueDto } from './dto/update-issue.dto';
-import { JwtAuthGuard } from 'src/common/filters/guards/jwt-auth.guard';
+import { JwtAuthGuard } from '../common/filters/guards/jwt-auth.guard';
 
 @ApiTags('issues')
 @Controller('issues')

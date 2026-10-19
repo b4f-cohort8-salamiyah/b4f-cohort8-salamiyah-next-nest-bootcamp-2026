@@ -21,8 +21,8 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { InternalToolGuard } from 'src/common/filters/guards/internal-tool.guard';
-import { JwtAuthGuard } from 'src/common/filters/guards/jwt-auth.guard';
+import { InternalToolGuard } from '../common/filters/guards/internal-tool.guard';
+import { JwtAuthGuard } from '../common/filters/guards/jwt-auth.guard';
 
 const INTERNAL_TOOL_HEADER = {
   name: 'x-internal-tool-key',
