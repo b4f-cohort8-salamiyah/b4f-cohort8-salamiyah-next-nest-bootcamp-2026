@@ -69,7 +69,7 @@ export class ProjectsService implements OnModuleInit {
     }
 
     const last = await this.model.findOne().sort({ id: -1 });
-    const id = (last.id || 0) + 1;
+    const id = (last?.id || 0) + 1;
 
     const project = await this.model.insertOne({
       id,

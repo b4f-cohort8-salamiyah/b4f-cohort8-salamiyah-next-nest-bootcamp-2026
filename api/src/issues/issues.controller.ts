@@ -29,56 +29,56 @@ const INTERNAL_TOOL_HEADER = {
 export class IssuesController {
   constructor(private readonly issuesService: IssuesService) {}
 
-@ApiOperation({
-  summary: 'List issues, optionally filtered by projectId, status and title',
-})
-@Get()
-findAll(@Query() query: FindIssuesQueryDto) {
-  return this.issuesService.findAll(query);
-}
+  @ApiOperation({
+    summary: 'List issues, optionally filtered by projectId and/or status',
+  })
+  @Get()
+  findAll(@Query() query: FindIssuesQueryDto) {
+    return this.issuesService.findAll(query);
+  }
 
-@ApiOperation({ summary: 'Get one issue by its id' })
-@Get(':id')
-findOne(@Param('id', ParseIntPipe) id: number) {
-  return this.issuesService.findOne(id);
-}
+  @ApiOperation({ summary: 'Get one issue by its id' })
+  @Get(':id')
+  findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.issuesService.findOne(id);
+  }
 
-@ApiOperation({ summary: 'Create a new issue' })
-@ApiHeader(INTERNAL_TOOL_HEADER)
-@ApiResponse({ status: 201, description: 'The created issue.' })
-@ApiResponse({
-  status: 403,
-  description: 'Missing or incorrect x-internal-tool-key.',
-})
-@UseGuards(InternalToolGuard)
-@Post()
-create(@Body() dto: CreateIssueDto) {
-  return this.issuesService.create(dto);
-}
+  @ApiOperation({ summary: 'Create an issue (internal tool only)' })
+  @ApiHeader(INTERNAL_TOOL_HEADER)
+  @ApiResponse({ status: 201, description: 'The created issue.' })
+  @ApiResponse({
+    status: 403,
+    description: 'Missing or incorrect x-internal-tool-key.',
+  })
+  @UseGuards(InternalToolGuard)
+  @Post()
+  create(@Body() dto: CreateIssueDto) {
+    return this.issuesService.create(dto);
+  }
 
-@ApiOperation({ summary: 'Update an issue' })
-@ApiHeader(INTERNAL_TOOL_HEADER)
-@ApiResponse({ status: 200, description: 'The updated issue.' })
-@ApiResponse({
-  status: 403,
-  description: 'Missing or incorrect x-internal-tool-key.',
-})
-@UseGuards(InternalToolGuard)
-@Patch(':id')
-update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateIssueDto) {
-  return this.issuesService.update(id, dto);
-}
+  @ApiOperation({ summary: 'Update an issue (internal tool only)' })
+  @ApiHeader(INTERNAL_TOOL_HEADER)
+  @ApiResponse({ status: 200, description: 'The updated issue.' })
+  @ApiResponse({
+    status: 403,
+    description: 'Missing or incorrect x-internal-tool-key.',
+  })
+  @UseGuards(InternalToolGuard)
+  @Patch(':id')
+  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateIssueDto) {
+    return this.issuesService.update(id, dto);
+  }
 
-@ApiOperation({ summary: 'Delete an issue' })
-@ApiHeader(INTERNAL_TOOL_HEADER)
-@ApiResponse({ status: 200, description: 'The deleted issue.' })
-@ApiResponse({
-  status: 403,
-  description: 'Missing or incorrect x-internal-tool-key.',
-})
-@UseGuards(InternalToolGuard)
-@Delete(':id')
-remove(@Param('id', ParseIntPipe) id: number) {
-  return this.issuesService.remove(id);
-}
+  @ApiOperation({ summary: 'Delete an issue (internal tool only)' })
+  @ApiHeader(INTERNAL_TOOL_HEADER)
+  @ApiResponse({ status: 200, description: 'The deleted issue.' })
+  @ApiResponse({
+    status: 403,
+    description: 'Missing or incorrect x-internal-tool-key.',
+  })
+  @UseGuards(InternalToolGuard)
+  @Delete(':id')
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.issuesService.remove(id);
+  }
 }

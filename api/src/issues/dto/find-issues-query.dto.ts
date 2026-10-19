@@ -10,14 +10,14 @@ export class FindIssuesQueryDto {
   projectId?: number;
 
   @ApiPropertyOptional({
-    example: 'in_progress',
+    example: 'todo',
     enum: ['todo', 'in_progress', 'review', 'done'],
   })
   @IsOptional()
   @IsIn(['todo', 'in_progress', 'review', 'done'])
   status?: string;
 
-  @ApiPropertyOptional({ example: 'Fix the login button' })
+  @ApiPropertyOptional({ example: 'login' })
   @IsOptional()
   @IsString()
   title?: string;
