@@ -11,7 +11,7 @@ export class RegisterDto {
 
   @ApiProperty({ example: 'nawar@example.com' })
   @IsEmail()
-  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim().toLowerCase() : value))
   email: string;
 
   @ApiProperty({ example: 'a-real-password', minLength: 8 })
