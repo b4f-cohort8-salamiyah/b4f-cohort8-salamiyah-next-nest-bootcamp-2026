@@ -1,13 +1,35 @@
-import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Post,
+  UnauthorizedException,
+  UseGuards,
+} from '@nestjs/common';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
+import { LoginDto } from './dto/login.dto';
+import { JwtAuthGuard } from 'src/common/filters/guards/jwt-auth.guard';
+import { UsersService } from 'src/users/users.service';
+import { CurrentUser } from './current-user.decorator';
+import { JwtPayload } from './jwt-payload.interface';
 
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly usersService: UsersService,
+  ) {}
 
   @ApiOperation({ summary: 'Register a new account' })
   @ApiResponse({
@@ -23,18 +45,37 @@ export class AuthController {
     return this.authService.register(dto);
   }
 
-  @ApiOperation({ summary: 'Log in with an existing account' })
+  @ApiOperation({ summary: 'Authenticate with email and password' })
   @ApiResponse({
     status: 200,
-    description: 'The account (no password hash).',
+    description: 'A signed JWT access token and the authenticated user.',
+  })
+  @ApiResponse({ status: 401, description: 'Invalid email or password.' })
+  @HttpCode(HttpStatus.OK)
+  @Post('login')
+  login(@Body() dto: LoginDto) {
+    return this.authService.login(dto);
+  }
+
+  @ApiOperation({ summary: 'Get the currently authenticated user' })
+  @ApiBearerAuth()
+  @ApiResponse({
+    status: 200,
+    description: 'The authenticated user (no password hash).',
   })
   @ApiResponse({
     status: 401,
-    description: 'The email or password is incorrect.',
+    description: 'Missing or invalid authentication token.',
   })
-  @Post('login')
-  @HttpCode(HttpStatus.OK)
-  login(@Body() dto: LoginDto) {
-    return this.authService.login(dto);
+  @UseGuards(JwtAuthGuard)
+  @Get('me')
+  async me(@CurrentUser() claims: JwtPayload) {
+    const user = await this.usersService.findById(claims.sub);
+
+    if (!user) {
+      throw new UnauthorizedException('This account no longer exists.');
+    }
+
+    return this.usersService.toSafeUser(user);
   }
 }
