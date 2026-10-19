@@ -20,6 +20,10 @@ export class UsersService {
     return this.model.findOne({ email });
   }
 
+  findById(id: number): Promise<UserDocument | null> {
+    return this.model.findOne({ id });
+  }
+
   async create(data: {
     name: string;
     email: string;
