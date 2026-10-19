@@ -22,4 +22,4 @@ export class Issue {
 }
 
 export const IssueSchema = SchemaFactory.createForClass(Issue);
-IssueSchema.index({ projectId: 1 });
+IssueSchema.index({ status: 1, projectId: 1 });

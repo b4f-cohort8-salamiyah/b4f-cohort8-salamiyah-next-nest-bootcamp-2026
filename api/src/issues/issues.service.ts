@@ -62,6 +62,14 @@ export class IssuesService implements OnModuleInit {
       filter.projectId = query.projectId;
     }
 
+    if (query.status !== undefined) {
+      filter.status = query.status;
+    }
+
+    if (query.title) {
+      filter.title = { $regex: query.title, $options: 'i' };
+    }
+
     return this.model.find(filter);
   }
 
