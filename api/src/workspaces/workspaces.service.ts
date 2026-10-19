@@ -8,14 +8,9 @@ import {
 import { UpdateWorkspaceDto } from './dto/update-workspace.dto';
 import { CreateWorkspaceDto } from './dto/create-workspace.dto';
 import { InjectModel } from '@nestjs/mongoose';
-<<<<<<< HEAD
-import { Model } from 'mongoose';
-import { Workspace, WorkspaceDocument } from './schemas/workspace.schema';
-=======
 import { Workspace, WorkspaceDocument } from './schemas/workspace.schema';
 import { Model } from 'mongoose';
 import { FindWorkspacesQueryDto } from './dto/find-workspaces-query.dto';
->>>>>>> main
 
 const seedWorkspaces = [
   {
@@ -29,10 +24,7 @@ const seedWorkspaces = [
 
 @Injectable()
 export class WorkspacesService implements OnModuleInit {
-<<<<<<< HEAD
-=======
   private readonly logger = new Logger(WorkspacesService.name);
->>>>>>> main
   constructor(
     @InjectModel(Workspace.name)
     private readonly model: Model<WorkspaceDocument>,
@@ -46,10 +38,6 @@ export class WorkspacesService implements OnModuleInit {
     }
   }
 
-<<<<<<< HEAD
-  async findAll(): Promise<WorkspaceDocument[]> {
-    return this.model.find();
-=======
   async findAll(query: FindWorkspacesQueryDto): Promise<WorkspaceDocument[]> {
     const filter: Record<string, unknown> = {};
 
@@ -62,7 +50,6 @@ export class WorkspacesService implements OnModuleInit {
     }
 
     return this.model.find(filter);
->>>>>>> main
   }
 
   async findOne(id: number): Promise<WorkspaceDocument> {
@@ -84,31 +71,20 @@ export class WorkspacesService implements OnModuleInit {
       );
     }
 
-<<<<<<< HEAD
-    const last = await this.model.findOne().sort({ id: -1 });
-    const id = (last?.id || 0) + 1;
-
-    const workspace = await this.model.insertOne({
-=======
     const last = await this.model.findOne().sort({ id: -1 }).exec();
     const id = (last?.id ?? 0) + 1;
 
     const workspace = new this.model({
->>>>>>> main
       id,
       name: dto.name,
       slug: dto.slug,
       description: dto.description || '',
     });
-<<<<<<< HEAD
-    return workspace;
-=======
 
     const saved = await workspace.save();
     this.logger.log(`Created workspace ${saved.id} ("${saved.name}")`);
 
     return saved;
->>>>>>> main
   }
 
   async update(

@@ -2,14 +2,647 @@
 	"info": {
 		"_postman_id": "76a38ab3-3551-42de-ae66-53acb7873121",
 		"name": "B4F Board API",
-		"description": "Postman collection for the B4F Board backend API.\n\nThis collection grows with the project. It contains the endpoints currently implemented in the classroom repository and will be extended as new backend features are added.\n\nCurrent data is in memory — there is no database yet. Each request's saved examples show the real response shapes and status codes the API actually returns.",
+		"description": "B4F Board API — all 21 current controller operations. MongoDB-backed Projects, Workspaces and Issues, plus JWT authentication. Updated from Nest Swagger metadata and controller/DTO/service source.\n\nSet baseUrl, internalToolKey, authEmail and authPassword privately before use. Login captures accessToken; /auth/me uses Bearer authentication. The JWT currently expires after 30 seconds. Write endpoints and GET /projects/stats use x-internal-tool-key; JWT does not replace that key.\n\nOptional list filters are present but disabled. Enable them in Params. Run folders in order: Auth, Projects, Workspaces, Issues, Deletes. Creates generate unique keys/slugs and capture numeric ids; Deletes removes only the captured targets, issues first. Register leaves an account in the database (no user-delete endpoint exists); for an existing account, skip Register and use Login. Run only against an intended test database when running the whole collection. Environment variables override collection values; remove id/key/slug overrides when using automatic chaining.\n\nSaved examples are illustrative, not captures from the current database. Existing examples and status assertions have been retained and refreshed for MongoDB and access-control behavior. See README.md beside this file for setup and verification limitations.",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "3657318"
 	},
 	"item": [
 		{
+			"name": "Auth",
+			"description": "Register once, Login, then Get current user before the 30-second token expires. No internal-tool key is needed.",
+			"item": [
+				{
+					"name": "Register",
+					"request": {
+						"method": "POST",
+						"url": {
+							"raw": "{{baseUrl}}/auth/register",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"register"
+							]
+						},
+						"auth": {
+							"type": "noauth"
+						},
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"description": "Register a new account.\n\nSource: Swagger operation AuthController_register.\n\nJSON fields: name (required), email (required), password (required). Invalid types, blank required text, or extra fields: 400.\n\nUse an unused authEmail. Password must have at least 8 characters. Returns a safe user, not a token; duplicate email: 409. No account deletion endpoint exists.",
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"{{authName}}\",\n  \"email\": \"{{authEmail}}\",\n  \"password\": \"{{authPassword}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						}
+					},
+					"response": [
+						{
+							"name": "201 — Success (illustrative)",
+							"originalRequest": {
+								"method": "POST",
+								"url": {
+									"raw": "{{baseUrl}}/auth/register",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"auth",
+										"register"
+									]
+								},
+								"auth": {
+									"type": "noauth"
+								},
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"description": "Register a new account.\n\nSource: Swagger operation AuthController_register.\n\nJSON fields: name (required), email (required), password (required). Invalid types, blank required text, or extra fields: 400.\n\nUse an unused authEmail. Password must have at least 8 characters. Returns a safe user, not a token; duplicate email: 409. No account deletion endpoint exists.",
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"name\": \"{{authName}}\",\n  \"email\": \"{{authEmail}}\",\n  \"password\": \"{{authPassword}}\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								}
+							},
+							"status": "Created",
+							"code": 201,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"id\": 1,\n  \"name\": \"Postman User\",\n  \"email\": \"postman@example.com\",\n  \"createdAt\": \"2026-10-19T09:00:00.000Z\"\n}"
+						},
+						{
+							"name": "409 — Email already registered (illustrative)",
+							"originalRequest": {
+								"method": "POST",
+								"url": {
+									"raw": "{{baseUrl}}/auth/register",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"auth",
+										"register"
+									]
+								},
+								"auth": {
+									"type": "noauth"
+								},
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"description": "Register a new account.\n\nSource: Swagger operation AuthController_register.\n\nJSON fields: name (required), email (required), password (required). Invalid types, blank required text, or extra fields: 400.\n\nUse an unused authEmail. Password must have at least 8 characters. Returns a safe user, not a token; duplicate email: 409. No account deletion endpoint exists.",
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"name\": \"{{authName}}\",\n  \"email\": \"{{authEmail}}\",\n  \"password\": \"{{authPassword}}\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								}
+							},
+							"status": "Conflict",
+							"code": 409,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"message\": \"An account with email \\\"postman@example.com\\\" already exists.\",\n  \"error\": \"Conflict\",\n  \"statusCode\": 409\n}"
+						}
+					],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status is 201\", function () {",
+									"  pm.response.to.have.status(201);",
+									"});",
+									"if (pm.response.code === 201) {",
+									"  pm.test(\"User response hides passwordHash\", function () { pm.expect(pm.response.json()).not.to.have.property(\"passwordHash\"); });",
+									"}"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Login",
+					"request": {
+						"method": "POST",
+						"url": {
+							"raw": "{{baseUrl}}/auth/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						},
+						"auth": {
+							"type": "noauth"
+						},
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"description": "Authenticate with email and password.\n\nSource: Swagger operation AuthController_login.\n\nJSON fields: email (required), password (required). Invalid types, blank required text, or extra fields: 400.\n\nUses authEmail/authPassword; invalid credentials: 401. Successful Login replaces accessToken. Current JWT expiry: 30 seconds.",
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"{{authEmail}}\",\n  \"password\": \"{{authPassword}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						}
+					},
+					"response": [
+						{
+							"name": "200 — Success (illustrative)",
+							"originalRequest": {
+								"method": "POST",
+								"url": {
+									"raw": "{{baseUrl}}/auth/login",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"auth",
+										"login"
+									]
+								},
+								"auth": {
+									"type": "noauth"
+								},
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"description": "Authenticate with email and password.\n\nSource: Swagger operation AuthController_login.\n\nJSON fields: email (required), password (required). Invalid types, blank required text, or extra fields: 400.\n\nUses authEmail/authPassword; invalid credentials: 401. Successful Login replaces accessToken. Current JWT expiry: 30 seconds.",
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"email\": \"{{authEmail}}\",\n  \"password\": \"{{authPassword}}\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"accessToken\": \"{{accessToken}}\",\n  \"user\": {\n    \"id\": 1,\n    \"name\": \"Postman User\",\n    \"email\": \"postman@example.com\",\n    \"createdAt\": \"2026-10-19T09:00:00.000Z\"\n  }\n}"
+						},
+						{
+							"name": "401 — Unauthorized (illustrative)",
+							"originalRequest": {
+								"method": "POST",
+								"url": {
+									"raw": "{{baseUrl}}/auth/login",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"auth",
+										"login"
+									]
+								},
+								"auth": {
+									"type": "noauth"
+								},
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"description": "Authenticate with email and password.\n\nSource: Swagger operation AuthController_login.\n\nJSON fields: email (required), password (required). Invalid types, blank required text, or extra fields: 400.\n\nUses authEmail/authPassword; invalid credentials: 401. Successful Login replaces accessToken. Current JWT expiry: 30 seconds.",
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"email\": \"postman@example.com\",\n  \"password\": \"incorrect-demo-password\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								}
+							},
+							"status": "Unauthorized",
+							"code": 401,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"message\": \"Invalid email or password.\",\n  \"error\": \"Unauthorized\",\n  \"statusCode\": 401\n}"
+						}
+					],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status is 200\", function () {",
+									"  pm.response.to.have.status(200);",
+									"});",
+									"if (pm.response.code === 200) {",
+									"  const data = pm.response.json();",
+									"  pm.test(\"Login returns a token and safe user\", function () {",
+									"    pm.expect(data.accessToken).to.be.a(\"string\").and.not.empty;",
+									"    pm.expect(data.user).not.to.have.property(\"passwordHash\");",
+									"  });",
+									"  pm.collectionVariables.set(\"accessToken\", data.accessToken);",
+									"  pm.variables.set(\"accessToken\", data.accessToken);",
+									"} else {",
+									"  pm.collectionVariables.unset(\"accessToken\");",
+									"  pm.variables.unset(\"accessToken\");",
+									"}"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Get current user",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/auth/me",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"me"
+							]
+						},
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"header": [],
+						"description": "Get the currently authenticated user.\n\nSource: Swagger operation AuthController_me.\n\nLogin first. Missing, invalid or expired token, or removed account: 401. Response never includes a password hash."
+					},
+					"response": [
+						{
+							"name": "200 — Success (illustrative)",
+							"originalRequest": {
+								"method": "GET",
+								"url": {
+									"raw": "{{baseUrl}}/auth/me",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"auth",
+										"me"
+									]
+								},
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{accessToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"header": [],
+								"description": "Get the currently authenticated user.\n\nSource: Swagger operation AuthController_me.\n\nLogin first. Missing, invalid or expired token, or removed account: 401. Response never includes a password hash."
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"id\": 1,\n  \"name\": \"Postman User\",\n  \"email\": \"postman@example.com\",\n  \"createdAt\": \"2026-10-19T09:00:00.000Z\"\n}"
+						},
+						{
+							"name": "401 — Unauthorized (illustrative)",
+							"originalRequest": {
+								"method": "GET",
+								"url": {
+									"raw": "{{baseUrl}}/auth/me",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"auth",
+										"me"
+									]
+								},
+								"auth": {
+									"type": "noauth"
+								},
+								"header": [],
+								"description": "Get the currently authenticated user.\n\nSource: Swagger operation AuthController_me.\n\nLogin first. Missing, invalid or expired token, or removed account: 401. Response never includes a password hash."
+							},
+							"status": "Unauthorized",
+							"code": 401,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"message\": \"Invalid or missing authentication token.\",\n  \"error\": \"Unauthorized\",\n  \"statusCode\": 401\n}"
+						}
+					],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status is 200\", function () {",
+									"  pm.response.to.have.status(200);",
+									"});",
+									"if (pm.response.code === 200) {",
+									"  pm.test(\"User response hides passwordHash\", function () { pm.expect(pm.response.json()).not.to.have.property(\"passwordHash\"); });",
+									"}"
+								]
+							}
+						}
+					]
+				}
+			]
+		},
+		{
 			"name": "Projects",
 			"item": [
+				{
+					"name": "Create new project",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "x-internal-tool-key",
+								"value": "{{internalToolKey}}",
+								"type": "text",
+								"description": "Set internalToolKey privately; this is separate from JWT authentication."
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Postman Project\",\n  \"key\": \"{{newProjectKey}}\",\n  \"description\": \"Temporary project created with Postman\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/projects",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"projects"
+							]
+						},
+						"description": "Create a new project.\n\nSource: Swagger operation ProjectsController_create.\n\nRequires x-internal-tool-key: {{internalToolKey}}. Missing/incorrect key: 403. A JWT does not replace this key.\n\nJSON fields: name (required), key (required), description (optional). Invalid types, blank required text, or extra fields: 400.\n\nDuplicate key: 409."
+					},
+					"response": [
+						{
+							"name": "409 - Conflict",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "x-internal-tool-key",
+										"value": "{{internalToolKey}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"New Project\",\n    \"key\": \"PRJ\",\n    \"description\": \"It is a test project\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/projects",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"projects"
+									]
+								}
+							},
+							"status": "Conflict",
+							"code": 409,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"message\": \"key \\\"PRJ\\\" is already used by another project.\",\n    \"error\": \"Conflict\",\n    \"statusCode\": 409\n}"
+						},
+						{
+							"name": "201 - Created",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "x-internal-tool-key",
+										"value": "{{internalToolKey}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"New Project\",\n    \"key\": \"PRJ1\",\n    \"description\": \"It is a test project\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/projects",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"projects"
+									]
+								}
+							},
+							"status": "Created",
+							"code": 201,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"_id\": \"507f1f77bcf86cd700000005\",\n  \"id\": 5,\n  \"name\": \"New Project\",\n  \"key\": \"PRJ1\",\n  \"description\": \"It is a test project\",\n  \"__v\": 0\n}"
+						},
+						{
+							"name": "403 — Missing or incorrect internal-tool key (illustrative)",
+							"originalRequest": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"name\": \"Postman Project\",\n  \"key\": \"{{newProjectKey}}\",\n  \"description\": \"Temporary project created with Postman\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/projects",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"projects"
+									]
+								},
+								"description": "Create a new project.\n\nSource: Swagger operation ProjectsController_create.\n\nRequires x-internal-tool-key: {{internalToolKey}}. Missing/incorrect key: 403. A JWT does not replace this key.\n\nJSON fields: name (required), key (required), description (optional). Invalid types, blank required text, or extra fields: 400.\n\nDuplicate key: 409."
+							},
+							"status": "Forbidden",
+							"code": 403,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"message\": \"This operation is restricted to B4F Board's own internal tooling.\",\n  \"error\": \"Forbidden\",\n  \"statusCode\": 403\n}"
+						}
+					],
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.collectionVariables.set(\"deleteProjectId\", \"\");",
+									"pm.variables.set(\"deleteProjectId\", \"\");",
+									"pm.variables.set(\"newProjectKey\", \"pm-\" + pm.variables.replaceIn(\"{{$guid}}\"));"
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status is 201\", function () {",
+									"  pm.response.to.have.status(201);",
+									"});",
+									"if (pm.response.code === 201) {",
+									"  const data = pm.response.json();",
+									"  pm.test(\"Created record has a numeric id\", function () { pm.expect(data.id).to.be.a(\"number\"); });",
+									"  pm.collectionVariables.set(\"projectId\", data.id);",
+									"  pm.variables.set(\"projectId\", data.id);",
+									"  pm.collectionVariables.set(\"deleteProjectId\", data.id);",
+									"  pm.variables.set(\"deleteProjectId\", data.id);",
+									"  pm.collectionVariables.set(\"projectKey\", data.key);",
+									"  pm.variables.set(\"projectKey\", data.key);",
+									"}"
+								]
+							}
+						}
+					]
+				},
 				{
 					"name": "Get projects",
 					"event": [
@@ -20,7 +653,8 @@
 								"exec": [
 									"pm.test(\"Status is 200\", function () {",
 									"  pm.response.to.have.status(200);",
-									"});"
+									"});",
+									"pm.test(\"Response is an array\", function () { pm.expect(pm.response.json()).to.be.an(\"array\"); });"
 								]
 							}
 						}
@@ -35,9 +669,26 @@
 							],
 							"path": [
 								"projects"
+							],
+							"query": [
+								{
+									"key": "name",
+									"value": "Web app",
+									"disabled": true,
+									"description": "Optional filter."
+								},
+								{
+									"key": "key",
+									"value": "WEB",
+									"disabled": true,
+									"description": "Optional filter."
+								}
 							]
 						},
-						"description": "Gets every project.\n\nPath parameters: none.\nBody: none.\n\nPossible responses:\n- 200 — the list of projects (always succeeds; there is no path or body parameter that can be invalid here)"
+						"description": "Get all projects.\n\nSource: Swagger operation ProjectsController_findAll.\n\nOptional query parameters (disabled by default): name, key. Name/title filters are case-insensitive substring regex matches; key, slug, status and projectId are exact matches.",
+						"auth": {
+							"type": "noauth"
+						}
 					},
 					"response": [
 						{
@@ -65,7 +716,121 @@
 								}
 							],
 							"cookie": [],
-							"body": "[\n  {\n    \"id\": 1,\n    \"name\": \"Web App\",\n    \"key\": \"WEB\",\n    \"description\": \"Customer UI\"\n  },\n  {\n    \"id\": 2,\n    \"name\": \"Backend API\",\n    \"key\": \"API\",\n    \"description\": \"Core services\"\n  },\n  {\n    \"id\": 3,\n    \"name\": \"Mobile App\",\n    \"key\": \"MOB\",\n    \"description\": \"iOS and Android\"\n  }\n]"
+							"body": "[\n  {\n    \"_id\": \"507f1f77bcf86cd700000001\",\n    \"id\": 1,\n    \"name\": \"Web App\",\n    \"key\": \"WEB\",\n    \"description\": \"Customer UI\",\n    \"__v\": 0\n  },\n  {\n    \"_id\": \"507f1f77bcf86cd700000002\",\n    \"id\": 2,\n    \"name\": \"Backend API\",\n    \"key\": \"API\",\n    \"description\": \"Core services\",\n    \"__v\": 0\n  },\n  {\n    \"_id\": \"507f1f77bcf86cd700000003\",\n    \"id\": 3,\n    \"name\": \"Mobile App\",\n    \"key\": \"MOB\",\n    \"description\": \"iOS and Android\",\n    \"__v\": 0\n  }\n]"
+						}
+					]
+				},
+				{
+					"name": "Get the number of projects",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/projects/stats",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"projects",
+								"stats"
+							]
+						},
+						"auth": {
+							"type": "noauth"
+						},
+						"header": [
+							{
+								"key": "x-internal-tool-key",
+								"value": "{{internalToolKey}}",
+								"type": "text",
+								"description": "Set internalToolKey privately; this is separate from JWT authentication."
+							}
+						],
+						"description": "Get the number of projects.\n\nSource: Swagger operation ProjectsController_stats.\n\nRequires x-internal-tool-key: {{internalToolKey}}. Missing/incorrect key: 403. A JWT does not replace this key."
+					},
+					"response": [
+						{
+							"name": "200 — Success (illustrative)",
+							"originalRequest": {
+								"method": "GET",
+								"url": {
+									"raw": "{{baseUrl}}/projects/stats",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"projects",
+										"stats"
+									]
+								},
+								"auth": {
+									"type": "noauth"
+								},
+								"header": [
+									{
+										"key": "x-internal-tool-key",
+										"value": "{{internalToolKey}}",
+										"type": "text",
+										"description": "Set internalToolKey privately; this is separate from JWT authentication."
+									}
+								],
+								"description": "Get the number of projects.\n\nSource: Swagger operation ProjectsController_stats.\n\nRequires x-internal-tool-key: {{internalToolKey}}. Missing/incorrect key: 403. A JWT does not replace this key."
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"total\": 3\n}"
+						},
+						{
+							"name": "403 — Missing or incorrect internal-tool key (illustrative)",
+							"originalRequest": {
+								"method": "GET",
+								"url": {
+									"raw": "{{baseUrl}}/projects/stats",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"projects",
+										"stats"
+									]
+								},
+								"auth": {
+									"type": "noauth"
+								},
+								"header": [],
+								"description": "Get the number of projects.\n\nSource: Swagger operation ProjectsController_stats.\n\nRequires x-internal-tool-key: {{internalToolKey}}. Missing/incorrect key: 403. A JWT does not replace this key."
+							},
+							"status": "Forbidden",
+							"code": 403,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"message\": \"This operation is restricted to B4F Board's own internal tooling.\",\n  \"error\": \"Forbidden\",\n  \"statusCode\": 403\n}"
+						}
+					],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status is 200\", function () {",
+									"  pm.response.to.have.status(200);",
+									"});"
+								]
+							}
 						}
 					]
 				},
@@ -97,7 +862,10 @@
 								"{{projectId}}"
 							]
 						},
-						"description": "Gets a single project by its numeric id.\n\nPath parameters:\n- id — the project's numeric id\n\nPossible responses:\n- 200 — the project was found\n- 404 — no project exists with that id"
+						"description": "Find a project by its id.\n\nSource: Swagger operation ProjectsController_findOne.\n\nPath id is a numeric application id (not MongoDB _id). Malformed id: 400. Missing record: 404.",
+						"auth": {
+							"type": "noauth"
+						}
 					},
 					"response": [
 						{
@@ -126,7 +894,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n  \"id\": 1,\n  \"name\": \"Web App\",\n  \"key\": \"WEB\",\n  \"description\": \"Customer UI\"\n}"
+							"body": "{\n  \"_id\": \"507f1f77bcf86cd700000001\",\n  \"id\": 1,\n  \"name\": \"Web App\",\n  \"key\": \"WEB\",\n  \"description\": \"Customer UI\",\n  \"__v\": 0\n}"
 						},
 						{
 							"name": "404 — Project not found",
@@ -155,6 +923,38 @@
 							],
 							"cookie": [],
 							"body": "{\n  \"message\": \"No project found with id 999.\",\n  \"error\": \"Not Found\",\n  \"statusCode\": 404\n}"
+						},
+						{
+							"name": "400 — Malformed numeric id (illustrative)",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/projects/abc",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"projects",
+										"abc"
+									]
+								},
+								"description": "Find a project by its id.\n\nSource: Swagger operation ProjectsController_findOne.\n\nPath id is a numeric application id (not MongoDB _id). Malformed id: 400. Missing record: 404.",
+								"auth": {
+									"type": "noauth"
+								}
+							},
+							"status": "Bad Request",
+							"code": 400,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"message\": \"Validation failed (numeric string is expected)\",\n  \"error\": \"Bad Request\",\n  \"statusCode\": 400\n}"
 						}
 					]
 				},
@@ -164,14 +964,12 @@
 						{
 							"listen": "test",
 							"script": {
+								"type": "text/javascript",
 								"exec": [
 									"pm.test(\"Status is 200\", function () {",
 									"  pm.response.to.have.status(200);",
 									"});"
-								],
-								"type": "text/javascript",
-								"packages": {},
-								"requests": {}
+								]
 							}
 						}
 					],
@@ -179,8 +977,15 @@
 						"method": "PATCH",
 						"header": [
 							{
+								"key": "x-internal-tool-key",
+								"value": "{{internalToolKey}}",
+								"type": "text",
+								"description": "Set internalToolKey privately; this is separate from JWT authentication."
+							},
+							{
 								"key": "Content-Type",
-								"value": "application/json"
+								"value": "application/json",
+								"type": "text"
 							}
 						],
 						"body": {
@@ -202,7 +1007,10 @@
 								"{{projectId}}"
 							]
 						},
-						"description": "Updates an existing project.\n\nPath parameters:\n- id — the project's numeric id\n\nBody fields:\n- name — optional\n- key — optional\n\nPossible responses:\n- 200 — project updated\n- 400 — invalid name (blank/whitespace-only)\n- 404 — project does not exist\n- 409 — key is already used by another project"
+						"description": "Update a project.\n\nSource: Swagger operation ProjectsController_update.\n\nPath id is a numeric application id (not MongoDB _id). Malformed id: 400. Missing record: 404.\n\nRequires x-internal-tool-key: {{internalToolKey}}. Missing/incorrect key: 403. A JWT does not replace this key.\n\nJSON fields: name (optional), key (optional), description (optional). Invalid types, blank required text, or extra fields: 400.\n\nDuplicate key: 409.",
+						"auth": {
+							"type": "noauth"
+						}
 					},
 					"response": [
 						{
@@ -213,6 +1021,10 @@
 									{
 										"key": "Content-Type",
 										"value": "application/json"
+									},
+									{
+										"key": "x-internal-tool-key",
+										"value": "{{internalToolKey}}"
 									}
 								],
 								"body": {
@@ -245,7 +1057,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n  \"id\": 1,\n  \"name\": \"Platform Redesign\",\n  \"key\": \"WEB\",\n  \"description\": \"Customer UI\"\n}"
+							"body": "{\n  \"_id\": \"507f1f77bcf86cd700000001\",\n  \"id\": 1,\n  \"name\": \"Platform Redesign\",\n  \"key\": \"WEB\",\n  \"description\": \"Customer UI\",\n  \"__v\": 0\n}"
 						},
 						{
 							"name": "200 — Project updated (key)",
@@ -255,6 +1067,10 @@
 									{
 										"key": "Content-Type",
 										"value": "application/json"
+									},
+									{
+										"key": "x-internal-tool-key",
+										"value": "{{internalToolKey}}"
 									}
 								],
 								"body": {
@@ -287,7 +1103,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n  \"id\": 1,\n  \"name\": \"Web App\",\n  \"key\": \"PLAT\",\n  \"description\": \"Customer UI\"\n}"
+							"body": "{\n  \"_id\": \"507f1f77bcf86cd700000001\",\n  \"id\": 1,\n  \"name\": \"Web App\",\n  \"key\": \"PLAT\",\n  \"description\": \"Customer UI\",\n  \"__v\": 0\n}"
 						},
 						{
 							"name": "200 — Project updated (name + key)",
@@ -297,6 +1113,10 @@
 									{
 										"key": "Content-Type",
 										"value": "application/json"
+									},
+									{
+										"key": "x-internal-tool-key",
+										"value": "{{internalToolKey}}"
 									}
 								],
 								"body": {
@@ -329,7 +1149,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n  \"id\": 1,\n  \"name\": \"Platform Redesign\",\n  \"key\": \"WEB\",\n  \"description\": \"Customer UI\"\n}"
+							"body": "{\n  \"_id\": \"507f1f77bcf86cd700000001\",\n  \"id\": 1,\n  \"name\": \"Platform Redesign\",\n  \"key\": \"WEB\",\n  \"description\": \"Customer UI\",\n  \"__v\": 0\n}"
 						},
 						{
 							"name": "400 — Invalid project name",
@@ -339,6 +1159,10 @@
 									{
 										"key": "Content-Type",
 										"value": "application/json"
+									},
+									{
+										"key": "x-internal-tool-key",
+										"value": "{{internalToolKey}}"
 									}
 								],
 								"body": {
@@ -381,6 +1205,10 @@
 									{
 										"key": "Content-Type",
 										"value": "application/json"
+									},
+									{
+										"key": "x-internal-tool-key",
+										"value": "{{internalToolKey}}"
 									}
 								],
 								"body": {
@@ -423,6 +1251,10 @@
 									{
 										"key": "Content-Type",
 										"value": "application/json"
+									},
+									{
+										"key": "x-internal-tool-key",
+										"value": "{{internalToolKey}}"
 									}
 								],
 								"body": {
@@ -456,6 +1288,53 @@
 							],
 							"cookie": [],
 							"body": "{\n  \"message\": \"key \\\"API\\\" is already used by another project.\",\n  \"error\": \"Conflict\",\n  \"statusCode\": 409\n}"
+						},
+						{
+							"name": "403 — Missing or incorrect internal-tool key (illustrative)",
+							"originalRequest": {
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"name\": \"Platform Redesign\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/projects/{{projectId}}",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"projects",
+										"{{projectId}}"
+									]
+								},
+								"description": "Update a project.\n\nSource: Swagger operation ProjectsController_update.\n\nPath id is a numeric application id (not MongoDB _id). Malformed id: 400. Missing record: 404.\n\nRequires x-internal-tool-key: {{internalToolKey}}. Missing/incorrect key: 403. A JWT does not replace this key.\n\nJSON fields: name (optional), key (optional), description (optional). Invalid types, blank required text, or extra fields: 400.\n\nDuplicate key: 409.",
+								"auth": {
+									"type": "noauth"
+								}
+							},
+							"status": "Forbidden",
+							"code": 403,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"message\": \"This operation is restricted to B4F Board's own internal tooling.\",\n  \"error\": \"Forbidden\",\n  \"statusCode\": 403\n}"
 						}
 					]
 				},
@@ -465,16 +1344,20 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/projects/key/WEB3",
+							"raw": "{{baseUrl}}/projects/key/{{projectKey}}",
 							"host": [
 								"{{baseUrl}}"
 							],
 							"path": [
 								"projects",
 								"key",
-								"WEB3"
+								"{{projectKey}}"
 							]
-						}
+						},
+						"auth": {
+							"type": "noauth"
+						},
+						"description": "Get one project by its key.\n\nSource: Swagger operation ProjectsController_findByKey."
 					},
 					"response": [
 						{
@@ -496,39 +1379,15 @@
 							},
 							"status": "OK",
 							"code": 200,
-							"_postman_previewlanguage": null,
+							"_postman_previewlanguage": "json",
 							"header": [
-								{
-									"key": "X-Powered-By",
-									"value": "Express"
-								},
 								{
 									"key": "Content-Type",
 									"value": "application/json; charset=utf-8"
-								},
-								{
-									"key": "Content-Length",
-									"value": "78"
-								},
-								{
-									"key": "ETag",
-									"value": "W/\"4e-AjYb6s1/Fk2b7u+0klVYYscmNFg\""
-								},
-								{
-									"key": "Date",
-									"value": "Mon, 05 Oct 2026 10:55:03 GMT"
-								},
-								{
-									"key": "Connection",
-									"value": "keep-alive"
-								},
-								{
-									"key": "Keep-Alive",
-									"value": "timeout=5"
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"id\": 1,\n    \"name\": \"Platform Redesign 1\",\n    \"key\": \"WEB3\",\n    \"description\": \"Customer UI\"\n}"
+							"body": "{\n  \"_id\": \"507f1f77bcf86cd700000001\",\n  \"id\": 1,\n  \"name\": \"Platform Redesign 1\",\n  \"key\": \"WEB3\",\n  \"description\": \"Customer UI\",\n  \"__v\": 0\n}"
 						},
 						{
 							"name": "404 - Not Found",
@@ -549,189 +1408,28 @@
 							},
 							"status": "Not Found",
 							"code": 404,
-							"_postman_previewlanguage": null,
+							"_postman_previewlanguage": "json",
 							"header": [
-								{
-									"key": "X-Powered-By",
-									"value": "Express"
-								},
 								{
 									"key": "Content-Type",
 									"value": "application/json; charset=utf-8"
-								},
-								{
-									"key": "Content-Length",
-									"value": "85"
-								},
-								{
-									"key": "ETag",
-									"value": "W/\"55-jy53myhneXJruX5ARi4OVMSikPU\""
-								},
-								{
-									"key": "Date",
-									"value": "Mon, 05 Oct 2026 10:56:44 GMT"
-								},
-								{
-									"key": "Connection",
-									"value": "keep-alive"
-								},
-								{
-									"key": "Keep-Alive",
-									"value": "timeout=5"
 								}
 							],
 							"cookie": [],
 							"body": "{\n    \"message\": \"No project found with key \\\"WEB\\\".\",\n    \"error\": \"Not Found\",\n    \"statusCode\": 404\n}"
 						}
-					]
-				},
-				{
-					"name": "Create new project",
-					"request": {
-						"auth": {
-							"type": "noauth"
-						},
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"name\": \"New Project\",\n    \"key\": \"PRJ1\",\n    \"description\": \"It is a test project\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
+					],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status is 200\", function () {",
+									"  pm.response.to.have.status(200);",
+									"});"
+								]
 							}
-						},
-						"url": {
-							"raw": "{{baseUrl}}/projects",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"projects"
-							]
-						}
-					},
-					"response": [
-						{
-							"name": "409 - Conflict",
-							"originalRequest": {
-								"method": "POST",
-								"header": [],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n    \"name\": \"New Project\",\n    \"key\": \"PRJ\",\n    \"description\": \"It is a test project\"\n}",
-									"options": {
-										"raw": {
-											"language": "json"
-										}
-									}
-								},
-								"url": {
-									"raw": "{{baseUrl}}/projects",
-									"host": [
-										"{{baseUrl}}"
-									],
-									"path": [
-										"projects"
-									]
-								}
-							},
-							"status": "Conflict",
-							"code": 409,
-							"_postman_previewlanguage": null,
-							"header": [
-								{
-									"key": "X-Powered-By",
-									"value": "Express"
-								},
-								{
-									"key": "Content-Type",
-									"value": "application/json; charset=utf-8"
-								},
-								{
-									"key": "Content-Length",
-									"value": "97"
-								},
-								{
-									"key": "ETag",
-									"value": "W/\"61-rqfSlSaLPONGMmZtEisTgkLrRLM\""
-								},
-								{
-									"key": "Date",
-									"value": "Mon, 05 Oct 2026 12:57:28 GMT"
-								},
-								{
-									"key": "Connection",
-									"value": "keep-alive"
-								},
-								{
-									"key": "Keep-Alive",
-									"value": "timeout=5"
-								}
-							],
-							"cookie": [],
-							"body": "{\n    \"message\": \"key \\\"PRJ\\\" is already used by another project.\",\n    \"error\": \"Conflict\",\n    \"statusCode\": 409\n}"
-						},
-						{
-							"name": "201 - Created",
-							"originalRequest": {
-								"method": "POST",
-								"header": [],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n    \"name\": \"New Project\",\n    \"key\": \"PRJ1\",\n    \"description\": \"It is a test project\"\n}",
-									"options": {
-										"raw": {
-											"language": "json"
-										}
-									}
-								},
-								"url": {
-									"raw": "{{baseUrl}}/projects",
-									"host": [
-										"{{baseUrl}}"
-									],
-									"path": [
-										"projects"
-									]
-								}
-							},
-							"status": "Created",
-							"code": 201,
-							"_postman_previewlanguage": null,
-							"header": [
-								{
-									"key": "X-Powered-By",
-									"value": "Express"
-								},
-								{
-									"key": "Content-Type",
-									"value": "application/json; charset=utf-8"
-								},
-								{
-									"key": "Content-Length",
-									"value": "79"
-								},
-								{
-									"key": "ETag",
-									"value": "W/\"4f-gxA4rbYOIa2h3goFr7+Ej+318zc\""
-								},
-								{
-									"key": "Date",
-									"value": "Mon, 05 Oct 2026 12:58:56 GMT"
-								},
-								{
-									"key": "Connection",
-									"value": "keep-alive"
-								},
-								{
-									"key": "Keep-Alive",
-									"value": "timeout=5"
-								}
-							],
-							"cookie": [],
-							"body": "{\n    \"id\": 5,\n    \"name\": \"New Project\",\n    \"key\": \"PRJ1\",\n    \"description\": \"It is a test project\"\n}"
 						}
 					]
 				}
@@ -740,6 +1438,211 @@
 		{
 			"name": "Workspaces",
 			"item": [
+				{
+					"name": "Create new workspace",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "x-internal-tool-key",
+								"value": "{{internalToolKey}}",
+								"type": "text",
+								"description": "Set internalToolKey privately; this is separate from JWT authentication."
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Postman Workspace\",\n  \"slug\": \"{{newWorkspaceSlug}}\",\n  \"description\": \"Temporary workspace created with Postman\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/workspaces",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"workspaces"
+							]
+						},
+						"description": "Create a new workspace.\n\nSource: Swagger operation WorkspacesController_create.\n\nRequires x-internal-tool-key: {{internalToolKey}}. Missing/incorrect key: 403. A JWT does not replace this key.\n\nJSON fields: name (required), slug (required), description (optional). Invalid types, blank required text, or extra fields: 400.\n\nDuplicate slug: 409."
+					},
+					"response": [
+						{
+							"name": "201 - Created",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "x-internal-tool-key",
+										"value": "{{internalToolKey}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"New workspace\",\n    \"slug\": \"new-workspace-1\",\n    \"description\": \"It is a test workspace\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/workspaces",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"workspaces"
+									]
+								}
+							},
+							"status": "Created",
+							"code": 201,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"_id\": \"507f1f77bcf86cd700000004\",\n  \"id\": 4,\n  \"name\": \"New workspace\",\n  \"slug\": \"new-workspace-1\",\n  \"description\": \"It is a test workspace\",\n  \"__v\": 0\n}"
+						},
+						{
+							"name": "409 - Conflict",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "x-internal-tool-key",
+										"value": "{{internalToolKey}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"New workspace\",\n    \"slug\": \"new-workspace-1\",\n    \"description\": \"It is a test workspace\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/workspaces",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"workspaces"
+									]
+								}
+							},
+							"status": "Conflict",
+							"code": 409,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"message\": \"slug \\\"new-workspace-1\\\" is already used by another workspace.\",\n    \"error\": \"Conflict\",\n    \"statusCode\": 409\n}"
+						},
+						{
+							"name": "403 — Missing or incorrect internal-tool key (illustrative)",
+							"originalRequest": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"name\": \"Postman Workspace\",\n  \"slug\": \"{{newWorkspaceSlug}}\",\n  \"description\": \"Temporary workspace created with Postman\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/workspaces",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"workspaces"
+									]
+								},
+								"description": "Create a new workspace.\n\nSource: Swagger operation WorkspacesController_create.\n\nRequires x-internal-tool-key: {{internalToolKey}}. Missing/incorrect key: 403. A JWT does not replace this key.\n\nJSON fields: name (required), slug (required), description (optional). Invalid types, blank required text, or extra fields: 400.\n\nDuplicate slug: 409."
+							},
+							"status": "Forbidden",
+							"code": 403,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"message\": \"This operation is restricted to B4F Board's own internal tooling.\",\n  \"error\": \"Forbidden\",\n  \"statusCode\": 403\n}"
+						}
+					],
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.collectionVariables.set(\"deleteWorkspaceId\", \"\");",
+									"pm.variables.set(\"deleteWorkspaceId\", \"\");",
+									"pm.variables.set(\"newWorkspaceSlug\", \"pm-\" + pm.variables.replaceIn(\"{{$guid}}\"));"
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status is 201\", function () {",
+									"  pm.response.to.have.status(201);",
+									"});",
+									"if (pm.response.code === 201) {",
+									"  const data = pm.response.json();",
+									"  pm.test(\"Created record has a numeric id\", function () { pm.expect(data.id).to.be.a(\"number\"); });",
+									"  pm.collectionVariables.set(\"workspaceId\", data.id);",
+									"  pm.variables.set(\"workspaceId\", data.id);",
+									"  pm.collectionVariables.set(\"deleteWorkspaceId\", data.id);",
+									"  pm.variables.set(\"deleteWorkspaceId\", data.id);",
+									"  pm.collectionVariables.set(\"workspaceSlug\", data.slug);",
+									"  pm.variables.set(\"workspaceSlug\", data.slug);",
+									"}"
+								]
+							}
+						}
+					]
+				},
 				{
 					"name": "Get workspaces",
 					"event": [
@@ -750,7 +1653,8 @@
 								"exec": [
 									"pm.test(\"Status is 200\", function () {",
 									"  pm.response.to.have.status(200);",
-									"});"
+									"});",
+									"pm.test(\"Response is an array\", function () { pm.expect(pm.response.json()).to.be.an(\"array\"); });"
 								]
 							}
 						}
@@ -765,9 +1669,26 @@
 							],
 							"path": [
 								"workspaces"
+							],
+							"query": [
+								{
+									"key": "name",
+									"value": "Acme",
+									"disabled": true,
+									"description": "Optional filter."
+								},
+								{
+									"key": "slug",
+									"value": "acme-robotics",
+									"disabled": true,
+									"description": "Optional filter."
+								}
 							]
 						},
-						"description": "Gets every workspace.\n\nPath parameters: none.\nBody: none.\n\nPossible responses:\n- 200 — the list of workspaces (always succeeds; there is no path or body parameter that can be invalid here)"
+						"description": "List workspaces, optionally filtered by name or slug.\n\nSource: Swagger operation WorkspacesController_findAll.\n\nOptional query parameters (disabled by default): name, slug. Name/title filters are case-insensitive substring regex matches; key, slug, status and projectId are exact matches.",
+						"auth": {
+							"type": "noauth"
+						}
 					},
 					"response": [
 						{
@@ -795,7 +1716,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "[\n  {\n    \"id\": 1,\n    \"name\": \"Acme Robotics\",\n    \"slug\": \"acme-robotics\",\n    \"description\": \"Internal tools\"\n  },\n  {\n    \"id\": 2,\n    \"name\": \"Nova Labs\",\n    \"slug\": \"nova-labs\",\n    \"description\": \"Prototypes\"\n  }\n]"
+							"body": "[\n  {\n    \"_id\": \"507f1f77bcf86cd700000001\",\n    \"id\": 1,\n    \"name\": \"Acme Robotics\",\n    \"slug\": \"acme-robotics\",\n    \"description\": \"Internal tools\",\n    \"__v\": 0\n  },\n  {\n    \"_id\": \"507f1f77bcf86cd700000002\",\n    \"id\": 2,\n    \"name\": \"Nova Labs\",\n    \"slug\": \"nova-labs\",\n    \"description\": \"Prototypes\",\n    \"__v\": 0\n  }\n]"
 						}
 					]
 				},
@@ -827,7 +1748,10 @@
 								"{{workspaceId}}"
 							]
 						},
-						"description": "Gets a single workspace by its numeric id.\n\nPath parameters:\n- id — the workspace's numeric id\n\nPossible responses:\n- 200 — the workspace was found\n- 404 — no workspace exists with that id"
+						"description": "Get one workspace by its id.\n\nSource: Swagger operation WorkspacesController_findOne.\n\nPath id is a numeric application id (not MongoDB _id). Malformed id: 400. Missing record: 404.",
+						"auth": {
+							"type": "noauth"
+						}
 					},
 					"response": [
 						{
@@ -856,7 +1780,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n  \"id\": 1,\n  \"name\": \"Acme Robotics\",\n  \"slug\": \"acme-robotics\",\n  \"description\": \"Internal tools\"\n}"
+							"body": "{\n  \"_id\": \"507f1f77bcf86cd700000001\",\n  \"id\": 1,\n  \"name\": \"Acme Robotics\",\n  \"slug\": \"acme-robotics\",\n  \"description\": \"Internal tools\",\n  \"__v\": 0\n}"
 						},
 						{
 							"name": "404 — Workspace not found",
@@ -885,6 +1809,38 @@
 							],
 							"cookie": [],
 							"body": "{\n  \"message\": \"No workspace found with id 999.\",\n  \"error\": \"Not Found\",\n  \"statusCode\": 404\n}"
+						},
+						{
+							"name": "400 — Malformed numeric id (illustrative)",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/workspaces/abc",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"workspaces",
+										"abc"
+									]
+								},
+								"description": "Get one workspace by its id.\n\nSource: Swagger operation WorkspacesController_findOne.\n\nPath id is a numeric application id (not MongoDB _id). Malformed id: 400. Missing record: 404.",
+								"auth": {
+									"type": "noauth"
+								}
+							},
+							"status": "Bad Request",
+							"code": 400,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"message\": \"Validation failed (numeric string is expected)\",\n  \"error\": \"Bad Request\",\n  \"statusCode\": 400\n}"
 						}
 					]
 				},
@@ -894,14 +1850,12 @@
 						{
 							"listen": "test",
 							"script": {
+								"type": "text/javascript",
 								"exec": [
 									"pm.test(\"Status is 200\", function () {",
 									"  pm.response.to.have.status(200);",
 									"});"
-								],
-								"type": "text/javascript",
-								"packages": {},
-								"requests": {}
+								]
 							}
 						}
 					],
@@ -909,13 +1863,20 @@
 						"method": "PATCH",
 						"header": [
 							{
+								"key": "x-internal-tool-key",
+								"value": "{{internalToolKey}}",
+								"type": "text",
+								"description": "Set internalToolKey privately; this is separate from JWT authentication."
+							},
+							{
 								"key": "Content-Type",
-								"value": "application/json"
+								"value": "application/json",
+								"type": "text"
 							}
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"name\": \"        \"\n}",
+							"raw": "{\n  \"name\": \"Postman Workspace Updated\",\n  \"description\": \"Updated with Postman\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -932,7 +1893,10 @@
 								"{{workspaceId}}"
 							]
 						},
-						"description": "Updates an existing workspace.\n\nPath parameters:\n- id — the workspace's numeric id\n\nBody fields:\n- name — optional\n- slug — optional\n\nPossible responses:\n- 200 — workspace updated\n- 400 — invalid name (blank/whitespace-only)\n- 404 — workspace does not exist\n- 409 — slug is already used by another workspace"
+						"description": "Update a workspace.\n\nSource: Swagger operation WorkspacesController_update.\n\nPath id is a numeric application id (not MongoDB _id). Malformed id: 400. Missing record: 404.\n\nRequires x-internal-tool-key: {{internalToolKey}}. Missing/incorrect key: 403. A JWT does not replace this key.\n\nJSON fields: name (optional), slug (optional), description (optional). Invalid types, blank required text, or extra fields: 400.\n\nDuplicate slug: 409.",
+						"auth": {
+							"type": "noauth"
+						}
 					},
 					"response": [
 						{
@@ -943,6 +1907,10 @@
 									{
 										"key": "Content-Type",
 										"value": "application/json"
+									},
+									{
+										"key": "x-internal-tool-key",
+										"value": "{{internalToolKey}}"
 									}
 								],
 								"body": {
@@ -975,7 +1943,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n  \"id\": 1,\n  \"name\": \"Acme Robotics Inc.\",\n  \"slug\": \"acme-robotics\",\n  \"description\": \"Internal tools\"\n}"
+							"body": "{\n  \"_id\": \"507f1f77bcf86cd700000001\",\n  \"id\": 1,\n  \"name\": \"Acme Robotics Inc.\",\n  \"slug\": \"acme-robotics\",\n  \"description\": \"Internal tools\",\n  \"__v\": 0\n}"
 						},
 						{
 							"name": "200 — Workspace updated (slug)",
@@ -985,6 +1953,10 @@
 									{
 										"key": "Content-Type",
 										"value": "application/json"
+									},
+									{
+										"key": "x-internal-tool-key",
+										"value": "{{internalToolKey}}"
 									}
 								],
 								"body": {
@@ -1017,7 +1989,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n  \"id\": 1,\n  \"name\": \"Acme Robotics\",\n  \"slug\": \"acme-robotics-inc\",\n  \"description\": \"Internal tools\"\n}"
+							"body": "{\n  \"_id\": \"507f1f77bcf86cd700000001\",\n  \"id\": 1,\n  \"name\": \"Acme Robotics\",\n  \"slug\": \"acme-robotics-inc\",\n  \"description\": \"Internal tools\",\n  \"__v\": 0\n}"
 						},
 						{
 							"name": "200 — Workspace updated (name + slug)",
@@ -1027,6 +1999,10 @@
 									{
 										"key": "Content-Type",
 										"value": "application/json"
+									},
+									{
+										"key": "x-internal-tool-key",
+										"value": "{{internalToolKey}}"
 									}
 								],
 								"body": {
@@ -1059,7 +2035,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n  \"id\": 1,\n  \"name\": \"Acme Robotics Inc.\",\n  \"slug\": \"acme-robotics-inc\",\n  \"description\": \"Internal tools\"\n}"
+							"body": "{\n  \"_id\": \"507f1f77bcf86cd700000001\",\n  \"id\": 1,\n  \"name\": \"Acme Robotics Inc.\",\n  \"slug\": \"acme-robotics-inc\",\n  \"description\": \"Internal tools\",\n  \"__v\": 0\n}"
 						},
 						{
 							"name": "400 — Invalid workspace name",
@@ -1069,6 +2045,10 @@
 									{
 										"key": "Content-Type",
 										"value": "application/json"
+									},
+									{
+										"key": "x-internal-tool-key",
+										"value": "{{internalToolKey}}"
 									}
 								],
 								"body": {
@@ -1111,6 +2091,10 @@
 									{
 										"key": "Content-Type",
 										"value": "application/json"
+									},
+									{
+										"key": "x-internal-tool-key",
+										"value": "{{internalToolKey}}"
 									}
 								],
 								"body": {
@@ -1153,6 +2137,10 @@
 									{
 										"key": "Content-Type",
 										"value": "application/json"
+									},
+									{
+										"key": "x-internal-tool-key",
+										"value": "{{internalToolKey}}"
 									}
 								],
 								"body": {
@@ -1186,6 +2174,53 @@
 							],
 							"cookie": [],
 							"body": "{\n  \"message\": \"slug \\\"nova-labs\\\" is already used by another workspace.\",\n  \"error\": \"Conflict\",\n  \"statusCode\": 409\n}"
+						},
+						{
+							"name": "403 — Missing or incorrect internal-tool key (illustrative)",
+							"originalRequest": {
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"name\": \"Postman Workspace Updated\",\n  \"description\": \"Updated with Postman\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/workspaces/{{workspaceId}}",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"workspaces",
+										"{{workspaceId}}"
+									]
+								},
+								"description": "Update a workspace.\n\nSource: Swagger operation WorkspacesController_update.\n\nPath id is a numeric application id (not MongoDB _id). Malformed id: 400. Missing record: 404.\n\nRequires x-internal-tool-key: {{internalToolKey}}. Missing/incorrect key: 403. A JWT does not replace this key.\n\nJSON fields: name (optional), slug (optional), description (optional). Invalid types, blank required text, or extra fields: 400.\n\nDuplicate slug: 409.",
+								"auth": {
+									"type": "noauth"
+								}
+							},
+							"status": "Forbidden",
+							"code": 403,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"message\": \"This operation is restricted to B4F Board's own internal tooling.\",\n  \"error\": \"Forbidden\",\n  \"statusCode\": 403\n}"
 						}
 					]
 				},
@@ -1198,16 +2233,17 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/workspaces/slug/acme-robotics",
+							"raw": "{{baseUrl}}/workspaces/slug/{{workspaceSlug}}",
 							"host": [
 								"{{baseUrl}}"
 							],
 							"path": [
 								"workspaces",
 								"slug",
-								"acme-robotics"
+								"{{workspaceSlug}}"
 							]
-						}
+						},
+						"description": "Get one workspace by its slug.\n\nSource: Swagger operation WorkspacesController_findBySlug."
 					},
 					"response": [
 						{
@@ -1229,39 +2265,15 @@
 							},
 							"status": "OK",
 							"code": 200,
-							"_postman_previewlanguage": null,
+							"_postman_previewlanguage": "json",
 							"header": [
-								{
-									"key": "X-Powered-By",
-									"value": "Express"
-								},
 								{
 									"key": "Content-Type",
 									"value": "application/json; charset=utf-8"
-								},
-								{
-									"key": "Content-Length",
-									"value": "85"
-								},
-								{
-									"key": "ETag",
-									"value": "W/\"55-GLsfVGLfhkYi3n/S12phrPBeDb0\""
-								},
-								{
-									"key": "Date",
-									"value": "Mon, 05 Oct 2026 10:55:22 GMT"
-								},
-								{
-									"key": "Connection",
-									"value": "keep-alive"
-								},
-								{
-									"key": "Keep-Alive",
-									"value": "timeout=5"
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"id\": 1,\n    \"name\": \"Acme Robotics\",\n    \"slug\": \"acme-robotics\",\n    \"description\": \"Internal tools\"\n}"
+							"body": "{\n  \"_id\": \"507f1f77bcf86cd700000001\",\n  \"id\": 1,\n  \"name\": \"Acme Robotics\",\n  \"slug\": \"acme-robotics\",\n  \"description\": \"Internal tools\",\n  \"__v\": 0\n}"
 						},
 						{
 							"name": "404 - Not Found",
@@ -1282,189 +2294,1290 @@
 							},
 							"status": "Not Found",
 							"code": 404,
-							"_postman_previewlanguage": null,
+							"_postman_previewlanguage": "json",
 							"header": [
-								{
-									"key": "X-Powered-By",
-									"value": "Express"
-								},
 								{
 									"key": "Content-Type",
 									"value": "application/json; charset=utf-8"
-								},
-								{
-									"key": "Content-Length",
-									"value": "88"
-								},
-								{
-									"key": "ETag",
-									"value": "W/\"58-LeU73Yj8ERsAS7LJVwB5p6U+VN8\""
-								},
-								{
-									"key": "Date",
-									"value": "Mon, 05 Oct 2026 10:55:57 GMT"
-								},
-								{
-									"key": "Connection",
-									"value": "keep-alive"
-								},
-								{
-									"key": "Keep-Alive",
-									"value": "timeout=5"
 								}
 							],
 							"cookie": [],
 							"body": "{\n    \"message\": \"No workspace found with slug \\\"400\\\".\",\n    \"error\": \"Not Found\",\n    \"statusCode\": 404\n}"
 						}
+					],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status is 200\", function () {",
+									"  pm.response.to.have.status(200);",
+									"});"
+								]
+							}
+						}
 					]
-				},
+				}
+			]
+		},
+		{
+			"name": "Issues",
+			"description": "Create using projectId captured by Projects, then read and update. Reads are public; writes require internalToolKey.",
+			"item": [
 				{
-					"name": "Create new workspace",
+					"name": "Create issue",
 					"request": {
+						"method": "POST",
+						"url": {
+							"raw": "{{baseUrl}}/issues",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"issues"
+							]
+						},
 						"auth": {
 							"type": "noauth"
 						},
-						"method": "POST",
-						"header": [],
+						"header": [
+							{
+								"key": "x-internal-tool-key",
+								"value": "{{internalToolKey}}",
+								"type": "text",
+								"description": "Set internalToolKey privately; this is separate from JWT authentication."
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"description": "Create an issue (internal tool only).\n\nSource: Swagger operation IssuesController_create.\n\nRequires x-internal-tool-key: {{internalToolKey}}. Missing/incorrect key: 403. A JWT does not replace this key.\n\nJSON fields: projectId (required), title (required), description (optional). Invalid types, blank required text, or extra fields: 400.\n\nprojectId must be a JSON integer. New issues start with status \"todo\"; status is not a create field.",
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"name\": \"New workspace\",\n    \"slug\": \"new-workspace-1\",\n    \"description\": \"It is a test workspace\"\n}",
+							"raw": "{\n  \"projectId\": {{projectId}},\n  \"title\": \"Fix the login button\",\n  \"description\": \"Created with Postman\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
 								}
 							}
-						},
-						"url": {
-							"raw": "{{baseUrl}}/workspaces",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"workspaces"
-							]
 						}
 					},
 					"response": [
 						{
-							"name": "201 - Created",
+							"name": "201 — Success (illustrative)",
 							"originalRequest": {
 								"method": "POST",
-								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/issues",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"issues"
+									]
+								},
+								"auth": {
+									"type": "noauth"
+								},
+								"header": [
+									{
+										"key": "x-internal-tool-key",
+										"value": "{{internalToolKey}}",
+										"type": "text",
+										"description": "Set internalToolKey privately; this is separate from JWT authentication."
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"description": "Create an issue (internal tool only).\n\nSource: Swagger operation IssuesController_create.\n\nRequires x-internal-tool-key: {{internalToolKey}}. Missing/incorrect key: 403. A JWT does not replace this key.\n\nJSON fields: projectId (required), title (required), description (optional). Invalid types, blank required text, or extra fields: 400.\n\nprojectId must be a JSON integer. New issues start with status \"todo\"; status is not a create field.",
 								"body": {
 									"mode": "raw",
-									"raw": "{\n    \"name\": \"New workspace\",\n    \"slug\": \"new-workspace-1\",\n    \"description\": \"It is a test workspace\"\n}",
+									"raw": "{\n  \"projectId\": {{projectId}},\n  \"title\": \"Fix the login button\",\n  \"description\": \"Created with Postman\"\n}",
 									"options": {
 										"raw": {
 											"language": "json"
 										}
 									}
-								},
-								"url": {
-									"raw": "{{baseUrl}}/workspaces",
-									"host": [
-										"{{baseUrl}}"
-									],
-									"path": [
-										"workspaces"
-									]
 								}
 							},
 							"status": "Created",
 							"code": 201,
-							"_postman_previewlanguage": null,
+							"_postman_previewlanguage": "json",
 							"header": [
-								{
-									"key": "X-Powered-By",
-									"value": "Express"
-								},
 								{
 									"key": "Content-Type",
 									"value": "application/json; charset=utf-8"
-								},
-								{
-									"key": "Content-Length",
-									"value": "95"
-								},
-								{
-									"key": "ETag",
-									"value": "W/\"5f-sizFKtpEAptMntEGc4MUQNV/Kkc\""
-								},
-								{
-									"key": "Date",
-									"value": "Mon, 05 Oct 2026 13:28:24 GMT"
-								},
-								{
-									"key": "Connection",
-									"value": "keep-alive"
-								},
-								{
-									"key": "Keep-Alive",
-									"value": "timeout=5"
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"id\": 4,\n    \"name\": \"New workspace\",\n    \"slug\": \"new-workspace-1\",\n    \"description\": \"It is a test workspace\"\n}"
+							"body": "{\n  \"_id\": \"507f1f77bcf86cd700000001\",\n  \"id\": 1,\n  \"projectId\": 1,\n  \"title\": \"Fix the login button\",\n  \"description\": \"\",\n  \"status\": \"todo\",\n  \"__v\": 0\n}"
 						},
 						{
-							"name": "409 - Conflict",
+							"name": "403 — Missing or incorrect internal-tool key (illustrative)",
 							"originalRequest": {
 								"method": "POST",
-								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/issues",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"issues"
+									]
+								},
+								"auth": {
+									"type": "noauth"
+								},
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"description": "Create an issue (internal tool only).\n\nSource: Swagger operation IssuesController_create.\n\nRequires x-internal-tool-key: {{internalToolKey}}. Missing/incorrect key: 403. A JWT does not replace this key.\n\nJSON fields: projectId (required), title (required), description (optional). Invalid types, blank required text, or extra fields: 400.\n\nprojectId must be a JSON integer. New issues start with status \"todo\"; status is not a create field.",
 								"body": {
 									"mode": "raw",
-									"raw": "{\n    \"name\": \"New workspace\",\n    \"slug\": \"new-workspace-1\",\n    \"description\": \"It is a test workspace\"\n}",
+									"raw": "{\n  \"projectId\": {{projectId}},\n  \"title\": \"Fix the login button\",\n  \"description\": \"Created with Postman\"\n}",
 									"options": {
 										"raw": {
 											"language": "json"
 										}
 									}
+								}
+							},
+							"status": "Forbidden",
+							"code": 403,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"message\": \"This operation is restricted to B4F Board's own internal tooling.\",\n  \"error\": \"Forbidden\",\n  \"statusCode\": 403\n}"
+						}
+					],
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.collectionVariables.set(\"deleteIssueId\", \"\");",
+									"pm.variables.set(\"deleteIssueId\", \"\");"
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status is 201\", function () {",
+									"  pm.response.to.have.status(201);",
+									"});",
+									"if (pm.response.code === 201) {",
+									"  const data = pm.response.json();",
+									"  pm.test(\"Created record has a numeric id\", function () { pm.expect(data.id).to.be.a(\"number\"); });",
+									"  pm.collectionVariables.set(\"issueId\", data.id);",
+									"  pm.variables.set(\"issueId\", data.id);",
+									"  pm.collectionVariables.set(\"deleteIssueId\", data.id);",
+									"  pm.variables.set(\"deleteIssueId\", data.id);",
+									"}"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Get issues",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/issues",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"issues"
+							],
+							"query": [
+								{
+									"key": "projectId",
+									"value": "1",
+									"disabled": true,
+									"description": "Optional filter."
 								},
+								{
+									"key": "status",
+									"value": "todo",
+									"disabled": true,
+									"description": "Allowed: todo, in_progress, review, done"
+								},
+								{
+									"key": "title",
+									"value": "login",
+									"disabled": true,
+									"description": "Optional filter."
+								}
+							]
+						},
+						"auth": {
+							"type": "noauth"
+						},
+						"header": [],
+						"description": "List issues, optionally filtered by projectId and/or status.\n\nSource: Swagger operation IssuesController_findAll.\n\nOptional query parameters (disabled by default): projectId, status, title. Name/title filters are case-insensitive substring regex matches; key, slug, status and projectId are exact matches."
+					},
+					"response": [
+						{
+							"name": "200 — Success (illustrative)",
+							"originalRequest": {
+								"method": "GET",
 								"url": {
-									"raw": "{{baseUrl}}/workspaces",
+									"raw": "{{baseUrl}}/issues",
 									"host": [
 										"{{baseUrl}}"
 									],
 									"path": [
-										"workspaces"
+										"issues"
+									],
+									"query": [
+										{
+											"key": "projectId",
+											"value": "1",
+											"disabled": true,
+											"description": "Optional filter."
+										},
+										{
+											"key": "status",
+											"value": "todo",
+											"disabled": true,
+											"description": "Allowed: todo, in_progress, review, done"
+										},
+										{
+											"key": "title",
+											"value": "login",
+											"disabled": true,
+											"description": "Optional filter."
+										}
 									]
-								}
-							},
-							"status": "Conflict",
-							"code": 409,
-							"_postman_previewlanguage": null,
-							"header": [
-								{
-									"key": "X-Powered-By",
-									"value": "Express"
 								},
+								"auth": {
+									"type": "noauth"
+								},
+								"header": [],
+								"description": "List issues, optionally filtered by projectId and/or status.\n\nSource: Swagger operation IssuesController_findAll.\n\nOptional query parameters (disabled by default): projectId, status, title. Name/title filters are case-insensitive substring regex matches; key, slug, status and projectId are exact matches."
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
 								{
 									"key": "Content-Type",
 									"value": "application/json; charset=utf-8"
-								},
-								{
-									"key": "Content-Length",
-									"value": "112"
-								},
-								{
-									"key": "ETag",
-									"value": "W/\"70-WcR6VRCcAYkyOelqR5Dz4DJZzR4\""
-								},
-								{
-									"key": "Date",
-									"value": "Mon, 05 Oct 2026 13:29:33 GMT"
-								},
-								{
-									"key": "Connection",
-									"value": "keep-alive"
-								},
-								{
-									"key": "Keep-Alive",
-									"value": "timeout=5"
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"message\": \"slug \\\"new-workspace-1\\\" is already used by another workspace.\",\n    \"error\": \"Conflict\",\n    \"statusCode\": 409\n}"
+							"body": "[\n  {\n    \"_id\": \"507f1f77bcf86cd700000001\",\n    \"id\": 1,\n    \"projectId\": 1,\n    \"title\": \"Fix the login button\",\n    \"description\": \"\",\n    \"status\": \"todo\",\n    \"__v\": 0\n  }\n]"
+						}
+					],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status is 200\", function () {",
+									"  pm.response.to.have.status(200);",
+									"});",
+									"pm.test(\"Response is an array\", function () { pm.expect(pm.response.json()).to.be.an(\"array\"); });"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Get issue",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/issues/{{issueId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"issues",
+								"{{issueId}}"
+							]
+						},
+						"auth": {
+							"type": "noauth"
+						},
+						"header": [],
+						"description": "Get one issue by its id.\n\nSource: Swagger operation IssuesController_findOne.\n\nPath id is a numeric application id (not MongoDB _id). Malformed id: 400. Missing record: 404."
+					},
+					"response": [
+						{
+							"name": "200 — Success (illustrative)",
+							"originalRequest": {
+								"method": "GET",
+								"url": {
+									"raw": "{{baseUrl}}/issues/{{issueId}}",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"issues",
+										"{{issueId}}"
+									]
+								},
+								"auth": {
+									"type": "noauth"
+								},
+								"header": [],
+								"description": "Get one issue by its id.\n\nSource: Swagger operation IssuesController_findOne.\n\nPath id is a numeric application id (not MongoDB _id). Malformed id: 400. Missing record: 404."
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"_id\": \"507f1f77bcf86cd700000001\",\n  \"id\": 1,\n  \"projectId\": 1,\n  \"title\": \"Fix the login button\",\n  \"description\": \"\",\n  \"status\": \"todo\",\n  \"__v\": 0\n}"
+						},
+						{
+							"name": "404 — Record not found (illustrative)",
+							"originalRequest": {
+								"method": "GET",
+								"url": {
+									"raw": "{{baseUrl}}/issues/999",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"issues",
+										"999"
+									]
+								},
+								"auth": {
+									"type": "noauth"
+								},
+								"header": [],
+								"description": "Get one issue by its id.\n\nSource: Swagger operation IssuesController_findOne.\n\nPath id is a numeric application id (not MongoDB _id). Malformed id: 400. Missing record: 404."
+							},
+							"status": "Not Found",
+							"code": 404,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"message\": \"No issue found with id 999.\",\n  \"error\": \"Not Found\",\n  \"statusCode\": 404\n}"
+						},
+						{
+							"name": "400 — Malformed numeric id (illustrative)",
+							"originalRequest": {
+								"method": "GET",
+								"url": {
+									"raw": "{{baseUrl}}/issues/abc",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"issues",
+										"abc"
+									]
+								},
+								"auth": {
+									"type": "noauth"
+								},
+								"header": [],
+								"description": "Get one issue by its id.\n\nSource: Swagger operation IssuesController_findOne.\n\nPath id is a numeric application id (not MongoDB _id). Malformed id: 400. Missing record: 404."
+							},
+							"status": "Bad Request",
+							"code": 400,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"message\": \"Validation failed (numeric string is expected)\",\n  \"error\": \"Bad Request\",\n  \"statusCode\": 400\n}"
+						}
+					],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status is 200\", function () {",
+									"  pm.response.to.have.status(200);",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Update issue",
+					"request": {
+						"method": "PATCH",
+						"url": {
+							"raw": "{{baseUrl}}/issues/{{issueId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"issues",
+								"{{issueId}}"
+							]
+						},
+						"auth": {
+							"type": "noauth"
+						},
+						"header": [
+							{
+								"key": "x-internal-tool-key",
+								"value": "{{internalToolKey}}",
+								"type": "text",
+								"description": "Set internalToolKey privately; this is separate from JWT authentication."
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"description": "Update an issue (internal tool only).\n\nSource: Swagger operation IssuesController_update.\n\nPath id is a numeric application id (not MongoDB _id). Malformed id: 400. Missing record: 404.\n\nRequires x-internal-tool-key: {{internalToolKey}}. Missing/incorrect key: 403. A JWT does not replace this key.\n\nJSON fields: projectId (optional), title (optional), description (optional), status (optional). Invalid types, blank required text, or extra fields: 400.\n\nstatus: todo, in_progress, review, done. The DTO accepts projectId, but the current service does not update it; this example changes title/description/status only.",
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Fix the login button\",\n  \"description\": \"Updated with Postman\",\n  \"status\": \"in_progress\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						}
+					},
+					"response": [
+						{
+							"name": "200 — Success (illustrative)",
+							"originalRequest": {
+								"method": "PATCH",
+								"url": {
+									"raw": "{{baseUrl}}/issues/{{issueId}}",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"issues",
+										"{{issueId}}"
+									]
+								},
+								"auth": {
+									"type": "noauth"
+								},
+								"header": [
+									{
+										"key": "x-internal-tool-key",
+										"value": "{{internalToolKey}}",
+										"type": "text",
+										"description": "Set internalToolKey privately; this is separate from JWT authentication."
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"description": "Update an issue (internal tool only).\n\nSource: Swagger operation IssuesController_update.\n\nPath id is a numeric application id (not MongoDB _id). Malformed id: 400. Missing record: 404.\n\nRequires x-internal-tool-key: {{internalToolKey}}. Missing/incorrect key: 403. A JWT does not replace this key.\n\nJSON fields: projectId (optional), title (optional), description (optional), status (optional). Invalid types, blank required text, or extra fields: 400.\n\nstatus: todo, in_progress, review, done. The DTO accepts projectId, but the current service does not update it; this example changes title/description/status only.",
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"title\": \"Fix the login button\",\n  \"description\": \"Updated with Postman\",\n  \"status\": \"in_progress\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"_id\": \"507f1f77bcf86cd700000001\",\n  \"id\": 1,\n  \"projectId\": 1,\n  \"title\": \"Fix the login button\",\n  \"description\": \"\",\n  \"status\": \"in_progress\",\n  \"__v\": 0\n}"
+						},
+						{
+							"name": "403 — Missing or incorrect internal-tool key (illustrative)",
+							"originalRequest": {
+								"method": "PATCH",
+								"url": {
+									"raw": "{{baseUrl}}/issues/{{issueId}}",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"issues",
+										"{{issueId}}"
+									]
+								},
+								"auth": {
+									"type": "noauth"
+								},
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"description": "Update an issue (internal tool only).\n\nSource: Swagger operation IssuesController_update.\n\nPath id is a numeric application id (not MongoDB _id). Malformed id: 400. Missing record: 404.\n\nRequires x-internal-tool-key: {{internalToolKey}}. Missing/incorrect key: 403. A JWT does not replace this key.\n\nJSON fields: projectId (optional), title (optional), description (optional), status (optional). Invalid types, blank required text, or extra fields: 400.\n\nstatus: todo, in_progress, review, done. The DTO accepts projectId, but the current service does not update it; this example changes title/description/status only.",
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"title\": \"Fix the login button\",\n  \"description\": \"Updated with Postman\",\n  \"status\": \"in_progress\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								}
+							},
+							"status": "Forbidden",
+							"code": 403,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"message\": \"This operation is restricted to B4F Board's own internal tooling.\",\n  \"error\": \"Forbidden\",\n  \"statusCode\": 403\n}"
+						},
+						{
+							"name": "404 — Record not found (illustrative)",
+							"originalRequest": {
+								"method": "PATCH",
+								"url": {
+									"raw": "{{baseUrl}}/issues/999",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"issues",
+										"999"
+									]
+								},
+								"auth": {
+									"type": "noauth"
+								},
+								"header": [
+									{
+										"key": "x-internal-tool-key",
+										"value": "{{internalToolKey}}",
+										"type": "text",
+										"description": "Set internalToolKey privately; this is separate from JWT authentication."
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"description": "Update an issue (internal tool only).\n\nSource: Swagger operation IssuesController_update.\n\nPath id is a numeric application id (not MongoDB _id). Malformed id: 400. Missing record: 404.\n\nRequires x-internal-tool-key: {{internalToolKey}}. Missing/incorrect key: 403. A JWT does not replace this key.\n\nJSON fields: projectId (optional), title (optional), description (optional), status (optional). Invalid types, blank required text, or extra fields: 400.\n\nstatus: todo, in_progress, review, done. The DTO accepts projectId, but the current service does not update it; this example changes title/description/status only.",
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"title\": \"Fix the login button\",\n  \"description\": \"Updated with Postman\",\n  \"status\": \"in_progress\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								}
+							},
+							"status": "Not Found",
+							"code": 404,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"message\": \"No issue found with id 999.\",\n  \"error\": \"Not Found\",\n  \"statusCode\": 404\n}"
+						},
+						{
+							"name": "400 — Malformed numeric id (illustrative)",
+							"originalRequest": {
+								"method": "PATCH",
+								"url": {
+									"raw": "{{baseUrl}}/issues/abc",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"issues",
+										"abc"
+									]
+								},
+								"auth": {
+									"type": "noauth"
+								},
+								"header": [
+									{
+										"key": "x-internal-tool-key",
+										"value": "{{internalToolKey}}",
+										"type": "text",
+										"description": "Set internalToolKey privately; this is separate from JWT authentication."
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"description": "Update an issue (internal tool only).\n\nSource: Swagger operation IssuesController_update.\n\nPath id is a numeric application id (not MongoDB _id). Malformed id: 400. Missing record: 404.\n\nRequires x-internal-tool-key: {{internalToolKey}}. Missing/incorrect key: 403. A JWT does not replace this key.\n\nJSON fields: projectId (optional), title (optional), description (optional), status (optional). Invalid types, blank required text, or extra fields: 400.\n\nstatus: todo, in_progress, review, done. The DTO accepts projectId, but the current service does not update it; this example changes title/description/status only.",
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"title\": \"Fix the login button\",\n  \"description\": \"Updated with Postman\",\n  \"status\": \"in_progress\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								}
+							},
+							"status": "Bad Request",
+							"code": 400,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"message\": \"Validation failed (numeric string is expected)\",\n  \"error\": \"Bad Request\",\n  \"statusCode\": 400\n}"
+						}
+					],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status is 200\", function () {",
+									"  pm.response.to.have.status(200);",
+									"});"
+								]
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Deletes",
+			"description": "Permanently deletes captured test targets, issue first. Empty default delete ids prevent accidentally targeting a seed record. No cascading delete exists.",
+			"item": [
+				{
+					"name": "Delete issue",
+					"request": {
+						"method": "DELETE",
+						"url": {
+							"raw": "{{baseUrl}}/issues/{{deleteIssueId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"issues",
+								"{{deleteIssueId}}"
+							]
+						},
+						"auth": {
+							"type": "noauth"
+						},
+						"header": [
+							{
+								"key": "x-internal-tool-key",
+								"value": "{{internalToolKey}}",
+								"type": "text",
+								"description": "Set internalToolKey privately; this is separate from JWT authentication."
+							}
+						],
+						"description": "Delete an issue (internal tool only).\n\nSource: Swagger operation IssuesController_remove.\n\nPath id is a numeric application id (not MongoDB _id). Malformed id: 400. Missing record: 404.\n\nRequires x-internal-tool-key: {{internalToolKey}}. Missing/incorrect key: 403. A JWT does not replace this key.\n\nPermanently deletes and returns the document (200). No cascading deletion. Create the corresponding test record first; its response captures this delete target."
+					},
+					"response": [
+						{
+							"name": "200 — Success (illustrative)",
+							"originalRequest": {
+								"method": "DELETE",
+								"url": {
+									"raw": "{{baseUrl}}/issues/{{deleteIssueId}}",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"issues",
+										"{{deleteIssueId}}"
+									]
+								},
+								"auth": {
+									"type": "noauth"
+								},
+								"header": [
+									{
+										"key": "x-internal-tool-key",
+										"value": "{{internalToolKey}}",
+										"type": "text",
+										"description": "Set internalToolKey privately; this is separate from JWT authentication."
+									}
+								],
+								"description": "Delete an issue (internal tool only).\n\nSource: Swagger operation IssuesController_remove.\n\nPath id is a numeric application id (not MongoDB _id). Malformed id: 400. Missing record: 404.\n\nRequires x-internal-tool-key: {{internalToolKey}}. Missing/incorrect key: 403. A JWT does not replace this key.\n\nPermanently deletes and returns the document (200). No cascading deletion. Create the corresponding test record first; its response captures this delete target."
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"_id\": \"507f1f77bcf86cd700000001\",\n  \"id\": 1,\n  \"projectId\": 1,\n  \"title\": \"Fix the login button\",\n  \"description\": \"\",\n  \"status\": \"todo\",\n  \"__v\": 0\n}"
+						},
+						{
+							"name": "403 — Missing or incorrect internal-tool key (illustrative)",
+							"originalRequest": {
+								"method": "DELETE",
+								"url": {
+									"raw": "{{baseUrl}}/issues/{{deleteIssueId}}",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"issues",
+										"{{deleteIssueId}}"
+									]
+								},
+								"auth": {
+									"type": "noauth"
+								},
+								"header": [],
+								"description": "Delete an issue (internal tool only).\n\nSource: Swagger operation IssuesController_remove.\n\nPath id is a numeric application id (not MongoDB _id). Malformed id: 400. Missing record: 404.\n\nRequires x-internal-tool-key: {{internalToolKey}}. Missing/incorrect key: 403. A JWT does not replace this key.\n\nPermanently deletes and returns the document (200). No cascading deletion. Create the corresponding test record first; its response captures this delete target."
+							},
+							"status": "Forbidden",
+							"code": 403,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"message\": \"This operation is restricted to B4F Board's own internal tooling.\",\n  \"error\": \"Forbidden\",\n  \"statusCode\": 403\n}"
+						},
+						{
+							"name": "404 — Record not found (illustrative)",
+							"originalRequest": {
+								"method": "DELETE",
+								"url": {
+									"raw": "{{baseUrl}}/issues/999",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"issues",
+										"999"
+									]
+								},
+								"auth": {
+									"type": "noauth"
+								},
+								"header": [
+									{
+										"key": "x-internal-tool-key",
+										"value": "{{internalToolKey}}",
+										"type": "text",
+										"description": "Set internalToolKey privately; this is separate from JWT authentication."
+									}
+								],
+								"description": "Delete an issue (internal tool only).\n\nSource: Swagger operation IssuesController_remove.\n\nPath id is a numeric application id (not MongoDB _id). Malformed id: 400. Missing record: 404.\n\nRequires x-internal-tool-key: {{internalToolKey}}. Missing/incorrect key: 403. A JWT does not replace this key.\n\nPermanently deletes and returns the document (200). No cascading deletion. Create the corresponding test record first; its response captures this delete target."
+							},
+							"status": "Not Found",
+							"code": 404,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"message\": \"No issue found with id 999.\",\n  \"error\": \"Not Found\",\n  \"statusCode\": 404\n}"
+						},
+						{
+							"name": "400 — Malformed numeric id (illustrative)",
+							"originalRequest": {
+								"method": "DELETE",
+								"url": {
+									"raw": "{{baseUrl}}/issues/abc",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"issues",
+										"abc"
+									]
+								},
+								"auth": {
+									"type": "noauth"
+								},
+								"header": [
+									{
+										"key": "x-internal-tool-key",
+										"value": "{{internalToolKey}}",
+										"type": "text",
+										"description": "Set internalToolKey privately; this is separate from JWT authentication."
+									}
+								],
+								"description": "Delete an issue (internal tool only).\n\nSource: Swagger operation IssuesController_remove.\n\nPath id is a numeric application id (not MongoDB _id). Malformed id: 400. Missing record: 404.\n\nRequires x-internal-tool-key: {{internalToolKey}}. Missing/incorrect key: 403. A JWT does not replace this key.\n\nPermanently deletes and returns the document (200). No cascading deletion. Create the corresponding test record first; its response captures this delete target."
+							},
+							"status": "Bad Request",
+							"code": 400,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"message\": \"Validation failed (numeric string is expected)\",\n  \"error\": \"Bad Request\",\n  \"statusCode\": 400\n}"
+						}
+					],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status is 200\", function () {",
+									"  pm.response.to.have.status(200);",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Delete project",
+					"request": {
+						"method": "DELETE",
+						"url": {
+							"raw": "{{baseUrl}}/projects/{{deleteProjectId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"projects",
+								"{{deleteProjectId}}"
+							]
+						},
+						"auth": {
+							"type": "noauth"
+						},
+						"header": [
+							{
+								"key": "x-internal-tool-key",
+								"value": "{{internalToolKey}}",
+								"type": "text",
+								"description": "Set internalToolKey privately; this is separate from JWT authentication."
+							}
+						],
+						"description": "Delete a project.\n\nSource: Swagger operation ProjectsController_remove.\n\nPath id is a numeric application id (not MongoDB _id). Malformed id: 400. Missing record: 404.\n\nRequires x-internal-tool-key: {{internalToolKey}}. Missing/incorrect key: 403. A JWT does not replace this key.\n\nPermanently deletes and returns the document (200). No cascading deletion. Create the corresponding test record first; its response captures this delete target."
+					},
+					"response": [
+						{
+							"name": "200 — Success (illustrative)",
+							"originalRequest": {
+								"method": "DELETE",
+								"url": {
+									"raw": "{{baseUrl}}/projects/{{deleteProjectId}}",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"projects",
+										"{{deleteProjectId}}"
+									]
+								},
+								"auth": {
+									"type": "noauth"
+								},
+								"header": [
+									{
+										"key": "x-internal-tool-key",
+										"value": "{{internalToolKey}}",
+										"type": "text",
+										"description": "Set internalToolKey privately; this is separate from JWT authentication."
+									}
+								],
+								"description": "Delete a project.\n\nSource: Swagger operation ProjectsController_remove.\n\nPath id is a numeric application id (not MongoDB _id). Malformed id: 400. Missing record: 404.\n\nRequires x-internal-tool-key: {{internalToolKey}}. Missing/incorrect key: 403. A JWT does not replace this key.\n\nPermanently deletes and returns the document (200). No cascading deletion. Create the corresponding test record first; its response captures this delete target."
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"_id\": \"507f1f77bcf86cd700000001\",\n  \"id\": 1,\n  \"name\": \"Web App\",\n  \"key\": \"WEB\",\n  \"description\": \"Customer UI\",\n  \"__v\": 0\n}"
+						},
+						{
+							"name": "403 — Missing or incorrect internal-tool key (illustrative)",
+							"originalRequest": {
+								"method": "DELETE",
+								"url": {
+									"raw": "{{baseUrl}}/projects/{{deleteProjectId}}",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"projects",
+										"{{deleteProjectId}}"
+									]
+								},
+								"auth": {
+									"type": "noauth"
+								},
+								"header": [],
+								"description": "Delete a project.\n\nSource: Swagger operation ProjectsController_remove.\n\nPath id is a numeric application id (not MongoDB _id). Malformed id: 400. Missing record: 404.\n\nRequires x-internal-tool-key: {{internalToolKey}}. Missing/incorrect key: 403. A JWT does not replace this key.\n\nPermanently deletes and returns the document (200). No cascading deletion. Create the corresponding test record first; its response captures this delete target."
+							},
+							"status": "Forbidden",
+							"code": 403,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"message\": \"This operation is restricted to B4F Board's own internal tooling.\",\n  \"error\": \"Forbidden\",\n  \"statusCode\": 403\n}"
+						},
+						{
+							"name": "404 — Record not found (illustrative)",
+							"originalRequest": {
+								"method": "DELETE",
+								"url": {
+									"raw": "{{baseUrl}}/projects/999",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"projects",
+										"999"
+									]
+								},
+								"auth": {
+									"type": "noauth"
+								},
+								"header": [
+									{
+										"key": "x-internal-tool-key",
+										"value": "{{internalToolKey}}",
+										"type": "text",
+										"description": "Set internalToolKey privately; this is separate from JWT authentication."
+									}
+								],
+								"description": "Delete a project.\n\nSource: Swagger operation ProjectsController_remove.\n\nPath id is a numeric application id (not MongoDB _id). Malformed id: 400. Missing record: 404.\n\nRequires x-internal-tool-key: {{internalToolKey}}. Missing/incorrect key: 403. A JWT does not replace this key.\n\nPermanently deletes and returns the document (200). No cascading deletion. Create the corresponding test record first; its response captures this delete target."
+							},
+							"status": "Not Found",
+							"code": 404,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"message\": \"No project found with id 999.\",\n  \"error\": \"Not Found\",\n  \"statusCode\": 404\n}"
+						},
+						{
+							"name": "400 — Malformed numeric id (illustrative)",
+							"originalRequest": {
+								"method": "DELETE",
+								"url": {
+									"raw": "{{baseUrl}}/projects/abc",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"projects",
+										"abc"
+									]
+								},
+								"auth": {
+									"type": "noauth"
+								},
+								"header": [
+									{
+										"key": "x-internal-tool-key",
+										"value": "{{internalToolKey}}",
+										"type": "text",
+										"description": "Set internalToolKey privately; this is separate from JWT authentication."
+									}
+								],
+								"description": "Delete a project.\n\nSource: Swagger operation ProjectsController_remove.\n\nPath id is a numeric application id (not MongoDB _id). Malformed id: 400. Missing record: 404.\n\nRequires x-internal-tool-key: {{internalToolKey}}. Missing/incorrect key: 403. A JWT does not replace this key.\n\nPermanently deletes and returns the document (200). No cascading deletion. Create the corresponding test record first; its response captures this delete target."
+							},
+							"status": "Bad Request",
+							"code": 400,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"message\": \"Validation failed (numeric string is expected)\",\n  \"error\": \"Bad Request\",\n  \"statusCode\": 400\n}"
+						}
+					],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status is 200\", function () {",
+									"  pm.response.to.have.status(200);",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Delete workspace",
+					"request": {
+						"method": "DELETE",
+						"url": {
+							"raw": "{{baseUrl}}/workspaces/{{deleteWorkspaceId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"workspaces",
+								"{{deleteWorkspaceId}}"
+							]
+						},
+						"auth": {
+							"type": "noauth"
+						},
+						"header": [
+							{
+								"key": "x-internal-tool-key",
+								"value": "{{internalToolKey}}",
+								"type": "text",
+								"description": "Set internalToolKey privately; this is separate from JWT authentication."
+							}
+						],
+						"description": "Delete a workspace.\n\nSource: Swagger operation WorkspacesController_remove.\n\nPath id is a numeric application id (not MongoDB _id). Malformed id: 400. Missing record: 404.\n\nRequires x-internal-tool-key: {{internalToolKey}}. Missing/incorrect key: 403. A JWT does not replace this key.\n\nPermanently deletes and returns the document (200). No cascading deletion. Create the corresponding test record first; its response captures this delete target."
+					},
+					"response": [
+						{
+							"name": "200 — Success (illustrative)",
+							"originalRequest": {
+								"method": "DELETE",
+								"url": {
+									"raw": "{{baseUrl}}/workspaces/{{deleteWorkspaceId}}",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"workspaces",
+										"{{deleteWorkspaceId}}"
+									]
+								},
+								"auth": {
+									"type": "noauth"
+								},
+								"header": [
+									{
+										"key": "x-internal-tool-key",
+										"value": "{{internalToolKey}}",
+										"type": "text",
+										"description": "Set internalToolKey privately; this is separate from JWT authentication."
+									}
+								],
+								"description": "Delete a workspace.\n\nSource: Swagger operation WorkspacesController_remove.\n\nPath id is a numeric application id (not MongoDB _id). Malformed id: 400. Missing record: 404.\n\nRequires x-internal-tool-key: {{internalToolKey}}. Missing/incorrect key: 403. A JWT does not replace this key.\n\nPermanently deletes and returns the document (200). No cascading deletion. Create the corresponding test record first; its response captures this delete target."
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"_id\": \"507f1f77bcf86cd700000001\",\n  \"id\": 1,\n  \"name\": \"Acme Robotics\",\n  \"slug\": \"acme-robotics\",\n  \"description\": \"Internal tools\",\n  \"__v\": 0\n}"
+						},
+						{
+							"name": "403 — Missing or incorrect internal-tool key (illustrative)",
+							"originalRequest": {
+								"method": "DELETE",
+								"url": {
+									"raw": "{{baseUrl}}/workspaces/{{deleteWorkspaceId}}",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"workspaces",
+										"{{deleteWorkspaceId}}"
+									]
+								},
+								"auth": {
+									"type": "noauth"
+								},
+								"header": [],
+								"description": "Delete a workspace.\n\nSource: Swagger operation WorkspacesController_remove.\n\nPath id is a numeric application id (not MongoDB _id). Malformed id: 400. Missing record: 404.\n\nRequires x-internal-tool-key: {{internalToolKey}}. Missing/incorrect key: 403. A JWT does not replace this key.\n\nPermanently deletes and returns the document (200). No cascading deletion. Create the corresponding test record first; its response captures this delete target."
+							},
+							"status": "Forbidden",
+							"code": 403,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"message\": \"This operation is restricted to B4F Board's own internal tooling.\",\n  \"error\": \"Forbidden\",\n  \"statusCode\": 403\n}"
+						},
+						{
+							"name": "404 — Record not found (illustrative)",
+							"originalRequest": {
+								"method": "DELETE",
+								"url": {
+									"raw": "{{baseUrl}}/workspaces/999",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"workspaces",
+										"999"
+									]
+								},
+								"auth": {
+									"type": "noauth"
+								},
+								"header": [
+									{
+										"key": "x-internal-tool-key",
+										"value": "{{internalToolKey}}",
+										"type": "text",
+										"description": "Set internalToolKey privately; this is separate from JWT authentication."
+									}
+								],
+								"description": "Delete a workspace.\n\nSource: Swagger operation WorkspacesController_remove.\n\nPath id is a numeric application id (not MongoDB _id). Malformed id: 400. Missing record: 404.\n\nRequires x-internal-tool-key: {{internalToolKey}}. Missing/incorrect key: 403. A JWT does not replace this key.\n\nPermanently deletes and returns the document (200). No cascading deletion. Create the corresponding test record first; its response captures this delete target."
+							},
+							"status": "Not Found",
+							"code": 404,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"message\": \"No workspace found with id 999.\",\n  \"error\": \"Not Found\",\n  \"statusCode\": 404\n}"
+						},
+						{
+							"name": "400 — Malformed numeric id (illustrative)",
+							"originalRequest": {
+								"method": "DELETE",
+								"url": {
+									"raw": "{{baseUrl}}/workspaces/abc",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"workspaces",
+										"abc"
+									]
+								},
+								"auth": {
+									"type": "noauth"
+								},
+								"header": [
+									{
+										"key": "x-internal-tool-key",
+										"value": "{{internalToolKey}}",
+										"type": "text",
+										"description": "Set internalToolKey privately; this is separate from JWT authentication."
+									}
+								],
+								"description": "Delete a workspace.\n\nSource: Swagger operation WorkspacesController_remove.\n\nPath id is a numeric application id (not MongoDB _id). Malformed id: 400. Missing record: 404.\n\nRequires x-internal-tool-key: {{internalToolKey}}. Missing/incorrect key: 403. A JWT does not replace this key.\n\nPermanently deletes and returns the document (200). No cascading deletion. Create the corresponding test record first; its response captures this delete target."
+							},
+							"status": "Bad Request",
+							"code": 400,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"message\": \"Validation failed (numeric string is expected)\",\n  \"error\": \"Bad Request\",\n  \"statusCode\": 400\n}"
+						}
+					],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status is 200\", function () {",
+									"  pm.response.to.have.status(200);",
+									"});"
+								]
+							}
 						}
 					]
 				}
@@ -1475,17 +3588,86 @@
 		{
 			"key": "baseUrl",
 			"value": "http://localhost:3000",
-			"type": "string"
+			"type": "string",
+			"description": "API origin; Swagger UI is /docs and its JSON contract is /docs-json."
+		},
+		{
+			"key": "internalToolKey",
+			"value": "",
+			"type": "string",
+			"description": "Set privately to INTERNAL_TOOL_KEY from your server. Required for writes and project stats."
+		},
+		{
+			"key": "authName",
+			"value": "Postman User",
+			"type": "string",
+			"description": "Name used by Register."
+		},
+		{
+			"key": "authEmail",
+			"value": "",
+			"type": "string",
+			"description": "Set privately to your account email. Register requires an unused email."
+		},
+		{
+			"key": "authPassword",
+			"value": "",
+			"type": "string",
+			"description": "Set privately in your environment; at least eight characters. Never commit a real password."
+		},
+		{
+			"key": "accessToken",
+			"value": "",
+			"type": "string",
+			"description": "Login captures the JWT here. Current server token lifetime is 30 seconds; log in again when expired."
 		},
 		{
 			"key": "projectId",
 			"value": "1",
-			"type": "string"
+			"type": "string",
+			"description": "Numeric application id, not MongoDB _id. Replaced by Create new project."
+		},
+		{
+			"key": "projectKey",
+			"value": "WEB",
+			"type": "string",
+			"description": "Project lookup key; replaced by Create new project."
 		},
 		{
 			"key": "workspaceId",
 			"value": "1",
-			"type": "string"
+			"type": "string",
+			"description": "Numeric application id; replaced by Create new workspace."
+		},
+		{
+			"key": "workspaceSlug",
+			"value": "acme-robotics",
+			"type": "string",
+			"description": "Workspace lookup slug; replaced by Create new workspace."
+		},
+		{
+			"key": "issueId",
+			"value": "1",
+			"type": "string",
+			"description": "Numeric application id; replaced by Create issue."
+		},
+		{
+			"key": "deleteProjectId",
+			"value": "",
+			"type": "string",
+			"description": "Only set automatically after a successful project create, or manually for intentional deletion."
+		},
+		{
+			"key": "deleteWorkspaceId",
+			"value": "",
+			"type": "string",
+			"description": "Only set automatically after a successful workspace create, or manually for intentional deletion."
+		},
+		{
+			"key": "deleteIssueId",
+			"value": "",
+			"type": "string",
+			"description": "Only set automatically after a successful issue create, or manually for intentional deletion."
 		}
 	]
 }
