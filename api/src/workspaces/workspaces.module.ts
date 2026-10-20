@@ -6,6 +6,8 @@ import { WorkspacesService } from './workspaces.service';
 import { Workspace, WorkspaceSchema } from './schemas/workspace.schema';
 import { InternalToolGuard } from 'src/common/filters/guards/internal-tool.guard';
 import { WorkspaceMembersModule } from 'src/workspace-members/workspace-members.module';
+import { WorkspaceRoleGuard } from 'src/common/filters/guards/workspace-role.guard';
+import { ProjectsModule } from 'src/projects/projects.module';
 import { WorkspacesController } from './workspaces.controller';
 
 @Module({
@@ -14,8 +16,9 @@ import { WorkspacesController } from './workspaces.controller';
       { name: Workspace.name, schema: WorkspaceSchema },
     ]),
     WorkspaceMembersModule,
+    ProjectsModule,
   ],
   controllers: [WorkspacesController],
-  providers: [WorkspacesService, InternalToolGuard],
+  providers: [WorkspacesService, InternalToolGuard, WorkspaceRoleGuard],
 })
 export class WorkspacesModule {}

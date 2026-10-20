@@ -22,6 +22,8 @@ import {
 import { JwtAuthGuard } from 'src/common/filters/guards/jwt-auth.guard';
 import { CurrentUser } from 'src/auth/current-user.decorator';
 import { JwtPayload } from 'src/auth/jwt-payload.interface';
+import { WorkspaceRoleGuard } from 'src/common/filters/guards/workspace-role.guard';
+import { RequireWorkspaceRole } from 'src/common/decorators/require-workspace-role.decorator';
 import { UpdateWorkspaceDto } from './dto/update-workspace.dto';
 @ApiTags('workspaces')
 @Controller('workspaces')
@@ -67,7 +69,8 @@ export class WorkspacesController {
     status: 401,
     description: 'Missing or invalid authentication token.',
   })
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, WorkspaceRoleGuard)
+  @RequireWorkspaceRole(['admin', 'owner'], 'workspaceParam')
   @Patch(':id')
   update(
     @Param('id', ParseIntPipe) id: number,
@@ -89,7 +92,8 @@ export class WorkspacesController {
     status: 401,
     description: 'Missing or invalid authentication token.',
   })
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, WorkspaceRoleGuard)
+  @RequireWorkspaceRole(['owner'], 'workspaceParam')
   @Delete(':id')
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.workspacesService.remove(id);
