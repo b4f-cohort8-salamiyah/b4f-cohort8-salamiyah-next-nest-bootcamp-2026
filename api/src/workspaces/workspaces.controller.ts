@@ -21,6 +21,8 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/common/filters/guards/jwt-auth.guard';
+import { CurrentUser } from 'src/auth/current-user.decorator';
+import { SafeUser } from 'src/users/users.service';
 @ApiTags('workspaces')
 @Controller('workspaces')
 export class WorkspacesController {
@@ -51,8 +53,8 @@ export class WorkspacesController {
   })
   @UseGuards(JwtAuthGuard)
   @Post()
-  create(@Body() dto: CreateWorkspaceDto) {
-    return this.workspacesService.create(dto);
+  create(@Body() dto: CreateWorkspaceDto, @CurrentUser() user: SafeUser) {
+    return this.workspacesService.create(dto, user.id);
   }
 
   @ApiOperation({ summary: 'Update a workspace (requires a signed-in user)' })
