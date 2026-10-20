@@ -23,7 +23,8 @@ import {
 } from '@nestjs/swagger';
 import { InternalToolGuard } from 'src/common/filters/guards/internal-tool.guard';
 import { JwtAuthGuard } from 'src/common/filters/guards/jwt-auth.guard';
-import { AdminOrOwnerGuard } from './guards/admin-or-owner.guard';
+import { WorkspaceRoleGuard } from 'src/common/filters/guards/workspace-role.guard';
+import { RequireWorkspaceRole } from 'src/common/decorators/require-workspace-role.decorator';
 
 const INTERNAL_TOOL_HEADER = {
   name: 'x-internal-tool-key',
@@ -31,7 +32,7 @@ const INTERNAL_TOOL_HEADER = {
     'Required internal-tool access key (value not published here). This is access control, not authentication -- it does not identify who is calling.',
   required: true,
 };
-
+//admin, owner
 @ApiTags('projects')
 @Controller('projects')
 export class ProjectsController {
@@ -73,7 +74,8 @@ export class ProjectsController {
     status: 403,
     description: 'Not a member of this workspace, or not Owner/Admin.',
   })
-  @UseGuards(JwtAuthGuard, AdminOrOwnerGuard)
+  @UseGuards(JwtAuthGuard, WorkspaceRoleGuard)
+  @RequireWorkspaceRole(['admin', 'owner'], 'body')
   @Post()
   create(@Body() dto: CreateProjectDto) {
     return this.projectsService.create(dto);
@@ -86,7 +88,8 @@ export class ProjectsController {
     status: 401,
     description: 'Missing or invalid authentication token.',
   })
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, WorkspaceRoleGuard)
+  @RequireWorkspaceRole(['admin', 'owner'], 'project')
   @Patch(':id')
   update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateProjectDto) {
     return this.projectsService.update(id, dto);
@@ -105,7 +108,8 @@ export class ProjectsController {
     status: 401,
     description: 'Missing or invalid authentication token.',
   })
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, WorkspaceRoleGuard)
+  @RequireWorkspaceRole(['admin', 'owner'], 'project')
   @Delete(':id')
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.projectsService.remove(id);
