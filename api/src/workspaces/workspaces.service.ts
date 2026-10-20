@@ -12,6 +12,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Workspace, WorkspaceDocument } from './schemas/workspace.schema';
 import { Model } from 'mongoose';
 import { FindWorkspacesQueryDto } from './dto/find-workspaces-query.dto';
+import { WorkspaceMembersService } from 'src/workspace-members/workspace-members.service';
 
 const seedWorkspaces = [
   {
@@ -29,6 +30,7 @@ export class WorkspacesService implements OnModuleInit {
   constructor(
     @InjectModel(Workspace.name)
     private readonly model: Model<WorkspaceDocument>,
+    private readonly workspaceMembersService: WorkspaceMembersService,
   ) {}
 
   async onModuleInit() {
@@ -63,7 +65,10 @@ export class WorkspacesService implements OnModuleInit {
     return workspace;
   }
 
-  async create(dto: CreateWorkspaceDto): Promise<WorkspaceDocument> {
+  async create(
+    dto: CreateWorkspaceDto,
+    ownerId: number,
+  ): Promise<WorkspaceDocument> {
     const taken = await this.model.findOne({ slug: dto.slug });
 
     if (taken) {
@@ -84,6 +89,12 @@ export class WorkspacesService implements OnModuleInit {
 
     const saved = await workspace.save();
     this.logger.log(`Created workspace ${saved.id} ("${saved.name}")`);
+
+    await this.workspaceMembersService.create({
+      workspaceId: saved.id,
+      userId: ownerId,
+      role: 'owner',
+    });
 
     return saved;
   }
