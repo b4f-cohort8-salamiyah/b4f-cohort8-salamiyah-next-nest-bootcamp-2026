@@ -13,9 +13,27 @@ import { Model } from 'mongoose';
 import { FindProjectsQueryDto } from './dto/find-projects-query.dto';
 
 const seedProjects = [
-  { id: 1, name: 'Web App', key: 'WEB', description: 'Customer UI' },
-  { id: 2, name: 'Backend API', key: 'API', description: 'Core services' },
-  { id: 3, name: 'Mobile App', key: 'MOB', description: 'iOS and Android' },
+  {
+    id: 1,
+    workspaceId: 1,
+    name: 'Web App',
+    key: 'WEB',
+    description: 'Customer UI',
+  },
+  {
+    id: 2,
+    workspaceId: 1,
+    name: 'Backend API',
+    key: 'API',
+    description: 'Core services',
+  },
+  {
+    id: 3,
+    workspaceId: 1,
+    name: 'Mobile App',
+    key: 'MOB',
+    description: 'iOS and Android',
+  },
 ];
 
 @Injectable()
@@ -73,6 +91,7 @@ export class ProjectsService implements OnModuleInit {
 
     const project = await this.model.insertOne({
       id,
+      workspaceId: dto.workspaceId,
       name: dto.name,
       key: dto.key,
       description: dto.description || '',

@@ -4,15 +4,15 @@ import { ProjectsService } from './projects.service';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Project, ProjectSchema } from './schemas/project.schema';
 import { InternalToolGuard } from 'src/common/filters/guards/internal-tool.guard';
-import { JwtAuthGuard } from 'src/common/filters/guards/jwt-auth.guard';
-import { JwtModule } from '@nestjs/jwt';
+import { AdminOrOwnerGuard } from './guards/admin-or-owner.guard';
+import { WorkspaceMembersModule } from 'src/workspace-members/workspace-members.module';
 
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: Project.name, schema: ProjectSchema }]),
-    JwtModule,
+    WorkspaceMembersModule,
   ],
   controllers: [ProjectsController],
-  providers: [ProjectsService, InternalToolGuard, JwtAuthGuard],
+  providers: [ProjectsService, InternalToolGuard, AdminOrOwnerGuard],
 })
 export class ProjectsModule {}
