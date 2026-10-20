@@ -19,6 +19,12 @@ export class Issue {
 
   @Prop({ default: 'todo' })
   status: string;
+
+  @Prop({ required: true })
+  reporterId: number;
+
+  @Prop({ default: null })
+  assigneeId: number;
 }
 
 export const IssueSchema = SchemaFactory.createForClass(Issue);

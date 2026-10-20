@@ -21,6 +21,7 @@ import { FindIssuesQueryDto } from './dto/find-issues-query.dto';
 import { CreateIssueDto } from './dto/create-issue.dto';
 import { UpdateIssueDto } from './dto/update-issue.dto';
 import { JwtAuthGuard } from 'src/common/filters/guards/jwt-auth.guard';
+import { CurrentUser } from 'src/auth/current-user.decorator';
 
 @ApiTags('issues')
 @Controller('issues')
@@ -50,8 +51,8 @@ export class IssuesController {
   })
   @UseGuards(JwtAuthGuard)
   @Post()
-  create(@Body() dto: CreateIssueDto) {
-    return this.issuesService.create(dto);
+  create(@Body() dto: CreateIssueDto, @CurrentUser() user: any) {
+    return this.issuesService.create(dto, user.id);
   }
 
   @ApiOperation({ summary: 'Update an issue (requires a signed-in user)' })
@@ -63,8 +64,12 @@ export class IssuesController {
   })
   @UseGuards(JwtAuthGuard)
   @Patch(':id')
-  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateIssueDto) {
-    return this.issuesService.update(id, dto);
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateIssueDto,
+    @CurrentUser() user: any,
+  ) {
+    return this.issuesService.update(id, dto, user.id);
   }
 
   @ApiOperation({ summary: 'Delete an issue (requires a signed-in user)' })
@@ -76,7 +81,7 @@ export class IssuesController {
   })
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
-  remove(@Param('id', ParseIntPipe) id: number) {
-    return this.issuesService.remove(id);
+  remove(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: any) {
+    return this.issuesService.remove(id, user.id);
   }
 }
