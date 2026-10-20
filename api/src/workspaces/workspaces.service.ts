@@ -12,6 +12,7 @@ import { Workspace, WorkspaceDocument } from './schemas/workspace.schema';
 import { Model } from 'mongoose';
 import { FindWorkspacesQueryDto } from './dto/find-workspaces-query.dto';
 import { WorkspaceMembersService } from 'src/workspace-members/workspace-members.service';
+
 const seedWorkspaces = [
   {
     id: 1,
@@ -65,7 +66,7 @@ export class WorkspacesService implements OnModuleInit {
 
   async create(
     dto: CreateWorkspaceDto,
-    userId: number,
+    ownerId: number,
   ): Promise<WorkspaceDocument> {
     const taken = await this.model.findOne({ slug: dto.slug });
 
@@ -88,11 +89,11 @@ export class WorkspacesService implements OnModuleInit {
     const saved = await workspace.save();
     this.logger.log(`Created workspace ${saved.id} ("${saved.name}")`);
 
-    await this.workspaceMembersService.createMembership(
-      saved.id,
-      userId,
-      'owner',
-    );
+    await this.workspaceMembersService.create({
+      workspaceId: saved.id,
+      userId: ownerId,
+      role: 'owner',
+    });
 
     return saved;
   }

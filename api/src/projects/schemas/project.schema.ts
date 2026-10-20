@@ -9,6 +9,9 @@ export class Project {
   id: number;
 
   @Prop({ required: true })
+  workspaceId: number;
+
+  @Prop({ required: true })
   name: string;
 
   @Prop({ required: true })
