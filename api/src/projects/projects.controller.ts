@@ -21,10 +21,10 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { InternalToolGuard } from 'src/common/filters/guards/internal-tool.guard';
-import { JwtAuthGuard } from 'src/common/filters/guards/jwt-auth.guard';
-import { WorkspaceRoleGuard } from 'src/common/filters/guards/workspace-role.guard';
-import { RequireWorkspaceRole } from 'src/common/decorators/require-workspace-role.decorator';
+import { InternalToolGuard } from '../common/filters/guards/internal-tool.guard';
+import { JwtAuthGuard } from '../common/filters/guards/jwt-auth.guard';
+import { WorkspaceRoleGuard } from '../common/filters/guards/workspace-role.guard';
+import { RequireWorkspaceRole } from '../common/decorators/require-workspace-role.decorator';
 
 const INTERNAL_TOOL_HEADER = {
   name: 'x-internal-tool-key',

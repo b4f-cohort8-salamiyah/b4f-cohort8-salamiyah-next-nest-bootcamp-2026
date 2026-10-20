@@ -6,14 +6,14 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Request } from 'express';
-import { WorkspaceMembersService } from 'src/workspace-members/workspace-members.service';
-import { ProjectsService } from 'src/projects/projects.service';
-import { JwtPayload } from 'src/auth/jwt-payload.interface';
+import { WorkspaceMembersService } from '../../../workspace-members/workspace-members.service';
+import { ProjectsService } from '../../../projects/projects.service';
+import { JwtPayload } from '../../../auth/jwt-payload.interface';
 import {
   REQUIRE_WORKSPACE_ROLE_KEY,
   RequireWorkspaceRoleMeta,
   WorkspaceIdSource,
-} from 'src/common/decorators/require-workspace-role.decorator';
+} from '../../decorators/require-workspace-role.decorator';
 
 @Injectable()
 export class WorkspaceRoleGuard implements CanActivate {

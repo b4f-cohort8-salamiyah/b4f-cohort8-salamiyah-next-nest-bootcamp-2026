@@ -11,7 +11,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Workspace, WorkspaceDocument } from './schemas/workspace.schema';
 import { Model } from 'mongoose';
 import { FindWorkspacesQueryDto } from './dto/find-workspaces-query.dto';
-import { WorkspaceMembersService } from 'src/workspace-members/workspace-members.service';
+import { WorkspaceMembersService } from '../workspace-members/workspace-members.service';
 
 const seedWorkspaces = [
   {
