@@ -1,8 +1,15 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsInt, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class CreateProjectDto {
+  @ApiProperty({
+    example: 1,
+    description: 'The workspace this project belongs to.',
+  })
+  @IsInt()
+  workspaceId: number;
+
   @ApiProperty({ example: 'Web App ' })
   @IsString()
   @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
