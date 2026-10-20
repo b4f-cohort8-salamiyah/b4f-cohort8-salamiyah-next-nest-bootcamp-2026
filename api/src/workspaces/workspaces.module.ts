@@ -5,6 +5,7 @@ import { WorkspacesService } from './workspaces.service';
 
 import { Workspace, WorkspaceSchema } from './schemas/workspace.schema';
 import { InternalToolGuard } from 'src/common/filters/guards/internal-tool.guard';
+import { WorkspaceMembersModule } from 'src/workspace-members/workspace-members.module';
 import { WorkspacesController } from './workspaces.controller';
 
 @Module({
@@ -12,6 +13,7 @@ import { WorkspacesController } from './workspaces.controller';
     MongooseModule.forFeature([
       { name: Workspace.name, schema: WorkspaceSchema },
     ]),
+    WorkspaceMembersModule,
   ],
   controllers: [WorkspacesController],
   providers: [WorkspacesService, InternalToolGuard],
