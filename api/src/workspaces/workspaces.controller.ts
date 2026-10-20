@@ -21,7 +21,6 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/common/filters/guards/jwt-auth.guard';
-
 @ApiTags('workspaces')
 @Controller('workspaces')
 export class WorkspacesController {
@@ -41,12 +40,14 @@ export class WorkspacesController {
     return this.workspacesService.findOne(id);
   }
 
-  @ApiOperation({ summary: 'Create a new workspace' })
+  @ApiOperation({
+    summary: 'Create a new workspace (requires a signed-in user)',
+  })
   @ApiBearerAuth()
   @ApiResponse({ status: 201, description: 'The created workspace.' })
   @ApiResponse({
     status: 401,
-    description: 'Missing, invalid, or expired authentication token.',
+    description: 'Missing or invalid authentication token.',
   })
   @UseGuards(JwtAuthGuard)
   @Post()
@@ -54,12 +55,12 @@ export class WorkspacesController {
     return this.workspacesService.create(dto);
   }
 
-  @ApiOperation({ summary: 'Update a workspace' })
+  @ApiOperation({ summary: 'Update a workspace (requires a signed-in user)' })
   @ApiBearerAuth()
   @ApiResponse({ status: 200, description: 'The updated workspace.' })
   @ApiResponse({
     status: 401,
-    description: 'Missing, invalid, or expired authentication token.',
+    description: 'Missing or invalid authentication token.',
   })
   @UseGuards(JwtAuthGuard)
   @Patch(':id')
@@ -76,12 +77,12 @@ export class WorkspacesController {
     return this.workspacesService.findBySlug(slug);
   }
 
-  @ApiOperation({ summary: 'Delete a workspace' })
+  @ApiOperation({ summary: 'Delete a workspace (requires a signed-in user)' })
   @ApiBearerAuth()
   @ApiResponse({ status: 200, description: 'The deleted workspace.' })
   @ApiResponse({
     status: 401,
-    description: 'Missing, invalid, or expired authentication token.',
+    description: 'Missing or invalid authentication token.',
   })
   @UseGuards(JwtAuthGuard)
   @Delete(':id')

@@ -61,12 +61,12 @@ export class ProjectsController {
     return this.projectsService.findOne(id);
   }
 
-  @ApiOperation({ summary: 'Create a new project' })
+  @ApiOperation({ summary: 'Create a new project (requires a signed-in user)' })
   @ApiBearerAuth()
   @ApiResponse({ status: 201, description: 'The created project.' })
   @ApiResponse({
     status: 401,
-    description: 'Missing, invalid, or expired authentication token.',
+    description: 'Missing or invalid authentication token.',
   })
   @UseGuards(JwtAuthGuard)
   @Post()
@@ -74,12 +74,12 @@ export class ProjectsController {
     return this.projectsService.create(dto);
   }
 
-  @ApiOperation({ summary: 'Update a project' })
+  @ApiOperation({ summary: 'Update a project (requires a signed-in user)' })
   @ApiBearerAuth()
   @ApiResponse({ status: 200, description: 'The updated project.' })
   @ApiResponse({
     status: 401,
-    description: 'Missing, invalid, or expired authentication token.',
+    description: 'Missing or invalid authentication token.',
   })
   @UseGuards(JwtAuthGuard)
   @Patch(':id')
@@ -93,12 +93,12 @@ export class ProjectsController {
     return this.projectsService.findByKey(key);
   }
 
-  @ApiOperation({ summary: 'Delete a project' })
+  @ApiOperation({ summary: 'Delete a project (requires a signed-in user)' })
   @ApiBearerAuth()
   @ApiResponse({ status: 200, description: 'The deleted project.' })
   @ApiResponse({
     status: 401,
-    description: 'Missing, invalid, or expired authentication token.',
+    description: 'Missing or invalid authentication token.',
   })
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
