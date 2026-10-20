@@ -40,7 +40,9 @@ export class WorkspacesController {
     return this.workspacesService.findOne(id);
   }
 
-  @ApiOperation({ summary: 'Create a new workspace' })
+  @ApiOperation({
+    summary: 'Create a new workspace (requires a signed-in user)',
+  })
   @ApiBearerAuth()
   @ApiResponse({ status: 201, description: 'The created workspace.' })
   @ApiResponse({
@@ -53,7 +55,7 @@ export class WorkspacesController {
     return this.workspacesService.create(dto);
   }
 
-  @ApiOperation({ summary: 'Update a workspace' })
+  @ApiOperation({ summary: 'Update a workspace (requires a signed-in user)' })
   @ApiBearerAuth()
   @ApiResponse({ status: 200, description: 'The updated workspace.' })
   @ApiResponse({
@@ -75,7 +77,7 @@ export class WorkspacesController {
     return this.workspacesService.findBySlug(slug);
   }
 
-  @ApiOperation({ summary: 'Delete a workspace' })
+  @ApiOperation({ summary: 'Delete a workspace (requires a signed-in user)' })
   @ApiBearerAuth()
   @ApiResponse({ status: 200, description: 'The deleted workspace.' })
   @ApiResponse({

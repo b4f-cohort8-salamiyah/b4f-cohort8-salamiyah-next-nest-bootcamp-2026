@@ -16,12 +16,20 @@ import { CreateProjectDto } from './dto/create-project.dto';
 import { FindProjectsQueryDto } from './dto/find-projects-query.dto';
 import {
   ApiBearerAuth,
+  ApiHeader,
   ApiOperation,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { JwtAuthGuard } from 'src/common/filters/guards/jwt-auth.guard';
 import { InternalToolGuard } from 'src/common/filters/guards/internal-tool.guard';
+import { JwtAuthGuard } from 'src/common/filters/guards/jwt-auth.guard';
+
+const INTERNAL_TOOL_HEADER = {
+  name: 'x-internal-tool-key',
+  description:
+    'Required internal-tool access key (value not published here). This is access control, not authentication -- it does not identify who is calling.',
+  required: true,
+};
 
 @ApiTags('projects')
 @Controller('projects')
@@ -61,12 +69,9 @@ export class ProjectsController {
     return this.projectsService.findOne(id);
   }
 
-  @ApiOperation({ summary: 'Create a new project' })
+  @ApiOperation({ summary: 'Create a new project (requires a signed-in user)' })
   @ApiBearerAuth()
-  @ApiResponse({
-    status: 201,
-    description: 'Project created successfully.',
-  })
+  @ApiResponse({ status: 201, description: 'The created project.' })
   @ApiResponse({
     status: 401,
     description: 'Missing or invalid authentication token.',
@@ -77,12 +82,9 @@ export class ProjectsController {
     return this.projectsService.create(dto);
   }
 
-  @ApiOperation({ summary: 'Update a project' })
+  @ApiOperation({ summary: 'Update a project (requires a signed-in user)' })
   @ApiBearerAuth()
-  @ApiResponse({
-    status: 200,
-    description: 'Project updated successfully.',
-  })
+  @ApiResponse({ status: 200, description: 'The updated project.' })
   @ApiResponse({
     status: 401,
     description: 'Missing or invalid authentication token.',
@@ -99,12 +101,9 @@ export class ProjectsController {
     return this.projectsService.findByKey(key);
   }
 
-  @ApiOperation({ summary: 'Delete a project' })
+  @ApiOperation({ summary: 'Delete a project (requires a signed-in user)' })
   @ApiBearerAuth()
-  @ApiResponse({
-    status: 200,
-    description: 'Project deleted successfully.',
-  })
+  @ApiResponse({ status: 200, description: 'The deleted project.' })
   @ApiResponse({
     status: 401,
     description: 'Missing or invalid authentication token.',
