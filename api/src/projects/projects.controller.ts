@@ -21,8 +21,9 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { InternalToolGuard } from '../common/filters/guards/internal-tool.guard';
-import { JwtAuthGuard } from '../common/filters/guards/jwt-auth.guard';
+import { InternalToolGuard } from 'src/common/filters/guards/internal-tool.guard';
+import { JwtAuthGuard } from 'src/common/filters/guards/jwt-auth.guard';
+import { AdminOrOwnerGuard } from './guards/admin-or-owner.guard';
 
 const INTERNAL_TOOL_HEADER = {
   name: 'x-internal-tool-key',
@@ -68,7 +69,11 @@ export class ProjectsController {
     status: 401,
     description: 'Missing or invalid authentication token.',
   })
-  @UseGuards(JwtAuthGuard)
+  @ApiResponse({
+    status: 403,
+    description: 'Not a member of this workspace, or not Owner/Admin.',
+  })
+  @UseGuards(JwtAuthGuard, AdminOrOwnerGuard)
   @Post()
   create(@Body() dto: CreateProjectDto) {
     return this.projectsService.create(dto);
