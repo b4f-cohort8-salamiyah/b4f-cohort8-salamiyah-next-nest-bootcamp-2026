@@ -8,6 +8,7 @@ import {
   Patch,
   Post,
   Query,
+  SetMetadata,
   UseGuards,
 } from '@nestjs/common';
 import { ProjectsService } from './projects.service';
@@ -23,7 +24,7 @@ import {
 } from '@nestjs/swagger';
 import { InternalToolGuard } from 'src/common/filters/guards/internal-tool.guard';
 import { JwtAuthGuard } from 'src/common/filters/guards/jwt-auth.guard';
-import { AdminOrOwnerGuard } from './guards/admin-or-owner.guard';
+import { RoleGuard } from './guards/roles.guard';
 
 const INTERNAL_TOOL_HEADER = {
   name: 'x-internal-tool-key',
@@ -73,7 +74,8 @@ export class ProjectsController {
     status: 403,
     description: 'Not a member of this workspace, or not Owner/Admin.',
   })
-  @UseGuards(JwtAuthGuard, AdminOrOwnerGuard)
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  @SetMetadata('roles', ['owner', 'admin'])
   @Post()
   create(@Body() dto: CreateProjectDto) {
     return this.projectsService.create(dto);
@@ -86,7 +88,8 @@ export class ProjectsController {
     status: 401,
     description: 'Missing or invalid authentication token.',
   })
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  @SetMetadata('roles', ['owner', 'admin'])
   @Patch(':id')
   update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateProjectDto) {
     return this.projectsService.update(id, dto);

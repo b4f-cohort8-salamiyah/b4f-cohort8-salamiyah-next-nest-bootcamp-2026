@@ -8,6 +8,7 @@ import {
   Patch,
   Post,
   Query,
+  SetMetadata,
   UseGuards,
 } from '@nestjs/common';
 import { WorkspacesService } from './workspaces.service';
@@ -22,6 +23,7 @@ import {
 import { JwtAuthGuard } from 'src/common/filters/guards/jwt-auth.guard';
 import { CurrentUser } from 'src/auth/current-user.decorator';
 import { JwtPayload } from 'src/auth/jwt-payload.interface';
+import { UpdateWorkspaceDto } from './dto/update-workspace.dto';
 @ApiTags('workspaces')
 @Controller('workspaces')
 export class WorkspacesController {
