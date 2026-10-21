@@ -21,6 +21,8 @@ import { FindIssuesQueryDto } from './dto/find-issues-query.dto';
 import { CreateIssueDto } from './dto/create-issue.dto';
 import { UpdateIssueDto } from './dto/update-issue.dto';
 import { JwtAuthGuard } from 'src/common/filters/guards/jwt-auth.guard';
+import { CurrentUser } from 'src/auth/current-user.decorator';
+import { JwtPayload } from 'src/auth/jwt-payload.interface';
 
 @ApiTags('issues')
 @Controller('issues')
@@ -41,42 +43,72 @@ export class IssuesController {
     return this.issuesService.findOne(id);
   }
 
-  @ApiOperation({ summary: 'Create an issue (requires a signed-in user)' })
+  @ApiOperation({
+    summary: 'Create an issue (requires target-workspace membership)',
+  })
   @ApiBearerAuth()
   @ApiResponse({ status: 201, description: 'The created issue.' })
   @ApiResponse({
     status: 401,
     description: 'Missing or invalid authentication token.',
   })
+  @ApiResponse({
+    status: 403,
+    description:
+      'The reporter or assignee is not a member of the project workspace.',
+  })
   @UseGuards(JwtAuthGuard)
   @Post()
-  create(@Body() dto: CreateIssueDto) {
-    return this.issuesService.create(dto);
+  create(@Body() dto: CreateIssueDto, @CurrentUser() currentUser: JwtPayload) {
+    return this.issuesService.create(dto, currentUser.sub);
   }
 
-  @ApiOperation({ summary: 'Update an issue (requires a signed-in user)' })
+  @ApiOperation({
+    summary:
+      'Update an issue (reporter, assignee, workspace Owner, or Admin only)',
+  })
   @ApiBearerAuth()
   @ApiResponse({ status: 200, description: 'The updated issue.' })
   @ApiResponse({
     status: 401,
     description: 'Missing or invalid authentication token.',
   })
+  @ApiResponse({
+    status: 403,
+    description:
+      'Not the issue reporter or assignee, and not a workspace Owner or Admin.',
+  })
   @UseGuards(JwtAuthGuard)
   @Patch(':id')
-  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateIssueDto) {
-    return this.issuesService.update(id, dto);
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateIssueDto,
+    @CurrentUser() currentUser: JwtPayload,
+  ) {
+    return this.issuesService.update(id, dto, currentUser.sub);
   }
 
-  @ApiOperation({ summary: 'Delete an issue (requires a signed-in user)' })
+  @ApiOperation({
+    summary:
+      'Delete an issue (reporter, assignee, workspace Owner, or Admin only)',
+  })
   @ApiBearerAuth()
   @ApiResponse({ status: 200, description: 'The deleted issue.' })
   @ApiResponse({
     status: 401,
     description: 'Missing or invalid authentication token.',
   })
+  @ApiResponse({
+    status: 403,
+    description:
+      'Not the issue reporter or assignee, and not a workspace Owner or Admin.',
+  })
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
-  remove(@Param('id', ParseIntPipe) id: number) {
-    return this.issuesService.remove(id);
+  remove(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() currentUser: JwtPayload,
+  ) {
+    return this.issuesService.remove(id, currentUser.sub);
   }
 }

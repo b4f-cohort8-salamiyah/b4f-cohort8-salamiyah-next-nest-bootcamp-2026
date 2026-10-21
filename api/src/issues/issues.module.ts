@@ -6,11 +6,15 @@ import { Issue, IssueSchema } from './schemas/issue.schema';
 import { InternalToolGuard } from 'src/common/filters/guards/internal-tool.guard';
 import { JwtAuthGuard } from 'src/common/filters/guards/jwt-auth.guard';
 import { JwtModule } from '@nestjs/jwt';
+import { ProjectsModule } from 'src/projects/projects.module';
+import { WorkspaceMembersModule } from 'src/workspace-members/workspace-members.module';
 
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: Issue.name, schema: IssueSchema }]),
     JwtModule,
+    ProjectsModule,
+    WorkspaceMembersModule,
   ],
   controllers: [IssuesController],
   providers: [IssuesService, InternalToolGuard, JwtAuthGuard],

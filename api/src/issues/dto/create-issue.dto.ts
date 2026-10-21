@@ -7,6 +7,11 @@ export class CreateIssueDto {
   @IsInt()
   projectId: number;
 
+  @ApiPropertyOptional({ example: 23, nullable: true })
+  @IsOptional()
+  @IsInt()
+  assigneeId?: number | null;
+
   @ApiProperty({ example: 'Fix the login button' })
   @IsString()
   @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))

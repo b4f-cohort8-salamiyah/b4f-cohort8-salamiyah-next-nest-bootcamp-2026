@@ -11,8 +11,6 @@ import { UpdateWorkspaceDto } from './dto/update-workspace.dto';
 import { CreateWorkspaceDto } from './dto/create-workspace.dto';
 import { FindWorkspacesQueryDto } from './dto/find-workspaces-query.dto';
 import { Workspace, WorkspaceDocument } from './schemas/workspace.schema';
-import { Model } from 'mongoose';
-import { FindWorkspacesQueryDto } from './dto/find-workspaces-query.dto';
 import { WorkspaceMembersService } from 'src/workspace-members/workspace-members.service';
 
 const seedWorkspaces: Workspace[] = [

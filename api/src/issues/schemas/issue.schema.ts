@@ -12,6 +12,12 @@ export class Issue {
   projectId: number;
 
   @Prop({ required: true })
+  reporterId: number;
+
+  @Prop({ type: Number, default: null })
+  assigneeId: number | null;
+
+  @Prop({ required: true })
   title: string;
 
   @Prop({ default: '' })
