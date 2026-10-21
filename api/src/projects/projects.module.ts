@@ -4,8 +4,8 @@ import { ProjectsService } from './projects.service';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Project, ProjectSchema } from './schemas/project.schema';
 import { InternalToolGuard } from 'src/common/filters/guards/internal-tool.guard';
-import { AdminOrOwnerGuard } from './guards/admin-or-owner.guard';
 import { WorkspaceMembersModule } from 'src/workspace-members/workspace-members.module';
+import { WorkspaceRoleGuard } from 'src/common/filters/guards/workspace-role.guard';
 
 @Module({
   imports: [
@@ -13,6 +13,7 @@ import { WorkspaceMembersModule } from 'src/workspace-members/workspace-members.
     WorkspaceMembersModule,
   ],
   controllers: [ProjectsController],
-  providers: [ProjectsService, InternalToolGuard, AdminOrOwnerGuard],
+  providers: [ProjectsService, InternalToolGuard, WorkspaceRoleGuard],
+  exports: [ProjectsService],
 })
 export class ProjectsModule {}
