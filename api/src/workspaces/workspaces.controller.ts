@@ -25,6 +25,7 @@ import { CurrentUser } from 'src/auth/current-user.decorator';
 import { JwtPayload } from 'src/auth/jwt-payload.interface';
 import { WorkspaceRoleGuard } from 'src/common/filters/guards/workspace-role.guard';
 import { RequireWorkspaceRole } from 'src/common/decorators/require-workspace-role.decorator';
+import { UpdateWorkspaceDto } from './dto/update-workspace.dto';
 @ApiTags('workspaces')
 @Controller('workspaces')
 export class WorkspacesController {
