@@ -10,19 +10,19 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { ApiHeader, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { IssuesService } from './issues.service';
 import { FindIssuesQueryDto } from './dto/find-issues-query.dto';
-import { InternalToolGuard } from 'src/common/filters/guards/internal-tool.guard';
 import { CreateIssueDto } from './dto/create-issue.dto';
 import { UpdateIssueDto } from './dto/update-issue.dto';
-
-const INTERNAL_TOOL_HEADER = {
-  name: 'x-internal-tool-key',
-  description:
-    'Required internal-tool access key (value not published here). This is access control, not authentication -- it does not identify who is calling.',
-  required: true,
-};
+import { JwtAuthGuard } from 'src/common/filters/guards/jwt-auth.guard';
+import { CurrentUser } from 'src/auth/current-user.decorator';
+import { JwtPayload } from 'src/auth/jwt-payload.interface';
 
 @ApiTags('issues')
 @Controller('issues')
@@ -43,42 +43,49 @@ export class IssuesController {
     return this.issuesService.findOne(id);
   }
 
-  @ApiOperation({ summary: 'Create an issue (internal tool only)' })
-  @ApiHeader(INTERNAL_TOOL_HEADER)
+  @ApiOperation({ summary: 'Create an issue (requires a signed-in user)' })
+  @ApiBearerAuth()
   @ApiResponse({ status: 201, description: 'The created issue.' })
   @ApiResponse({
-    status: 403,
-    description: 'Missing or incorrect x-internal-tool-key.',
+    status: 401,
+    description: 'Missing or invalid authentication token.',
   })
-  @UseGuards(InternalToolGuard)
+  @UseGuards(JwtAuthGuard)
   @Post()
-  create(@Body() dto: CreateIssueDto) {
-    return this.issuesService.create(dto);
+  create(@Body() dto: CreateIssueDto, @CurrentUser() user: JwtPayload) {
+    return this.issuesService.create(dto, user.sub);
   }
 
-  @ApiOperation({ summary: 'Update an issue (internal tool only)' })
-  @ApiHeader(INTERNAL_TOOL_HEADER)
+  @ApiOperation({ summary: 'Update an issue (requires a signed-in user)' })
+  @ApiBearerAuth()
   @ApiResponse({ status: 200, description: 'The updated issue.' })
   @ApiResponse({
-    status: 403,
-    description: 'Missing or incorrect x-internal-tool-key.',
+    status: 401,
+    description: 'Missing or invalid authentication token.',
   })
-  @UseGuards(InternalToolGuard)
+  @UseGuards(JwtAuthGuard)
   @Patch(':id')
-  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateIssueDto) {
-    return this.issuesService.update(id, dto);
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateIssueDto,
+    @CurrentUser() user: JwtPayload,
+  ) {
+    return this.issuesService.update(id, dto, user.sub);
   }
 
-  @ApiOperation({ summary: 'Delete an issue (internal tool only)' })
-  @ApiHeader(INTERNAL_TOOL_HEADER)
+  @ApiOperation({ summary: 'Delete an issue (requires a signed-in user)' })
+  @ApiBearerAuth()
   @ApiResponse({ status: 200, description: 'The deleted issue.' })
   @ApiResponse({
-    status: 403,
-    description: 'Missing or incorrect x-internal-tool-key.',
+    status: 401,
+    description: 'Missing or invalid authentication token.',
   })
-  @UseGuards(InternalToolGuard)
+  @UseGuards(JwtAuthGuard)
   @Delete(':id')
-  remove(@Param('id', ParseIntPipe) id: number) {
-    return this.issuesService.remove(id);
+  remove(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() user: JwtPayload,
+  ) {
+    return this.issuesService.remove(id, user.sub);
   }
 }
