@@ -21,6 +21,10 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/common/filters/guards/jwt-auth.guard';
+import { CurrentUser } from 'src/auth/current-user.decorator';
+import { JwtPayload } from 'src/auth/jwt-payload.interface';
+import { WorkspaceRoleGuard } from 'src/common/filters/guards/workspace-role.guard';
+import { RequireWorkspaceRole } from 'src/common/decorators/require-workspace-role.decorator';
 @ApiTags('workspaces')
 @Controller('workspaces')
 export class WorkspacesController {
@@ -51,8 +55,11 @@ export class WorkspacesController {
   })
   @UseGuards(JwtAuthGuard)
   @Post()
-  create(@Body() dto: CreateWorkspaceDto) {
-    return this.workspacesService.create(dto);
+  create(
+    @Body() dto: CreateWorkspaceDto,
+    @CurrentUser() currentUser: JwtPayload,
+  ) {
+    return this.workspacesService.create(dto, currentUser.sub);
   }
 
   @ApiOperation({ summary: 'Update a workspace (requires a signed-in user)' })
@@ -62,7 +69,8 @@ export class WorkspacesController {
     status: 401,
     description: 'Missing or invalid authentication token.',
   })
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, WorkspaceRoleGuard)
+  @RequireWorkspaceRole(['admin', 'owner'], 'workspaceParam')
   @Patch(':id')
   update(
     @Param('id', ParseIntPipe) id: number,
@@ -84,7 +92,8 @@ export class WorkspacesController {
     status: 401,
     description: 'Missing or invalid authentication token.',
   })
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, WorkspaceRoleGuard)
+  @RequireWorkspaceRole(['owner'], 'workspaceParam')
   @Delete(':id')
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.workspacesService.remove(id);
