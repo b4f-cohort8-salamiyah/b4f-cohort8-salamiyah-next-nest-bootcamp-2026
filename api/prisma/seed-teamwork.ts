@@ -1,9 +1,13 @@
+// prisma/seed-teamwork.ts
+// npx ts-node prisma/seed-teamwork.ts
+
 import { PrismaClient, WorkspaceRole } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
 async function main() {
   // Optional safety for reruns
+  await prisma.project.deleteMany();
   await prisma.workspaceMember.deleteMany();
   await prisma.workspace.deleteMany();
   await prisma.user.deleteMany();
@@ -62,6 +66,21 @@ async function main() {
           },
         ],
       },
+
+      projects: {
+        create: [
+          {
+            key: 'WEB',
+            name: 'Web App',
+            description: 'Customer UI',
+          },
+          {
+            key: 'API',
+            name: 'Backend API',
+            description: 'Core services',
+          },
+        ],
+      },
     },
   });
 
@@ -76,6 +95,16 @@ async function main() {
           {
             userId: omar.id,
             role: WorkspaceRole.owner,
+          },
+        ],
+      },
+
+      projects: {
+        create: [
+          {
+            key: 'MOB',
+            name: 'Mobile App',
+            description: 'iOS and Android',
           },
         ],
       },
