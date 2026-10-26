@@ -14,8 +14,8 @@ export class Issue {
   @Prop({ required: true })
   reporterId: number;
 
-  @Prop({ type: Number, default: null })
-  assigneeId: number | null;
+  @Prop()
+  assigneeId?: number;
 
   @Prop({ required: true })
   title: string;

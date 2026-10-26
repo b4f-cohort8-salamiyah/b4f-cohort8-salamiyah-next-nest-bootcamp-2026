@@ -7,10 +7,14 @@ export class CreateIssueDto {
   @IsInt()
   projectId: number;
 
-  @ApiPropertyOptional({ example: 23, nullable: true })
+  @ApiPropertyOptional({
+    example: 2,
+    description:
+      "Must already be a member of this issue's own workspace. reporterId is never client-supplied -- it is always the authenticated creator.",
+  })
   @IsOptional()
   @IsInt()
-  assigneeId?: number | null;
+  assigneeId?: number;
 
   @ApiProperty({ example: 'Fix the login button' })
   @IsString()

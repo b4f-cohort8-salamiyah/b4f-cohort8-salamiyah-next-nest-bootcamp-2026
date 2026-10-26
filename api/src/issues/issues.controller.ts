@@ -59,8 +59,8 @@ export class IssuesController {
   })
   @UseGuards(JwtAuthGuard)
   @Post()
-  create(@Body() dto: CreateIssueDto, @CurrentUser() currentUser: JwtPayload) {
-    return this.issuesService.create(dto, currentUser.sub);
+  create(@Body() dto: CreateIssueDto, @CurrentUser() user: JwtPayload) {
+    return this.issuesService.create(dto, user.sub);
   }
 
   @ApiOperation({
@@ -83,9 +83,9 @@ export class IssuesController {
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateIssueDto,
-    @CurrentUser() currentUser: JwtPayload,
+    @CurrentUser() user: JwtPayload,
   ) {
-    return this.issuesService.update(id, dto, currentUser.sub);
+    return this.issuesService.update(id, dto, user.sub);
   }
 
   @ApiOperation({
@@ -107,8 +107,8 @@ export class IssuesController {
   @Delete(':id')
   remove(
     @Param('id', ParseIntPipe) id: number,
-    @CurrentUser() currentUser: JwtPayload,
+    @CurrentUser() user: JwtPayload,
   ) {
-    return this.issuesService.remove(id, currentUser.sub);
+    return this.issuesService.remove(id, user.sub);
   }
 }

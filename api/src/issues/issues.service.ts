@@ -10,8 +10,36 @@ import { Issue, IssueDocument } from './schemas/issue.schema';
 import { FindIssuesQueryDto } from './dto/find-issues-query.dto';
 import { CreateIssueDto } from './dto/create-issue.dto';
 import { UpdateIssueDto } from './dto/update-issue.dto';
-import { ProjectsService } from '../projects/projects.service';
-import { WorkspaceMembersService } from '../workspace-members/workspace-members.service';
+import { WorkspaceMemberDocument } from 'src/workspace-members/schemas/workspace-member.schema';
+import { ProjectsService } from 'src/projects/projects.service';
+import { WorkspaceMembersService } from 'src/workspace-members/workspace-members.service';
+
+const STATUSES = ['todo', 'in_progress', 'review', 'done'];
+
+function buildSeedIssues() {
+  const issues: Array<{
+    id: number;
+    projectId: number;
+    title: string;
+    description: string;
+    status: string;
+  }> = [];
+  let id = 1;
+
+  for (const projectId of [1, 2, 3]) {
+    for (let i = 0; i < 60; i++) {
+      issues.push({
+        id: id++,
+        projectId,
+        title: `Issue ${id} for project ${projectId}`,
+        description: '',
+        status: STATUSES[i % STATUSES.length],
+      });
+    }
+  }
+
+  return issues;
+}
 
 @Injectable()
 export class IssuesService {
@@ -23,6 +51,14 @@ export class IssuesService {
     private readonly projectsService: ProjectsService,
     private readonly workspaceMembersService: WorkspaceMembersService,
   ) {}
+
+  async onModuleInit() {
+    const existing = await this.model.countDocuments();
+
+    if (existing === 0) {
+      await this.model.insertMany(buildSeedIssues());
+    }
+  }
 
   async findAll(query: FindIssuesQueryDto): Promise<IssueDocument[]> {
     const filter: Record<string, unknown> = {};
@@ -57,11 +93,7 @@ export class IssuesService {
     reporterId: number,
   ): Promise<IssueDocument> {
     const project = await this.projectsService.findOne(dto.projectId);
-    await this.requireWorkspaceMember(project.workspaceId, reporterId);
-
-    if (dto.assigneeId != null) {
-      await this.requireWorkspaceMember(project.workspaceId, dto.assigneeId);
-    }
+    await this.requireMembership(project.workspaceId, reporterId);
 
     const last = await this.model.findOne().sort({ id: -1 });
     const id = (last?.id ?? 0) + 1;
@@ -70,7 +102,6 @@ export class IssuesService {
       id,
       projectId: dto.projectId,
       reporterId,
-      assigneeId: dto.assigneeId ?? null,
       title: dto.title,
       description: dto.description || '',
       status: 'todo',
@@ -84,15 +115,10 @@ export class IssuesService {
   async update(
     id: number,
     dto: UpdateIssueDto,
-    requesterId: number,
+    requestingUserId: number,
   ): Promise<IssueDocument> {
     const issue = await this.findOne(id);
-    const project = await this.projectsService.findOne(issue.projectId);
-    await this.assertCanMutateIssue(issue, project.workspaceId, requesterId);
-
-    if (dto.assigneeId !== undefined && dto.assigneeId !== null) {
-      await this.requireWorkspaceMember(project.workspaceId, dto.assigneeId);
-    }
+    await this.requireOwnershipOrRole(issue, requestingUserId);
 
     if (dto?.title !== undefined) {
       issue.title = dto.title;
@@ -117,22 +143,50 @@ export class IssuesService {
     return saved;
   }
 
-  async remove(id: number, requesterId: number): Promise<IssueDocument> {
-    const issue = await this.findOne(id);
-    const project = await this.projectsService.findOne(issue.projectId);
-    await this.assertCanMutateIssue(issue, project.workspaceId, requesterId);
+  async remove(id: number, requestingUserId: number): Promise<IssueDocument> {
+    const issue = await this.model.findOne({ id });
+    await this.requireOwnershipOrRole(issue, requestingUserId);
 
-    await issue.deleteOne();
+    const deleted = await this.model.findOneAndDelete({ id });
 
-    this.logger.log(`Deleted issue ${id} ("${issue.title}")`);
+    if (!deleted) {
+      throw new NotFoundException(`No issue found with id ${id}.`);
+    }
 
-    return issue;
+    this.logger.log(`Deleted issue ${id} ("${deleted.title}")`);
+
+    return deleted;
   }
 
-  private async requireWorkspaceMember(
+  private async requireOwnershipOrRole(
+    issue: IssueDocument,
+    requestingUserId: number,
+  ): Promise<void> {
+    if (
+      issue.reporterId === requestingUserId ||
+      issue.assigneeId === requestingUserId
+    ) {
+      return;
+    }
+
+    const project = await this.projectsService.findOne(issue.projectId);
+    const membership =
+      await this.workspaceMembersService.findByWorkspaceAndUser(
+        project.workspaceId,
+        requestingUserId,
+      );
+
+    if (!membership || !['admin', 'owner'].includes(membership.role)) {
+      throw new ForbiddenException(
+        "Only this issue's assignee, its reporter, or a workspace Admin/Owner may do this.",
+      );
+    }
+  }
+
+  private async requireMembership(
     workspaceId: number,
     userId: number,
-  ): Promise<void> {
+  ): Promise<WorkspaceMemberDocument> {
     const membership =
       await this.workspaceMembersService.findByWorkspaceAndUser(
         workspaceId,
@@ -141,47 +195,10 @@ export class IssuesService {
 
     if (!membership) {
       throw new ForbiddenException(
-        `User ${userId} must be a member of workspace ${workspaceId}.`,
+        `User ${userId} is not a member of workspace ${workspaceId}.`,
       );
     }
-  }
 
-  /*
-   * Challenge answers:
-   * 1. Yes. A guard could load the Issue, resolve its Project and membership,
-   *    then check its assigneeId, reporterId, and membership role.
-   * 2. This service already loads the Issue to mutate it, so authorization here
-   *    keeps the decision beside the mutation and avoids a separate guard load.
-   * 3. A guard and service could each query the same Issue, doubling database
-   *    work and creating two reads of mutable resource state.
-   * 4. Route metadata fits role policies that depend on route shape and shared
-   *    values such as workspace roles and parameter sources.
-   * 5. Service authorization fits rules based on this Issue's own assignee and
-   *    reporter fields, alongside the service's existing load and mutation.
-   * 6. A larger application could pass a loaded resource through request state
-   *    or use a shared request-scoped loader so the guard and service reuse it.
-   * 7. JWT claims are snapshots; current database state reflects changed roles,
-   *    removed memberships, and updated assignment.
-   */
-  private async assertCanMutateIssue(
-    issue: IssueDocument,
-    workspaceId: number,
-    requesterId: number,
-  ): Promise<void> {
-    if (issue.assigneeId === requesterId || issue.reporterId === requesterId) {
-      return;
-    }
-
-    const membership =
-      await this.workspaceMembersService.findByWorkspaceAndUser(
-        workspaceId,
-        requesterId,
-      );
-
-    if (!membership || !['owner', 'admin'].includes(membership.role)) {
-      throw new ForbiddenException(
-        'Only this issue’s reporter or assignee, or a workspace Owner or Admin, may change it.',
-      );
-    }
+    return membership;
   }
 }
