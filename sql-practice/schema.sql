@@ -116,3 +116,53 @@ ROLLBACK;
 
 SELECT id, key, issue_seq FROM projects WHERE id = 1;
 SELECT count(*) FROM issues WHERE key = 'WEB-ROLLBACK-TEST';
+
+---------------------------------------------------------------------------
+
+CREATE TABLE activity_logs (
+  id SERIAL PRIMARY KEY,
+  workspace_id INTEGER NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+  issue_id INTEGER REFERENCES issues(id) ON DELETE CASCADE,
+  actor_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+  action TEXT NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT now()
+);
+
+CREATE INDEX idx_activity_logs_issue_created ON activity_logs(issue_id, created_at DESC);
+CREATE INDEX idx_activity_logs_workspace_created ON activity_logs(workspace_id, created_at DESC);
+
+INSERT INTO activity_logs (workspace_id, issue_id, actor_id, action)
+SELECT 1, 2, (gs % 4) + 1, 'commented'
+FROM generate_series(1, 3000) AS gs;
+
+ANALYZE activity_logs;
+
+EXPLAIN ANALYZE SELECT id, action, created_at FROM activity_logs WHERE workspace_id = 1 ORDER BY created_at DESC LIMIT 20;
+
+CREATE INDEX idx_activity_logs_created_workspace
+ON activity_logs(created_at DESC, workspace_id);
+
+ANALYZE activity_logs;
+
+EXPLAIN ANALYZE SELECT id, action, created_at FROM activity_logs WHERE workspace_id = 1 LIMIT 20;
+
+SELECT count(*) AS before_delete FROM activity_logs WHERE issue_id = 1;
+DELETE FROM issues WHERE id = 1;
+SELECT count(*) AS after_delete FROM activity_logs WHERE issue_id = 1;
+
+SELECT count(*) AS rows_for_user4_before FROM activity_logs WHERE actor_id = 4;
+DELETE FROM users WHERE id = 4;
+SELECT count(*) AS rows_with_null_actor_after FROM activity_logs WHERE actor_id IS NULL;
+
+BEGIN;
+
+SELECT issue_seq FROM projects WHERE id = 2 FOR UPDATE;
+
+UPDATE projects SET issue_seq = issue_seq + 1 WHERE id = 2;
+
+INSERT INTO issues (project_id, key, title, status) VALUES (2, 'API-2', 'Real issue via FOR UPDATE', 'todo');
+
+COMMIT;
+
+SELECT id, key, issue_seq FROM projects WHERE id = 2;
+SELECT key, title FROM issues WHERE key = 'API-2';
