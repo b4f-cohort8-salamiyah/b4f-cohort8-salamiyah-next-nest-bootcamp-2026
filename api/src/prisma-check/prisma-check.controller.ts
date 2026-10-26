@@ -15,4 +15,19 @@ export class PrismaCheckController {
   findUsers() {
     return this.prisma.user.findMany();
   }
+
+  @Get('workspaces')
+  @ApiOperation({
+    summary:
+      'Teamwork self-learned proof: each real workspace together with its own members and projects in one relational query (Prisma include), never shown in live code',
+  })
+  findWorkspacesWithRelations() {
+    return this.prisma.workspace.findMany({
+      include: {
+        owner: true,
+        members: { include: { user: true } },
+        projects: true,
+      },
+    });
+  }
 }

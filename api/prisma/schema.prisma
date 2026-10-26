@@ -41,6 +41,7 @@ model Workspace {
 
   owner User @relation("WorkspaceOwner", fields: [ownerId], references: [id])
   members WorkspaceMember[]
+  projects Project[]
 
   @@map("workspaces")
 }
@@ -57,4 +58,18 @@ model WorkspaceMember {
 
   @@unique([workspaceId, userId])
   @@map("workspace_members")
+}
+
+model Project {
+  id          Int      @id @default(autoincrement())
+  workspaceId Int      @map("workspace_id")
+  key         String
+  name        String
+  description String   @default("")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, key])
+  @@map("projects")
 }
