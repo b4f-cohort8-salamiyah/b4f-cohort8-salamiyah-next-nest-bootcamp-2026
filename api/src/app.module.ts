@@ -5,6 +5,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { IssuesModule } from './issues/issues.module';
 import { AuthModule } from './auth/auth.module';
+import { PrismaModule } from './prisma/prisma.module';
+import { PrismaCheckModule } from './prisma-check/prisma-check.module';
 
 @Module({
   imports: [
@@ -15,10 +17,12 @@ import { AuthModule } from './auth/auth.module';
         uri: config.get<string>('MONGODB_URI'),
       }),
     }),
+    PrismaModule,
     ProjectsModule,
     WorkspacesModule,
     IssuesModule,
     AuthModule,
+    PrismaCheckModule,
   ],
   controllers: [],
   providers: [],
