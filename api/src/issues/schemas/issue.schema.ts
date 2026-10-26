@@ -12,6 +12,12 @@ export class Issue {
   projectId: number;
 
   @Prop({ required: true })
+  reporterId: number;
+
+  @Prop()
+  assigneeId?: number;
+
+  @Prop({ required: true })
   title: string;
 
   @Prop({ default: '' })
@@ -22,4 +28,4 @@ export class Issue {
 }
 
 export const IssueSchema = SchemaFactory.createForClass(Issue);
-IssueSchema.index({ status: 1, projectId: 1 });
+IssueSchema.index({ projectId: 1, status: 1 });
