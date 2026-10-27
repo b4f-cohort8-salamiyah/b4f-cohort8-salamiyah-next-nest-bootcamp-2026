@@ -79,4 +79,22 @@ export class PrismaCheckController {
   ) {
     return this.prisma.createIssueWithKey(id, title);
   }
+
+  @Get('projects/:id/issues/:key')
+  @ApiOperation({
+    summary: 'test',
+  })
+  findIssueByKey(
+    @Param('id', ParseIntPipe) id: number,
+    @Param('key') key: string,
+  ) {
+    return this.prisma.issue.findUnique({
+      where: {
+        projectId_key: {
+          projectId: id,
+          key,
+        },
+      },
+    });
+  }
 }
