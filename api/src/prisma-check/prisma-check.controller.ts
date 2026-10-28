@@ -79,4 +79,18 @@ export class PrismaCheckController {
   ) {
     return this.prisma.createIssueWithKey(id, title);
   }
+
+  @Get('projects/:id/issues/:key')
+  @ApiOperation({
+    summary:
+      'Teamwork self-learned proof: looks up a real Issue by its own human-readable compound key (projectId + key) using Prisma findUnique with a compound-unique input, never shown in live code',
+  })
+  findIssueByKey(
+    @Param('id', ParseIntPipe) id: number,
+    @Param('key') key: string,
+  ) {
+    return this.prisma.issue.findUnique({
+      where: { projectId_key: { projectId: id, key } },
+    });
+  }
 }
