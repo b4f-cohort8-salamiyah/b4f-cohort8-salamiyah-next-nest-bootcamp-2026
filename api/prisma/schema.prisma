@@ -35,11 +35,12 @@ model User {
 }
 
 model Workspace {
-  id        Int      @id @default(autoincrement())
-  name      String
-  slug      String   @unique
-  ownerId   Int      @map("owner_id")
-  createdAt DateTime @default(now()) @map("created_at")
+  id          Int      @id @default(autoincrement())
+  name        String
+  slug        String   @unique
+  description String   @default("")
+  ownerId     Int      @map("owner_id")
+  createdAt   DateTime @default(now()) @map("created_at")
 
   owner    User              @relation("WorkspaceOwner", fields: [ownerId], references: [id])
   members  WorkspaceMember[]
