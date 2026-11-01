@@ -13,6 +13,7 @@ import { CreateWorkspaceDto } from './dto/create-workspace.dto';
 
 import { FindWorkspacesQueryDto } from './dto/find-workspaces-query.dto';
 import { WorkspaceMembersService } from 'src/workspace-members/workspace-members.service';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 const seedWorkspaces = [
   {
@@ -31,6 +32,7 @@ export class WorkspacesService implements OnModuleInit {
     @InjectModel(Workspace.name)
     private readonly model: Model<WorkspaceDocument>,
     private readonly workspaceMembersService: WorkspaceMembersService,
+    private readonly prisma: PrismaService,
   ) {}
 
   async onModuleInit() {
@@ -41,22 +43,45 @@ export class WorkspacesService implements OnModuleInit {
     }
   }
 
-  async findAll(query: FindWorkspacesQueryDto): Promise<WorkspaceDocument[]> {
-    const filter: Record<string, unknown> = {};
+  // async findAll(query: FindWorkspacesQueryDto): Promise<WorkspaceDocument[]> {
+  //   const filter: Record<string, unknown> = {};
 
-    if (query.name) {
-      filter.name = { $regex: query.name, $options: 'i' };
-    }
+  //   if (query.name) {
+  //     filter.name = { $regex: query.name, $options: 'i' };
+  //   }
 
-    if (query.slug) {
-      filter.slug = query.slug;
-    }
+  //   if (query.slug) {
+  //     filter.slug = query.slug;
+  //   }
 
-    return this.model.find(filter);
+  //   return this.model.find(filter);
+  // }
+
+  findAll(query: FindWorkspacesQueryDto) {
+    return this.prisma.workspace.findMany({
+      where: {
+        ...(query.name
+          ? { name: { contains: query.name, mode: 'insensitive' as const } }
+          : {}),
+        ...(query.slug ? { slug: query.slug } : {}),
+      },
+    });
   }
 
-  async findOne(id: number): Promise<WorkspaceDocument> {
-    const workspace = await this.model.findOne({ id });
+  // async findOne(id: number): Promise<WorkspaceDocument> {
+  //   const workspace = await this.model.findOne({ id });
+
+  //   if (!workspace) {
+  //     throw new NotFoundException(`No workspace found with id ${id}.`);
+  //   }
+
+  //   return workspace;
+  // }
+
+  async findOne(id: number) {
+    const workspace = await this.prisma.workspace.findUnique({
+      where: { id },
+    });
 
     if (!workspace) {
       throw new NotFoundException(`No workspace found with id ${id}.`);
@@ -103,7 +128,7 @@ export class WorkspacesService implements OnModuleInit {
     id: number,
     dto: UpdateWorkspaceDto,
   ): Promise<WorkspaceDocument> {
-    const workspace = await this.findOne(id);
+    const workspace = await this.model.findOne({ id });
 
     if (dto?.slug !== undefined) {
       const taken = await this.model.findOne({
@@ -136,8 +161,20 @@ export class WorkspacesService implements OnModuleInit {
     return saved;
   }
 
-  async findBySlug(slug: string): Promise<WorkspaceDocument> {
-    const workspace = await this.model.findOne({ slug });
+  // async findBySlug(slug: string): Promise<WorkspaceDocument> {
+  //   const workspace = await this.model.findOne({ slug });
+
+  //   if (!workspace) {
+  //     throw new NotFoundException(`No workspace found with slug "${slug}".`);
+  //   }
+
+  //   return workspace;
+  // }
+
+  async findBySlug(slug: string) {
+    const workspace = await this.prisma.workspace.findUnique({
+      where: { slug },
+    });
 
     if (!workspace) {
       throw new NotFoundException(`No workspace found with slug "${slug}".`);

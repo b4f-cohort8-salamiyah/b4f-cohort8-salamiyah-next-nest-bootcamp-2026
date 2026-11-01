@@ -22,6 +22,10 @@ import { CreateIssueDto } from './dto/create-issue.dto';
 import { UpdateIssueDto } from './dto/update-issue.dto';
 import { JwtAuthGuard } from 'src/common/filters/guards/jwt-auth.guard';
 import { CurrentUser } from 'src/auth/current-user.decorator';
+<<<<<<< HEAD
+=======
+import { JwtPayload } from 'src/auth/jwt-payload.interface';
+>>>>>>> main
 
 @ApiTags('issues')
 @Controller('issues')
@@ -51,8 +55,13 @@ export class IssuesController {
   })
   @UseGuards(JwtAuthGuard)
   @Post()
+<<<<<<< HEAD
   create(@Body() dto: CreateIssueDto, @CurrentUser() user: any) {
     return this.issuesService.create(dto, user.id);
+=======
+  create(@Body() dto: CreateIssueDto, @CurrentUser() user: JwtPayload) {
+    return this.issuesService.create(dto, user.sub);
+>>>>>>> main
   }
 
   @ApiOperation({ summary: 'Update an issue (requires a signed-in user)' })
@@ -67,9 +76,15 @@ export class IssuesController {
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateIssueDto,
+<<<<<<< HEAD
     @CurrentUser() user: any,
   ) {
     return this.issuesService.update(id, dto, user.id);
+=======
+    @CurrentUser() user: JwtPayload,
+  ) {
+    return this.issuesService.update(id, dto, user.sub);
+>>>>>>> main
   }
 
   @ApiOperation({ summary: 'Delete an issue (requires a signed-in user)' })
@@ -81,7 +96,15 @@ export class IssuesController {
   })
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
+<<<<<<< HEAD
   remove(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: any) {
     return this.issuesService.remove(id, user.id);
+=======
+  remove(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() user: JwtPayload,
+  ) {
+    return this.issuesService.remove(id, user.sub);
+>>>>>>> main
   }
 }

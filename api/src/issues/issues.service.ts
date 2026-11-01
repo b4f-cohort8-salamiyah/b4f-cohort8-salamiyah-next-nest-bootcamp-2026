@@ -1,4 +1,5 @@
 import {
+  ForbiddenException,
   Injectable,
   Logger,
   NotFoundException,
@@ -11,8 +12,14 @@ import { Issue, IssueDocument } from './schemas/issue.schema';
 import { FindIssuesQueryDto } from './dto/find-issues-query.dto';
 import { CreateIssueDto } from './dto/create-issue.dto';
 import { UpdateIssueDto } from './dto/update-issue.dto';
+<<<<<<< HEAD
 import { ProjectsService } from '../projects/projects.service';
 import { WorkspaceMember } from '../workspace-members/schemas/workspace-member.schema';
+=======
+import { WorkspaceMemberDocument } from 'src/workspace-members/schemas/workspace-member.schema';
+import { ProjectsService } from 'src/projects/projects.service';
+import { WorkspaceMembersService } from 'src/workspace-members/workspace-members.service';
+>>>>>>> main
 
 const STATUSES = ['todo', 'in_progress', 'review', 'done'];
 
@@ -52,9 +59,14 @@ export class IssuesService implements OnModuleInit {
   constructor(
     @InjectModel(Issue.name)
     private readonly model: Model<IssueDocument>,
+<<<<<<< HEAD
     @InjectModel(WorkspaceMember.name)
     private readonly workspaceMemberModel: Model<WorkspaceMember>,
     private readonly projectsService: ProjectsService,
+=======
+    private readonly projectsService: ProjectsService,
+    private readonly workspaceMembersService: WorkspaceMembersService,
+>>>>>>> main
   ) {}
 
   async onModuleInit() {
@@ -93,6 +105,7 @@ export class IssuesService implements OnModuleInit {
     return issue;
   }
 
+<<<<<<< HEAD
  
   private async validateWorkspaceMembership(workspaceId: any, userId: any) {
     const membership = await this.workspaceMemberModel.findOne({
@@ -119,6 +132,14 @@ export class IssuesService implements OnModuleInit {
     if (dto.assigneeId !== undefined && dto.assigneeId !== null) {
       await this.validateWorkspaceMembership(project.workspaceId, dto.assigneeId);
     }
+=======
+  async create(
+    dto: CreateIssueDto,
+    reporterId: number,
+  ): Promise<IssueDocument> {
+    const project = await this.projectsService.findOne(dto.projectId);
+    await this.requireMembership(project.workspaceId, reporterId);
+>>>>>>> main
 
     const last = await this.model.findOne().sort({ id: -1 });
     const id = (last?.id ?? 0) + 1;
@@ -126,6 +147,7 @@ export class IssuesService implements OnModuleInit {
     const issue = await this.model.create({
       id,
       projectId: dto.projectId,
+      reporterId,
       title: dto.title,
       description: dto.description || '',
       status: 'todo',
@@ -138,9 +160,18 @@ export class IssuesService implements OnModuleInit {
     return issue;
   }
 
+<<<<<<< HEAD
 
   async update(id: number, dto: UpdateIssueDto & { assigneeId?: number }, userId: number): Promise<IssueDocument> {
+=======
+  async update(
+    id: number,
+    dto: UpdateIssueDto,
+    requestingUserId: number,
+  ): Promise<IssueDocument> {
+>>>>>>> main
     const issue = await this.findOne(id);
+    await this.requireOwnershipOrRole(issue, requestingUserId);
 
     
     const project = await this.projectsService.findOne(issue.projectId);
@@ -182,6 +213,7 @@ export class IssuesService implements OnModuleInit {
     return saved;
   }
 
+<<<<<<< HEAD
   async remove(id: number, userId: number): Promise<IssueDocument> {
     const issue = await this.findOne(id);
 
@@ -199,6 +231,11 @@ export class IssuesService implements OnModuleInit {
     if (!isReporter && !isAssignee && !isAdminOrOwner) {
       throw new ForbiddenException('You are not authorized to delete this issue.');
     }
+=======
+  async remove(id: number, requestingUserId: number): Promise<IssueDocument> {
+    const issue = await this.model.findOne({ id });
+    await this.requireOwnershipOrRole(issue, requestingUserId);
+>>>>>>> main
 
     const deleted = await this.model.findOneAndDelete({ id });
 
@@ -210,4 +247,52 @@ export class IssuesService implements OnModuleInit {
 
     return deleted;
   }
+<<<<<<< HEAD
 }
+=======
+
+  private async requireOwnershipOrRole(
+    issue: IssueDocument,
+    requestingUserId: number,
+  ): Promise<void> {
+    if (
+      issue.reporterId === requestingUserId ||
+      issue.assigneeId === requestingUserId
+    ) {
+      return;
+    }
+
+    const project = await this.projectsService.findOne(issue.projectId);
+    const membership =
+      await this.workspaceMembersService.findByWorkspaceAndUser(
+        project.workspaceId,
+        requestingUserId,
+      );
+
+    if (!membership || !['admin', 'owner'].includes(membership.role)) {
+      throw new ForbiddenException(
+        "Only this issue's assignee, its reporter, or a workspace Admin/Owner may do this.",
+      );
+    }
+  }
+
+  private async requireMembership(
+    workspaceId: number,
+    userId: number,
+  ): Promise<WorkspaceMemberDocument> {
+    const membership =
+      await this.workspaceMembersService.findByWorkspaceAndUser(
+        workspaceId,
+        userId,
+      );
+
+    if (!membership) {
+      throw new ForbiddenException(
+        `User ${userId} is not a member of workspace ${workspaceId}.`,
+      );
+    }
+
+    return membership;
+  }
+}
+>>>>>>> main

@@ -13,9 +13,6 @@ import {
     ]),
   ],
   providers: [WorkspaceMembersService],
-  exports: [
-    WorkspaceMembersService, 
-    MongooseModule, 
-  ],
+  exports: [WorkspaceMembersService],
 })
 export class WorkspaceMembersModule {}

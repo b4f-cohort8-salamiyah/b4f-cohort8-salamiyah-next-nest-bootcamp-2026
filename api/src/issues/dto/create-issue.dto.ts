@@ -7,6 +7,15 @@ export class CreateIssueDto {
   @IsInt()
   projectId: number;
 
+  @ApiPropertyOptional({
+    example: 2,
+    description:
+      "Must already be a member of this issue's own workspace. reporterId is never client-supplied -- it is always the authenticated creator.",
+  })
+  @IsOptional()
+  @IsInt()
+  assigneeId?: number;
+
   @ApiProperty({ example: 'Fix the login button' })
   @IsString()
   @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))

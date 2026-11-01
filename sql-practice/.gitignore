@@ -1,0 +1,5 @@
+# A real, isolated local PostgreSQL data directory for this session's own practice work --
+# the same isolation principle this program's own instructor-only final preview already uses
+# (its own dedicated local Postgres instance, never a shared system-wide one).
+.pgdata/
+.pglog
