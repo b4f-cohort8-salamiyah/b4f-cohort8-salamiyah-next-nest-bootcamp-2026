@@ -3,72 +3,31 @@ import {
   Injectable,
   Logger,
   NotFoundException,
-  OnModuleInit,
 } from '@nestjs/common';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { CreateProjectDto } from './dto/create-project.dto';
-import { InjectModel } from '@nestjs/mongoose';
-import { Project, ProjectDocument } from './schemas/project.schema';
-import { Model } from 'mongoose';
 import { FindProjectsQueryDto } from './dto/find-projects-query.dto';
-
-const seedProjects = [
-  {
-    id: 1,
-    workspaceId: 1,
-    name: 'Web App',
-    key: 'WEB',
-    description: 'Customer UI',
-  },
-  {
-    id: 2,
-    workspaceId: 1,
-    name: 'Backend API',
-    key: 'API',
-    description: 'Core services',
-  },
-  {
-    id: 3,
-    workspaceId: 1,
-    name: 'Mobile App',
-    key: 'MOB',
-    description: 'iOS and Android',
-  },
-];
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
-export class ProjectsService implements OnModuleInit {
+export class ProjectsService {
   private readonly logger = new Logger(ProjectsService.name);
 
-  constructor(
-    @InjectModel(Project.name)
-    private readonly model: Model<ProjectDocument>,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
-  async onModuleInit() {
-    const existing = await this.model.countDocuments();
-
-    if (existing === 0) {
-      await this.model.insertMany(seedProjects);
-    }
+  findAll(query: FindProjectsQueryDto) {
+    return this.prisma.project.findMany({
+      where: {
+        ...(query.name
+          ? { name: { contains: query.name, mode: 'insensitive' as const } }
+          : {}),
+        ...(query.key ? { key: query.key } : {}),
+      },
+    });
   }
 
-  async findAll(query: FindProjectsQueryDto): Promise<ProjectDocument[]> {
-    const filter: Record<string, unknown> = {};
-
-    if (query.name) {
-      filter.name = { $regex: query.name, $options: 'i' };
-    }
-
-    if (query.key) {
-      filter.key = query.key;
-    }
-
-    return this.model.find(filter);
-  }
-
-  async findOne(id: number): Promise<ProjectDocument> {
-    const project = await this.model.findOne({ id });
+  async findOne(id: number) {
+    const project = await this.prisma.project.findUnique({ where: { id } });
 
     if (!project) {
       throw new NotFoundException(`No project found with id ${id}.`);
@@ -77,8 +36,10 @@ export class ProjectsService implements OnModuleInit {
     return project;
   }
 
-  async create(dto: CreateProjectDto): Promise<ProjectDocument> {
-    const taken = await this.model.findOne({ key: dto.key });
+  async create(dto: CreateProjectDto) {
+    const taken = await this.prisma.project.findUnique({
+      where: { key: dto.key },
+    });
 
     if (taken) {
       throw new ConflictException(
@@ -86,15 +47,13 @@ export class ProjectsService implements OnModuleInit {
       );
     }
 
-    const last = await this.model.findOne().sort({ id: -1 });
-    const id = (last?.id || 0) + 1;
-
-    const project = await this.model.insertOne({
-      id,
-      workspaceId: dto.workspaceId,
-      name: dto.name,
-      key: dto.key,
-      description: dto.description || '',
+    const project = await this.prisma.project.create({
+      data: {
+        workspaceId: dto.workspaceId,
+        name: dto.name,
+        key: dto.key,
+        description: dto.description || '',
+      },
     });
 
     this.logger.log(`Created project ${project.id} ("${project.name}")`);
@@ -102,40 +61,38 @@ export class ProjectsService implements OnModuleInit {
     return project;
   }
 
-  async update(id: number, dto: UpdateProjectDto): Promise<ProjectDocument> {
-    const project = await this.findOne(id);
+  async update(id: number, dto: UpdateProjectDto) {
+    await this.findOne(id);
 
     if (dto?.key !== undefined) {
-      const taken = await this.model.findOne({ key: dto.key, id: { $ne: id } });
-
-      if (taken) {
+      const taken = await this.prisma.project.findUnique({
+        where: { key: dto.key },
+      });
+      if (taken && taken.id !== id) {
         throw new ConflictException(
           `key "${dto.key}" is already used by another project.`,
         );
       }
     }
 
-    if (dto?.name !== undefined) {
-      project.name = dto.name;
-    }
-
-    if (dto?.key !== undefined) {
-      project.key = dto.key;
-    }
-
-    if (dto?.description !== undefined) {
-      project.description = dto.description;
-    }
-
-    const saved = await project.save();
+    const saved = await this.prisma.project.update({
+      where: { id },
+      data: {
+        ...(dto?.name !== undefined ? { name: dto.name } : {}),
+        ...(dto?.key !== undefined ? { key: dto.key } : {}),
+        ...(dto?.description !== undefined
+          ? { description: dto.description }
+          : {}),
+      },
+    });
 
     this.logger.log(`Updated project ${saved.id} ("${saved.name}")`);
 
     return saved;
   }
 
-  async findByKey(key: string): Promise<ProjectDocument> {
-    const project = await this.model.findOne({ key: key });
+  async findByKey(key: string) {
+    const project = await this.prisma.project.findUnique({ where: { key } });
 
     if (!project) {
       throw new NotFoundException(`No project found with key "${key}".`);
@@ -145,17 +102,15 @@ export class ProjectsService implements OnModuleInit {
   }
 
   async stats(): Promise<{ total: number }> {
-    const total = await this.model.countDocuments();
+    const total = await this.prisma.project.count();
     this.logger.log(`Internal tool read project stats (total: ${total})`);
     return { total };
   }
 
-  async remove(id: number): Promise<ProjectDocument> {
-    const deleted = await this.model.findOneAndDelete({ id });
+  async remove(id: number) {
+    await this.findOne(id);
 
-    if (!deleted) {
-      throw new NotFoundException(`No project found with id ${id}.`);
-    }
+    const deleted = await this.prisma.project.delete({ where: { id } });
 
     this.logger.log(`Deleted project ${id} ("${deleted.name}")`);
 
