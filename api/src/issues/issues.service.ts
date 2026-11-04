@@ -3,84 +3,42 @@ import {
   Injectable,
   Logger,
   NotFoundException,
-  OnModuleInit,
 } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { Issue, IssueDocument } from './schemas/issue.schema';
 import { FindIssuesQueryDto } from './dto/find-issues-query.dto';
 import { CreateIssueDto } from './dto/create-issue.dto';
 import { UpdateIssueDto } from './dto/update-issue.dto';
-import { WorkspaceMemberDocument } from '../workspace-members/schemas/workspace-member.schema';
-import { ProjectsService } from '../projects/projects.service';
-import { WorkspaceMembersService } from '../workspace-members/workspace-members.service';
-
-const STATUSES = ['todo', 'in_progress', 'review', 'done'];
-
-function buildSeedIssues() {
-  const issues: Array<{
-    id: number;
-    projectId: number;
-    title: string;
-    description: string;
-    status: string;
-  }> = [];
-  let id = 1;
-
-  for (const projectId of [1, 2, 3]) {
-    for (let i = 0; i < 60; i++) {
-      issues.push({
-        id: id++,
-        projectId,
-        title: `Issue ${id} for project ${projectId}`,
-        description: '',
-        status: STATUSES[i % STATUSES.length],
-      });
-    }
-  }
-
-  return issues;
-}
+import { ProjectsService } from 'src/projects/projects.service';
+import { WorkspaceMembersService } from 'src/workspace-members/workspace-members.service';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { ActivityService } from 'src/activity/activity.service';
 
 @Injectable()
-export class IssuesService implements OnModuleInit {
+export class IssuesService {
   private readonly logger = new Logger(IssuesService.name);
 
   constructor(
-    @InjectModel(Issue.name)
-    private readonly model: Model<IssueDocument>,
+    private readonly prisma: PrismaService,
     private readonly projectsService: ProjectsService,
     private readonly workspaceMembersService: WorkspaceMembersService,
+    private readonly activityService: ActivityService,
   ) {}
 
-  async onModuleInit() {
-    const existing = await this.model.countDocuments();
-
-    if (existing === 0) {
-      await this.model.insertMany(buildSeedIssues());
-    }
+  findAll(query: FindIssuesQueryDto) {
+    return this.prisma.issue.findMany({
+      where: {
+        ...(query.projectId !== undefined
+          ? { projectId: query.projectId }
+          : {}),
+        ...(query.status !== undefined ? { status: query.status } : {}),
+        ...(query.title
+          ? { title: { contains: query.title, mode: 'insensitive' as const } }
+          : {}),
+      },
+    });
   }
 
-  async findAll(query: FindIssuesQueryDto): Promise<IssueDocument[]> {
-    const filter: Record<string, unknown> = {};
-
-    if (query.projectId !== undefined) {
-      filter.projectId = query.projectId;
-    }
-
-    if (query.status !== undefined) {
-      filter.status = query.status;
-    }
-
-    if (query.title) {
-      filter.title = { $regex: query.title, $options: 'i' };
-    }
-
-    return this.model.find(filter);
-  }
-
-  async findOne(id: number): Promise<IssueDocument> {
-    const issue = await this.model.findOne({ id });
+  async findOne(id: number) {
+    const issue = await this.prisma.issue.findUnique({ where: { id } });
 
     if (!issue) {
       throw new NotFoundException(`No issue found with id ${id}.`);
@@ -89,66 +47,78 @@ export class IssuesService implements OnModuleInit {
     return issue;
   }
 
-  async create(
-    dto: CreateIssueDto,
-    reporterId: number,
-  ): Promise<IssueDocument> {
+  async create(dto: CreateIssueDto, reporterId: number) {
     const project = await this.projectsService.findOne(dto.projectId);
     await this.requireMembership(project.workspaceId, reporterId);
 
-    const last = await this.model.findOne().sort({ id: -1 });
-    const id = (last?.id ?? 0) + 1;
+    // The exact real atomic transaction PrismaService.createIssueWithKey() first proved as a
+    // Session 20 sandbox demonstration -- promoted here, for real, into the actual production
+    // create path, now carrying every real field this resource's own DTO actually needs
+    // (description, assigneeId, the real authenticated reporterId) that the bare sandbox proof
+    // never had to.
+    return this.prisma.$transaction(async (tx) => {
+      const updatedProject = await tx.project.update({
+        where: { id: dto.projectId },
+        data: { issueSeq: { increment: 1 } },
+      });
 
-    const issue = await this.model.insertOne({
-      id,
-      projectId: dto.projectId,
-      reporterId,
-      title: dto.title,
-      description: dto.description || '',
-      status: 'todo',
+      const issue = await tx.issue.create({
+        data: {
+          projectId: dto.projectId,
+          key: `${updatedProject.key}-${updatedProject.issueSeq}`,
+          title: dto.title,
+          description: dto.description || '',
+          assigneeId: dto.assigneeId,
+          reporterId,
+          status: 'todo',
+        },
+      });
+
+      this.logger.log(`Created issue ${issue.id} ("${issue.title}")`);
+
+      // Real activity logging, atomic with the issue it describes (the same real transaction,
+      // via the shared `tx` client) -- an ISSUE_CREATED row can never exist without its own real
+      // issue, and vice versa. See ActivityService.record()'s own real design note.
+      await this.activityService.record(
+        {
+          workspaceId: project.workspaceId,
+          issueId: issue.id,
+          actorId: reporterId,
+          action: 'ISSUE_CREATED',
+          metadata: { title: issue.title, key: issue.key },
+        },
+        tx,
+      );
+
+      return issue;
     });
-
-    this.logger.log(`Created issue ${issue.id} ("${issue.title}")`);
-
-    return issue;
   }
 
-  async update(
-    id: number,
-    dto: UpdateIssueDto,
-    requestingUserId: number,
-  ): Promise<IssueDocument> {
+  async update(id: number, dto: UpdateIssueDto, requestingUserId: number) {
     const issue = await this.findOne(id);
     await this.requireOwnershipOrRole(issue, requestingUserId);
 
-    if (dto?.title !== undefined) {
-      issue.title = dto.title;
-    }
-
-    if (dto?.description !== undefined) {
-      issue.description = dto.description;
-    }
-
-    if (dto?.status !== undefined) {
-      issue.status = dto.status;
-    }
-
-    const saved = await issue.save();
+    const saved = await this.prisma.issue.update({
+      where: { id },
+      data: {
+        ...(dto?.title !== undefined ? { title: dto.title } : {}),
+        ...(dto?.description !== undefined
+          ? { description: dto.description }
+          : {}),
+        ...(dto?.status !== undefined ? { status: dto.status } : {}),
+      },
+    });
 
     this.logger.log(`Updated issue ${saved.id} ("${saved.title}")`);
 
     return saved;
   }
 
-  async remove(id: number, requestingUserId: number): Promise<IssueDocument> {
-    const issue = await this.model.findOne({ id });
+  async remove(id: number, requestingUserId: number) {
+    const issue = await this.findOne(id);
     await this.requireOwnershipOrRole(issue, requestingUserId);
 
-    const deleted = await this.model.findOneAndDelete({ id });
-
-    if (!deleted) {
-      throw new NotFoundException(`No issue found with id ${id}.`);
-    }
+    const deleted = await this.prisma.issue.delete({ where: { id } });
 
     this.logger.log(`Deleted issue ${id} ("${deleted.title}")`);
 
@@ -156,7 +126,11 @@ export class IssuesService implements OnModuleInit {
   }
 
   private async requireOwnershipOrRole(
-    issue: IssueDocument,
+    issue: {
+      projectId: number;
+      reporterId: number | null;
+      assigneeId: number | null;
+    },
     requestingUserId: number,
   ): Promise<void> {
     if (
@@ -180,10 +154,7 @@ export class IssuesService implements OnModuleInit {
     }
   }
 
-  private async requireMembership(
-    workspaceId: number,
-    userId: number,
-  ): Promise<WorkspaceMemberDocument> {
+  private async requireMembership(workspaceId: number, userId: number) {
     const membership =
       await this.workspaceMembersService.findByWorkspaceAndUser(
         workspaceId,
