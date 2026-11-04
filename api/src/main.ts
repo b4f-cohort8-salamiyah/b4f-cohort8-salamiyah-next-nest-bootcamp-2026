@@ -12,7 +12,9 @@ async function bootstrap() {
   app.useGlobalFilters(new AllExceptionsFilter());
   const swaggerConfig = new DocumentBuilder()
     .setTitle('B4F Board API')
-    .setDescription('Projects and Workspaces, backed by MongoDB.')
+    .setDescription(
+      'B4F Board: Users, Workspaces, Projects, and Issues, backed by PostgreSQL/Prisma.',
+    )
     .addBearerAuth()
     .setVersion('1.0')
     .build();
