@@ -16,3 +16,15 @@ export type Project = {
   issueSeq: number;
   createdAt: string;
 };
+
+export type Issue = {
+  id: number;
+  projectId: number;
+  key: string;
+  title: string;
+  description: string;
+  status: string;
+  assigneeId: number | null;
+  reporterId: number;
+  createdAt: string;
+};
