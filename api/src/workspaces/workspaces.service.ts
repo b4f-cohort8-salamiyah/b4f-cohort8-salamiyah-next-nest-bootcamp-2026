@@ -8,8 +8,8 @@ import {
 import { UpdateWorkspaceDto } from './dto/update-workspace.dto';
 import { CreateWorkspaceDto } from './dto/create-workspace.dto';
 import { FindWorkspacesQueryDto } from './dto/find-workspaces-query.dto';
-import { WorkspaceMembersService } from 'src/workspace-members/workspace-members.service';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { WorkspaceMembersService } from '../workspace-members/workspace-members.service';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class WorkspacesService {

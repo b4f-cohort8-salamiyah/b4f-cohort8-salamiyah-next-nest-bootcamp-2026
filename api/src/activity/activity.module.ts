@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ActivityController } from './activity.controller';
 import { ActivityService } from './activity.service';
-import { WorkspaceMembersModule } from 'src/workspace-members/workspace-members.module';
+import { WorkspaceMembersModule } from '../workspace-members/workspace-members.module';
 
 @Module({
   imports: [WorkspaceMembersModule],

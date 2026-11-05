@@ -7,10 +7,10 @@ import {
 import { FindIssuesQueryDto } from './dto/find-issues-query.dto';
 import { CreateIssueDto } from './dto/create-issue.dto';
 import { UpdateIssueDto } from './dto/update-issue.dto';
-import { ProjectsService } from 'src/projects/projects.service';
-import { WorkspaceMembersService } from 'src/workspace-members/workspace-members.service';
-import { PrismaService } from 'src/prisma/prisma.service';
-import { ActivityService } from 'src/activity/activity.service';
+import { ProjectsService } from '../projects/projects.service';
+import { WorkspaceMembersService } from '../workspace-members/workspace-members.service';
+import { PrismaService } from '../prisma/prisma.service';
+import { ActivityService } from '../activity/activity.service';
 
 @Injectable()
 export class IssuesService {
