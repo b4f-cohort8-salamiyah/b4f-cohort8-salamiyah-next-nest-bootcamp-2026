@@ -15,9 +15,9 @@ import {
 } from '@nestjs/swagger';
 import { CommentsService } from './comments.service';
 import { CreateCommentDto } from './dto/create-comment.dto';
-import { JwtAuthGuard } from 'src/common/filters/guards/jwt-auth.guard';
-import { CurrentUser } from 'src/auth/current-user.decorator';
-import { JwtPayload } from 'src/auth/jwt-payload.interface';
+import { JwtAuthGuard } from '../common/filters/guards/jwt-auth.guard';
+import { CurrentUser } from '../auth/current-user.decorator';
+import { JwtPayload } from '../auth/jwt-payload.interface';
 
 @ApiTags('comments')
 @Controller('issues/:issueId/comments')

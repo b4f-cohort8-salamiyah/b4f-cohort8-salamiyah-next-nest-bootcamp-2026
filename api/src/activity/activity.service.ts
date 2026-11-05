@@ -1,7 +1,7 @@
 import { ForbiddenException, Injectable } from '@nestjs/common';
 import { ActivityAction, Prisma } from '@prisma/client';
-import { PrismaService } from 'src/prisma/prisma.service';
-import { WorkspaceMembersService } from 'src/workspace-members/workspace-members.service';
+import { PrismaService } from '../prisma/prisma.service';
+import { WorkspaceMembersService } from '../workspace-members/workspace-members.service';
 
 export interface RecordActivityInput {
   workspaceId: number;

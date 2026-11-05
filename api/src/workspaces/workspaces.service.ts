@@ -8,8 +8,8 @@ import {
 import { UpdateWorkspaceDto } from './dto/update-workspace.dto';
 import { CreateWorkspaceDto } from './dto/create-workspace.dto';
 import { FindWorkspacesQueryDto } from './dto/find-workspaces-query.dto';
-import { WorkspaceMembersService } from 'src/workspace-members/workspace-members.service';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { WorkspaceMembersService } from '../workspace-members/workspace-members.service';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class WorkspacesService {
@@ -19,7 +19,8 @@ export class WorkspacesService {
     private readonly prisma: PrismaService,
   ) {}
 
-  findAll(query: FindWorkspacesQueryDto) {
+  async findAll(query: FindWorkspacesQueryDto) {
+    await setTimeout(() => {}, 1000);
     return this.prisma.workspace.findMany({
       where: {
         ...(query.name

@@ -7,9 +7,9 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ActivityService } from './activity.service';
-import { JwtAuthGuard } from 'src/common/filters/guards/jwt-auth.guard';
-import { CurrentUser } from 'src/auth/current-user.decorator';
-import { JwtPayload } from 'src/auth/jwt-payload.interface';
+import { JwtAuthGuard } from '../common/filters/guards/jwt-auth.guard';
+import { CurrentUser } from '../auth/current-user.decorator';
+import { JwtPayload } from '../auth/jwt-payload.interface';
 
 @ApiTags('activity')
 @Controller('workspaces/:workspaceId/activity')

@@ -1,9 +1,9 @@
 import { ForbiddenException, Injectable, Logger } from '@nestjs/common';
-import { PrismaService } from 'src/prisma/prisma.service';
-import { WorkspaceMembersService } from 'src/workspace-members/workspace-members.service';
+import { PrismaService } from '../prisma/prisma.service';
+import { WorkspaceMembersService } from '../workspace-members/workspace-members.service';
 import { CreateCommentDto } from './dto/create-comment.dto';
-import { extractMentionedUserIds } from 'src/common/mentions.util';
-import { ActivityService } from 'src/activity/activity.service';
+import { extractMentionedUserIds } from '../common/mentions.util';
+import { ActivityService } from '../activity/activity.service';
 
 @Injectable()
 export class CommentsService {
