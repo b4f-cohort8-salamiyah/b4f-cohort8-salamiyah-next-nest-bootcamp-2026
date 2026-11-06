@@ -1,3 +1,4 @@
 {
-  "postman.settings.dotenv-detection-notification-visibility": false
+  "typescript.preferences.importModuleSpecifier": "relative",
+  "javascript.preferences.importModuleSpecifier": "relative"
 }

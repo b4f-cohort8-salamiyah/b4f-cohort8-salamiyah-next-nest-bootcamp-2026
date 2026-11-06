@@ -21,5 +21,20 @@ module.exports = {
     '@typescript-eslint/explicit-function-return-type': 'off',
     '@typescript-eslint/explicit-module-boundary-types': 'off',
     '@typescript-eslint/no-explicit-any': 'off',
+    'no-restricted-imports': [
+      'error',
+      {
+        patterns: [
+          {
+            group: ['src/*'],
+            message: 'Use a relative import instead of "src/...".',
+          },
+          {
+            group: ['**/common/filters/guards/*'],
+            message: 'Guards live in src/common/guards/.',
+          },
+        ],
+      },
+    ],
   },
 };

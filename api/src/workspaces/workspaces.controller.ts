@@ -20,10 +20,10 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../common/filters/guards/jwt-auth.guard';
+import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { JwtPayload } from '../auth/jwt-payload.interface';
-import { WorkspaceRoleGuard } from '../common/filters/guards/workspace-role.guard';
+import { WorkspaceRoleGuard } from '../common/guards/workspace-role.guard';
 import { RequireWorkspaceRole } from '../common/decorators/require-workspace-role.decorator';
 @ApiTags('workspaces')
 @Controller('workspaces')
