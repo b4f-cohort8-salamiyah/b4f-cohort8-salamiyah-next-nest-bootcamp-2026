@@ -1,7 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { User, UserDocument } from './schemas/user.schema';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 export interface SafeUser {
   id: number;
@@ -12,30 +10,33 @@ export interface SafeUser {
 
 @Injectable()
 export class UsersService {
-  constructor(
-    @InjectModel(User.name) private readonly model: Model<UserDocument>,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
-  findByEmail(email: string): Promise<UserDocument | null> {
-    return this.model.findOne({ email });
+  findByEmail(email: string) {
+    return this.prisma.user.findUnique({ where: { email } });
   }
 
-  findById(id: number): Promise<UserDocument | null> {
-    return this.model.findOne({ id });
+  findById(id: number) {
+    return this.prisma.user.findUnique({ where: { id } });
   }
 
-  async create(data: {
+  findPublicById(id: number) {
+    return this.prisma.user.findUnique({
+      where: { id },
+      select: { id: true, name: true },
+    });
+  }
+
+  async create(data: { name: string; email: string; passwordHash: string }) {
+    return this.prisma.user.create({ data });
+  }
+
+  toSafeUser(user: {
+    id: number;
     name: string;
     email: string;
-    passwordHash: string;
-  }): Promise<UserDocument> {
-    const last = await this.model.findOne().sort({ id: -1 });
-    const id = (last?.id ?? 0) + 1;
-
-    return this.model.insertOne({ ...data, id });
-  }
-
-  toSafeUser(user: UserDocument): SafeUser {
+    createdAt: Date;
+  }): SafeUser {
     return {
       id: user.id,
       name: user.name,

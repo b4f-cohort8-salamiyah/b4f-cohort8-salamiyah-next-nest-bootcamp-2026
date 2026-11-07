@@ -85,6 +85,32 @@ export class WorkspacesController {
     return this.workspacesService.findBySlug(slug);
   }
 
+  @ApiOperation({
+    summary:
+      "List a workspace's own real members (id/name, never email) -- requires the caller to already be a member",
+  })
+  @ApiBearerAuth()
+  @ApiResponse({
+    status: 200,
+    description: 'The real member list, each with its own user id/name.',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Missing or invalid authentication token.',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'The caller is not a member of this workspace.',
+  })
+  @UseGuards(JwtAuthGuard)
+  @Get(':id/members')
+  findMembers(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() currentUser: JwtPayload,
+  ) {
+    return this.workspacesService.findMembers(id, currentUser.sub);
+  }
+
   @ApiOperation({ summary: 'Delete a workspace (requires a signed-in user)' })
   @ApiBearerAuth()
   @ApiResponse({ status: 200, description: 'The deleted workspace.' })
