@@ -12,7 +12,7 @@ export default async function WorkspaceDetailPage({
 
   const workspaceRes = await apiFetch(`/workspaces/${id}`);
 
-  if (workspaceRes.status === 404) {
+  if (!workspaceRes.ok) {
     notFound();
   }
 

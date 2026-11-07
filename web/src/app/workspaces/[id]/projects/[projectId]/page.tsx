@@ -12,7 +12,7 @@ export default async function ProjectDetailPage({
 
   const projectRes = await apiFetch(`/projects/${projectId}`);
 
-  if (projectRes.status === 404) {
+  if (!projectRes.ok) {
     notFound();
   }
 
