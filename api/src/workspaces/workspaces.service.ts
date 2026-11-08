@@ -1,61 +1,39 @@
 import {
   ConflictException,
+  ForbiddenException,
   Injectable,
   Logger,
   NotFoundException,
-  OnModuleInit,
 } from '@nestjs/common';
 import { UpdateWorkspaceDto } from './dto/update-workspace.dto';
 import { CreateWorkspaceDto } from './dto/create-workspace.dto';
-import { InjectModel } from '@nestjs/mongoose';
-import { Workspace, WorkspaceDocument } from './schemas/workspace.schema';
-import { Model } from 'mongoose';
 import { FindWorkspacesQueryDto } from './dto/find-workspaces-query.dto';
 import { WorkspaceMembersService } from 'src/workspace-members/workspace-members.service';
-
-const seedWorkspaces = [
-  {
-    id: 1,
-    name: 'Acme Robotics',
-    slug: 'acme-robotics',
-    description: 'Internal tools',
-  },
-  { id: 2, name: 'Nova Labs', slug: 'nova-labs', description: 'Prototypes' },
-];
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
-export class WorkspacesService implements OnModuleInit {
+export class WorkspacesService {
   private readonly logger = new Logger(WorkspacesService.name);
   constructor(
-    @InjectModel(Workspace.name)
-    private readonly model: Model<WorkspaceDocument>,
     private readonly workspaceMembersService: WorkspaceMembersService,
+    private readonly prisma: PrismaService,
   ) {}
 
-  async onModuleInit() {
-    const existing = await this.model.countDocuments();
-
-    if (existing === 0) {
-      await this.model.insertMany(seedWorkspaces);
-    }
+  async findAll(query: FindWorkspacesQueryDto) {
+    return this.prisma.workspace.findMany({
+      where: {
+        ...(query.name
+          ? { name: { contains: query.name, mode: 'insensitive' as const } }
+          : {}),
+        ...(query.slug ? { slug: query.slug } : {}),
+      },
+    });
   }
 
-  async findAll(query: FindWorkspacesQueryDto): Promise<WorkspaceDocument[]> {
-    const filter: Record<string, unknown> = {};
-
-    if (query.name) {
-      filter.name = { $regex: query.name, $options: 'i' };
-    }
-
-    if (query.slug) {
-      filter.slug = query.slug;
-    }
-
-    return this.model.find(filter);
-  }
-
-  async findOne(id: number): Promise<WorkspaceDocument> {
-    const workspace = await this.model.findOne({ id });
+  async findOne(id: number) {
+    const workspace = await this.prisma.workspace.findUnique({
+      where: { id },
+    });
 
     if (!workspace) {
       throw new NotFoundException(`No workspace found with id ${id}.`);
@@ -64,11 +42,10 @@ export class WorkspacesService implements OnModuleInit {
     return workspace;
   }
 
-  async create(
-    dto: CreateWorkspaceDto,
-    ownerId: number,
-  ): Promise<WorkspaceDocument> {
-    const taken = await this.model.findOne({ slug: dto.slug });
+  async create(dto: CreateWorkspaceDto, ownerId: number) {
+    const taken = await this.prisma.workspace.findUnique({
+      where: { slug: dto.slug },
+    });
 
     if (taken) {
       throw new ConflictException(
@@ -76,38 +53,32 @@ export class WorkspacesService implements OnModuleInit {
       );
     }
 
-    const last = await this.model.findOne().sort({ id: -1 }).exec();
-    const id = (last?.id ?? 0) + 1;
-
-    const workspace = new this.model({
-      id,
-      name: dto.name,
-      slug: dto.slug,
-      description: dto.description || '',
+    const workspace = await this.prisma.workspace.create({
+      data: {
+        name: dto.name,
+        slug: dto.slug,
+        description: dto.description || '',
+        ownerId,
+      },
     });
 
-    const saved = await workspace.save();
-    this.logger.log(`Created workspace ${saved.id} ("${saved.name}")`);
+    this.logger.log(`Created workspace ${workspace.id} ("${workspace.name}")`);
 
     await this.workspaceMembersService.create({
-      workspaceId: saved.id,
+      workspaceId: workspace.id,
       userId: ownerId,
       role: 'owner',
     });
 
-    return saved;
+    return workspace;
   }
 
-  async update(
-    id: number,
-    dto: UpdateWorkspaceDto,
-  ): Promise<WorkspaceDocument> {
-    const workspace = await this.findOne(id);
+  async update(id: number, dto: UpdateWorkspaceDto) {
+    await this.findOne(id);
 
     if (dto?.slug !== undefined) {
-      const taken = await this.model.findOne({
-        slug: dto.slug,
-        id: { $ne: id },
+      const taken = await this.prisma.workspace.findUnique({
+        where: { slug: dto.slug },
       });
       if (taken) {
         throw new ConflictException(
@@ -116,27 +87,44 @@ export class WorkspacesService implements OnModuleInit {
       }
     }
 
-    if (dto?.name !== undefined) {
-      workspace.name = dto.name;
-    }
-
-    if (dto?.slug !== undefined) {
-      workspace.slug = dto.slug;
-    }
-
-    if (dto?.description !== undefined) {
-      workspace.description = dto.description;
-    }
-
-    const saved = await workspace.save();
+    const saved = await this.prisma.workspace.update({
+      where: { id },
+      data: {
+        ...(dto?.name !== undefined ? { name: dto.name } : {}),
+        ...(dto?.slug !== undefined ? { slug: dto.slug } : {}),
+        ...(dto?.description !== undefined
+          ? { description: dto.description }
+          : {}),
+      },
+    });
 
     this.logger.log(`Updated workspace ${saved.id} ("${saved.name}")`);
 
     return saved;
   }
 
-  async findBySlug(slug: string): Promise<WorkspaceDocument> {
-    const workspace = await this.model.findOne({ slug });
+  async findMembers(workspaceId: number, requestingUserId: number) {
+    await this.findOne(workspaceId);
+
+    const requesterIsMember =
+      await this.workspaceMembersService.findByWorkspaceAndUser(
+        workspaceId,
+        requestingUserId,
+      );
+
+    if (!requesterIsMember) {
+      throw new ForbiddenException(
+        `User ${requestingUserId} is not a member of workspace ${workspaceId}.`,
+      );
+    }
+
+    return this.workspaceMembersService.findAllForWorkspace(workspaceId);
+  }
+
+  async findBySlug(slug: string) {
+    const workspace = await this.prisma.workspace.findUnique({
+      where: { slug },
+    });
 
     if (!workspace) {
       throw new NotFoundException(`No workspace found with slug "${slug}".`);
@@ -145,12 +133,10 @@ export class WorkspacesService implements OnModuleInit {
     return workspace;
   }
 
-  async remove(id: number): Promise<WorkspaceDocument> {
-    const deleted = await this.model.findOneAndDelete({ id });
+  async remove(id: number) {
+    await this.findOne(id);
 
-    if (!deleted) {
-      throw new NotFoundException(`No workspace found with id ${id}.`);
-    }
+    const deleted = await this.prisma.workspace.delete({ where: { id } });
 
     this.logger.log(`Deleted workspace ${id} ("${deleted.name}")`);
 
