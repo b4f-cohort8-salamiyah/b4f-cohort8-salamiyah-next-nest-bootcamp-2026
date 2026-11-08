@@ -14,9 +14,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>
-        <nav>
-          <Link href="/workspaces">Workspaces</Link>
+      <body className="bg-gray-50 text-gray-900 dark:bg-gray-950 dark:text-gray-100">
+        <nav className="border-b border-gray-200 bg-white px-6 py-4 dark:border-gray-800 dark:bg-gray-900">
+          <Link href="/workspaces" className="text-lg font-semibold">
+            B4F Board
+          </Link>
         </nav>
         {children}
       </body>
