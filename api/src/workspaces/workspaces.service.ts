@@ -21,7 +21,6 @@ export class WorkspacesService {
   ) {}
 
   async findAll(query: FindWorkspacesQueryDto) {
-    await setTimeout(() => {}, 1000);
     return this.prisma.workspace.findMany({
       where: {
         ...(query.name

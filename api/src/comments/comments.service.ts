@@ -4,6 +4,7 @@ import { WorkspaceMembersService } from 'src/workspace-members/workspace-members
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { extractMentionedUserIds } from 'src/common/mentions.util';
 import { ActivityService } from 'src/activity/activity.service';
+import { NotificationsService } from 'src/notifications/notifications.service';
 
 @Injectable()
 export class CommentsService {
@@ -13,6 +14,7 @@ export class CommentsService {
     private readonly prisma: PrismaService,
     private readonly workspaceMembersService: WorkspaceMembersService,
     private readonly activityService: ActivityService,
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   async findAllForIssue(issueId: number, requestingUserId: number) {
@@ -71,6 +73,18 @@ export class CommentsService {
         );
       }
 
+      // Same real transaction again -- notifyMentions() drops the real actor from its own
+      // recipient list, so mentioning yourself never notifies yourself.
+      await this.notificationsService.notifyMentions(
+        {
+          actorId: authorId,
+          mentionedUserIds,
+          issueId,
+          commentId: created.id,
+        },
+        tx,
+      );
+
       return created;
     });
 
@@ -107,10 +121,11 @@ export class CommentsService {
   }
 
   private async requireMembership(workspaceId: number, userId: number) {
-    const membership = await this.workspaceMembersService.findByWorkspaceAndUser(
-      workspaceId,
-      userId,
-    );
+    const membership =
+      await this.workspaceMembersService.findByWorkspaceAndUser(
+        workspaceId,
+        userId,
+      );
 
     if (!membership) {
       throw new ForbiddenException(
@@ -123,10 +138,11 @@ export class CommentsService {
 
   private async requireAllMembers(workspaceId: number, userIds: number[]) {
     for (const userId of userIds) {
-      const membership = await this.workspaceMembersService.findByWorkspaceAndUser(
-        workspaceId,
-        userId,
-      );
+      const membership =
+        await this.workspaceMembersService.findByWorkspaceAndUser(
+          workspaceId,
+          userId,
+        );
 
       if (!membership) {
         throw new ForbiddenException(
