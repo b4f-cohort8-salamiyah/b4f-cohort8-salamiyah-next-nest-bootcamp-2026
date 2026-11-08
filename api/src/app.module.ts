@@ -7,6 +7,7 @@ import { AuthModule } from './auth/auth.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { CommentsModule } from './comments/comments.module';
 import { ActivityModule } from './activity/activity.module';
+import { NotificationsModule } from './notifications/notifications.module';
 
 // MongooseModule/MONGODB_URI removed for real -- every resource is now Prisma/PostgreSQL-backed
 // (see context/DECISION-LOG.md's bootcamp-backend-completion-audit-and-session22-rebuild entry).
@@ -21,6 +22,7 @@ import { ActivityModule } from './activity/activity.module';
     AuthModule,
     CommentsModule,
     ActivityModule,
+    NotificationsModule,
   ],
   controllers: [],
   providers: [],
