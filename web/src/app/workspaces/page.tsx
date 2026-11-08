@@ -1,21 +1,24 @@
 import Link from "next/link";
 import { apiFetch } from "@/lib/api";
 import type { Workspace } from "@/lib/types";
+import { Card } from "@/components/ui/Card";
 
 export default async function WorkspacesPage() {
   const res = await apiFetch("/workspaces");
   const workspaces: Workspace[] = await res.json();
 
   return (
-    <main>
-      <h1>Workspaces</h1>
-      <ul>
+    <main className="mx-auto flex max-w-2xl flex-col gap-4 p-6">
+      <h1 className="text-xl font-semibold">Workspaces</h1>
+      <div className="flex flex-col gap-3">
         {workspaces.map((workspace) => (
-          <li key={workspace.id}>
-            <Link href={`/workspaces/${workspace.id}`}>{workspace.name}</Link>
-          </li>
+          <Link key={workspace.id} href={`/workspaces/${workspace.id}`}>
+            <Card>
+              <p className="font-medium">{workspace.name}</p>
+            </Card>
+          </Link>
         ))}
-      </ul>
+      </div>
     </main>
   );
 }

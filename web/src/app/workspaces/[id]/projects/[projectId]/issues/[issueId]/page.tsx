@@ -1,7 +1,7 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { apiFetch } from "@/lib/api";
 import type { Issue } from "@/lib/types";
-import Link from "next/link";
 
 export default async function IssueDetailPage({
   params,
@@ -21,20 +21,20 @@ export default async function IssueDetailPage({
   return (
     <main>
       <p>
-        <Link href={`/workspaces/${id}/projects/${projectId}`}>
-          Back to project
-        </Link>
+        <Link href={`/workspaces/${id}/projects/${projectId}`}>Back to project</Link>
       </p>
       <h1>
         {issue.key}: {issue.title}
       </h1>
+      <p>Status: {issue.status}</p>
       <p>{issue.description}</p>
-      <ul>
-        <li>Status: {issue.status}</li>
-        <li>Assignee id: {issue.assigneeId ?? "Unassigned"}</li>
-        <li>Reporter id: {issue.reporterId}</li>
-        <li>Created: {issue.createdAt}</li>
-      </ul>
+      <p>Reporter: user #{issue.reporterId}</p>
+      <p>
+        Assignee:{" "}
+        {issue.assigneeId === null ? "unassigned" : `user #${issue.assigneeId}`}
+      </p>
+      {/* Resolving real names for reporter/assignee needs GET /users/:id, which requires
+          auth -- that arrives in Session 25. Shown by real id for now, not faked. */}
     </main>
   );
 }
