@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { apiFetch } from "@/lib/api";
 import type { Project, Workspace } from "@/lib/types";
 import Link from "next/link";
+import { Card } from "@/components/ui/Card";
 
 export default async function WorkspaceDetailPage({
   params,
@@ -12,7 +13,7 @@ export default async function WorkspaceDetailPage({
 
   const workspaceRes = await apiFetch(`/workspaces/${id}`);
 
-  if (workspaceRes.status === 404) {
+  if (!workspaceRes.ok) {
     notFound();
   }
 
@@ -25,20 +26,31 @@ export default async function WorkspaceDetailPage({
   );
 
   return (
-    <main>
-      <h1>{workspace.name}</h1>
-      <p>{workspace.description}</p>
+    <main className="mx-auto flex max-w-2xl flex-col gap-4 p-6">
+      <div>
+        <h1 className="text-xl font-semibold">{workspace.name}</h1>
+        <p className="text-sm text-gray-500 dark:text-gray-400">
+          {workspace.description}
+        </p>
+      </div>
 
-      <h2>Projects</h2>
-      <ul>
+      <h2 className="text-sm font-semibold uppercase text-gray-500 dark:text-gray-400">
+        Projects
+      </h2>
+      <div className="flex flex-col gap-3">
         {projects.map((project) => (
-          <li key={project.id}>
-            <Link href={`/workspaces/${workspace.id}/projects/${project.id}`}>
-              {project.key} -- {project.name}
-            </Link>
-          </li>
+          <Link
+            key={project.id}
+            href={`/workspaces/${workspace.id}/projects/${project.id}`}
+          >
+            <Card>
+              <p className="font-medium">
+                {project.key} -- {project.name}
+              </p>
+            </Card>
+          </Link>
         ))}
-      </ul>
+      </div>
     </main>
   );
 }
