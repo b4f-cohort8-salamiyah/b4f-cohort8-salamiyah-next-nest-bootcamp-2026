@@ -9,7 +9,15 @@ export default async function WorkspacesPage() {
 
   return (
     <main className="mx-auto flex max-w-2xl flex-col gap-4 p-6">
-      <h1 className="text-xl font-semibold">Workspaces</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-xl font-semibold">Workspaces</h1>
+        <Link
+          href="/workspaces/new"
+          className="text-sm text-blue-600 hover:underline dark:text-blue-400"
+        >
+          + New workspace
+        </Link>
+      </div>
       <div className="flex flex-col gap-3">
         {workspaces.map((workspace) => (
           <Link key={workspace.id} href={`/workspaces/${workspace.id}`}>

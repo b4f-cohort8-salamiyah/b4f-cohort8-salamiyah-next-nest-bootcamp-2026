@@ -8,8 +8,12 @@ import {
 import { UpdateWorkspaceDto } from './dto/update-workspace.dto';
 import { CreateWorkspaceDto } from './dto/create-workspace.dto';
 import { FindWorkspacesQueryDto } from './dto/find-workspaces-query.dto';
-import { WorkspaceMembersService } from '../workspace-members/workspace-members.service';
-import { PrismaService } from '../prisma/prisma.service';
+import { WorkspaceMembersService } from 'src/workspace-members/workspace-members.service';
+import { AddMemberDto } from 'src/workspace-members/dto/add-member.dto';
+import { UpdateMemberRoleDto } from 'src/workspace-members/dto/update-member-role.dto';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { ActivityService } from 'src/activity/activity.service';
+import { NotificationsService } from 'src/notifications/notifications.service';
 
 @Injectable()
 export class WorkspacesService {
@@ -17,6 +21,8 @@ export class WorkspacesService {
   constructor(
     private readonly workspaceMembersService: WorkspaceMembersService,
     private readonly prisma: PrismaService,
+    private readonly activityService: ActivityService,
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   async findAll(query: FindWorkspacesQueryDto) {
@@ -119,6 +125,83 @@ export class WorkspacesService {
     }
 
     return this.workspaceMembersService.findAllForWorkspace(workspaceId);
+  }
+
+  // INSTRUCTOR-PROVIDED PRODUCT SUPPORT (Session 25) -- real membership mutation, each real
+  // method activity-logged and notification-triggered the identical real pattern IssuesService
+  // already established for ISSUE_CREATED (log first, inside the same real sequence; a
+  // notification never blocks the real mutation it describes).
+  async addMember(workspaceId: number, actorId: number, dto: AddMemberDto) {
+    await this.findOne(workspaceId);
+
+    const membership = await this.workspaceMembersService.create({
+      workspaceId,
+      userId: dto.userId,
+      role: dto.role,
+    });
+
+    await this.activityService.record({
+      workspaceId,
+      actorId,
+      action: 'MEMBER_ADDED',
+      metadata: { userId: dto.userId, role: dto.role },
+    });
+
+    await this.notificationsService.notifyMemberAdded({
+      actorId,
+      recipientId: dto.userId,
+      workspaceId,
+    });
+
+    return membership;
+  }
+
+  async updateMemberRole(
+    workspaceId: number,
+    targetUserId: number,
+    actorId: number,
+    dto: UpdateMemberRoleDto,
+  ) {
+    const membership = await this.workspaceMembersService.updateRole(
+      workspaceId,
+      targetUserId,
+      dto.role,
+    );
+
+    await this.activityService.record({
+      workspaceId,
+      actorId,
+      action: 'MEMBER_ROLE_CHANGED',
+      metadata: { userId: targetUserId, role: dto.role },
+    });
+
+    await this.notificationsService.notifyRoleChanged({
+      actorId,
+      recipientId: targetUserId,
+      newRole: dto.role,
+    });
+
+    return membership;
+  }
+
+  async removeMember(
+    workspaceId: number,
+    targetUserId: number,
+    actorId: number,
+  ) {
+    const removed = await this.workspaceMembersService.remove(
+      workspaceId,
+      targetUserId,
+    );
+
+    await this.activityService.record({
+      workspaceId,
+      actorId,
+      action: 'MEMBER_REMOVED',
+      metadata: { userId: targetUserId },
+    });
+
+    return removed;
   }
 
   async findBySlug(slug: string) {
