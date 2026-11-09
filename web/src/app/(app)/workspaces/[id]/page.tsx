@@ -3,6 +3,7 @@ import { apiFetch } from "@/lib/api";
 import type { Project, Workspace } from "@/lib/types";
 import Link from "next/link";
 import { Card } from "@/components/ui/Card";
+import { WorkspaceSidebar } from "@/components/layout/WorkspaceSidebar";
 
 export default async function WorkspaceDetailPage({
   params,
@@ -33,6 +34,8 @@ export default async function WorkspaceDetailPage({
           {workspace.description}
         </p>
       </div>
+
+      <WorkspaceSidebar workspace={workspace} projects={projects} />
 
       <h2 className="text-sm font-semibold uppercase text-gray-500 dark:text-gray-400">
         Projects
