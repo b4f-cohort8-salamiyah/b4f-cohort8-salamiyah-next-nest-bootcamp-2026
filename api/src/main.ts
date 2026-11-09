@@ -10,7 +10,7 @@ async function bootstrap() {
   // (http://localhost:3001 in development) -- without this, every real browser request from it
   // would be blocked by the browser's own same-origin policy, never reaching this API at all.
   app.enableCors({
-    origin: process.env.FRONTEND_URL ?? 'http://localhost:3001',
+    origin: process.env.FRONTEND_URL ?? 'http://localhost:3002',
     credentials: true,
   });
   app.useGlobalPipes(
