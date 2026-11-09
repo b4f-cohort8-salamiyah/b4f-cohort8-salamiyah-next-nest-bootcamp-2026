@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { apiFetch } from "../api";
-import { setSessionToken } from "../session";
+import { clearSessionToken, setSessionToken } from "../session";
 
 export interface FormState {
   error?: string;
@@ -63,5 +63,10 @@ export async function registerAction(
     return { error: "Something went wrong. Please try again." };
   }
 
+  redirect("/login");
+}
+
+export async function logoutAction() {
+  await clearSessionToken();
   redirect("/login");
 }
