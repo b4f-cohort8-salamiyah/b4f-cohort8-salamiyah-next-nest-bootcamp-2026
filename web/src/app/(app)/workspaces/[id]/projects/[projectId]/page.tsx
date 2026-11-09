@@ -3,18 +3,18 @@ import { apiFetch } from "@/lib/api";
 import type { Issue, Project } from "@/lib/types";
 import Link from "next/link";
 import { StatusFilter } from "@/components/issues/StatusFilter";
-import { Card } from "@/components/ui/Card";
-import { StatusBadge } from "@/components/ui/Badge";
+import { TitleSearch } from "@/components/issues/TitleSearch";
+import { SortableIssueList } from "@/components/issues/SortableIssueList";
 
 export default async function ProjectDetailPage({
   params,
   searchParams,
 }: {
   params: Promise<{ id: string; projectId: string }>;
-  searchParams: Promise<{ status?: string }>;
+  searchParams: Promise<{ status?: string; title?: string }>;
 }) {
   const { id, projectId } = await params;
-  const { status } = await searchParams;
+  const { status, title } = await searchParams;
 
   const projectRes = await apiFetch(`/projects/${projectId}`);
 
@@ -24,10 +24,13 @@ export default async function ProjectDetailPage({
 
   const project: Project = await projectRes.json();
 
-  const issuesQuery = status ? `&status=${status}` : "";
-  const issuesRes = await apiFetch(
-    `/issues?projectId=${project.id}${issuesQuery}`,
-  );
+  // The real backend's own `status`/`title` query params -- sent directly, never filtered
+  // client-side when the backend already supports them. Sorting is genuinely different: the
+  // real backend has no sort parameter at all, so it is applied as client-derived state instead,
+  // over whatever the backend already filtered (see SortableIssueList).
+  const statusQuery = status ? `&status=${status}` : "";
+  const titleQuery = title ? `&title=${title}` : "";
+  const issuesRes = await apiFetch(`/issues?projectId=${project.id}${statusQuery}${titleQuery}`);
   const issues: Issue[] = await issuesRes.json();
 
   return (
@@ -50,24 +53,11 @@ export default async function ProjectDetailPage({
       <h2 className="text-sm font-semibold uppercase text-gray-500 dark:text-gray-400">
         Issues
       </h2>
-      <StatusFilter />
-      <div className="flex flex-col gap-3">
-        {issues.map((issue) => (
-          <Link
-            key={issue.id}
-            href={`/workspaces/${id}/projects/${project.id}/issues/${issue.id}`}
-          >
-            <Card>
-              <div className="flex items-center justify-between gap-3">
-                <p className="min-w-0 truncate font-medium">
-                  {issue.key}: {issue.title}
-                </p>
-                <StatusBadge status={issue.status} />
-              </div>
-            </Card>
-          </Link>
-        ))}
+      <div className="flex flex-wrap items-center gap-3">
+        <StatusFilter />
+        <TitleSearch />
       </div>
+      <SortableIssueList issues={issues} basePath={`/workspaces/${id}/projects/${project.id}`} />
     </main>
   );
 }

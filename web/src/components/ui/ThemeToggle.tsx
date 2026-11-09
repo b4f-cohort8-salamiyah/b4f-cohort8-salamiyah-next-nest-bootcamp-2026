@@ -1,13 +1,17 @@
 "use client";
 
-import { useTheme } from "@/context/themeContext";
-import { Button } from "./Button";
+import { useTheme } from "@/context/ThemeContext";
 
-export default function ThemeToggle() {
+export function ThemeToggle() {
   const { theme, toggleTheme } = useTheme();
+
   return (
-    <Button onClick={toggleTheme}>
-      Switch to {theme === "light" ? "dark" : "light"} mode
-    </Button>
+    <button
+      type="button"
+      onClick={toggleTheme}
+      className="rounded-md border border-gray-300 px-3 py-1 text-sm dark:border-gray-600"
+    >
+      {theme === "light" ? "Dark mode" : "Light mode"}
+    </button>
   );
 }
