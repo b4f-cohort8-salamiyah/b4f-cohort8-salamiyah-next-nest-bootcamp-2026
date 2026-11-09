@@ -28,19 +28,27 @@ export default async function WorkspaceDetailPage({
 
   return (
     <main className="mx-auto flex max-w-2xl flex-col gap-4 p-6">
-      <div>
-        <h1 className="text-xl font-semibold">{workspace.name}</h1>
-        <p className="text-sm text-gray-500 dark:text-gray-400">
-          {workspace.description}
-        </p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-xl font-semibold">{workspace.name}</h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            {workspace.description}
+          </p>
+        </div>
+        <Link
+          href={`/workspaces/${workspace.id}/settings`}
+          className="text-sm text-blue-600 hover:underline dark:text-blue-400"
+        >
+          Settings
+        </Link>
       </div>
 
       <WorkspaceSidebar workspace={workspace} projects={projects} />
 
-      <h2 className="text-sm font-semibold uppercase text-gray-500 dark:text-gray-400">
+      <h2 className="hidden text-sm font-semibold uppercase text-gray-500 dark:text-gray-400 md:block">
         Projects
       </h2>
-      <div className="flex flex-col gap-3">
+      <div className="hidden flex-col gap-3 md:flex">
         {projects.map((project) => (
           <Link
             key={project.id}
