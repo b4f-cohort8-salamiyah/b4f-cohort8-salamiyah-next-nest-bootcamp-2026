@@ -63,6 +63,54 @@ export class NotificationsService {
     );
   }
 
+  // INSTRUCTOR-PROVIDED PRODUCT SUPPORT (Session 25) -- a new real member is told who added
+  // them, the identical real "never notify about your own action" rule as notifyMentions below.
+  async notifyMemberAdded(
+    input: { actorId: number; recipientId: number; workspaceId: number },
+    tx?: Prisma.TransactionClient,
+  ) {
+    if (input.recipientId === input.actorId) {
+      return null;
+    }
+
+    const client = tx ?? this.prisma;
+    const actor = await this.usersService.findPublicById(input.actorId);
+    const actorName = actor?.name ?? 'Someone';
+
+    return client.notification.create({
+      data: {
+        userId: input.recipientId,
+        type: 'MEMBER_ADDED',
+        message: `${actorName} added you to a workspace.`,
+        actorId: input.actorId,
+      },
+    });
+  }
+
+  // INSTRUCTOR-PROVIDED PRODUCT SUPPORT (Session 25) -- the real member whose own role changed
+  // is told, never notified about a role change made to someone else.
+  async notifyRoleChanged(
+    input: { actorId: number; recipientId: number; newRole: string },
+    tx?: Prisma.TransactionClient,
+  ) {
+    if (input.recipientId === input.actorId) {
+      return null;
+    }
+
+    const client = tx ?? this.prisma;
+    const actor = await this.usersService.findPublicById(input.actorId);
+    const actorName = actor?.name ?? 'Someone';
+
+    return client.notification.create({
+      data: {
+        userId: input.recipientId,
+        type: 'WORKSPACE_ROLE_CHANGED',
+        message: `${actorName} changed your role to ${input.newRole}.`,
+        actorId: input.actorId,
+      },
+    });
+  }
+
   async markRead(notificationId: number, requestingUserId: number) {
     const notification = await this.prisma.notification.findUnique({
       where: { id: notificationId },
