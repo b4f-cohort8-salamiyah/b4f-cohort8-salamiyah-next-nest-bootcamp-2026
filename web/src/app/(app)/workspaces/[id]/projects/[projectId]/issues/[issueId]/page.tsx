@@ -1,9 +1,25 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { apiFetch } from "@/lib/api";
+import { requireSessionToken } from "@/lib/session";
 import type { Issue } from "@/lib/types";
 import { Card } from "@/components/ui/Card";
 import { StatusBadge } from "@/components/ui/Badge";
+import { IssueEditPanel } from "@/components/issues/IssueEditPanel";
+
+// Resolving a real id into a real name needs GET /users/:id, which requires auth -- not
+// available until this session. A missing/removed user (reporterId/assigneeId still points at
+// a row that no longer resolves) falls back to the raw id rather than breaking the whole page.
+async function resolveName(
+  id: number | null,
+  token: string,
+): Promise<string | null> {
+  if (id === null) return null;
+  const res = await apiFetch(`/users/${id}`, { token });
+  if (!res.ok) return `user #${id}`;
+  const user: { name: string } = await res.json();
+  return user.name;
+}
 
 export default async function IssueDetailPage({
   params,
@@ -11,6 +27,7 @@ export default async function IssueDetailPage({
   params: Promise<{ id: string; projectId: string; issueId: string }>;
 }) {
   const { id, projectId, issueId } = await params;
+  const token = await requireSessionToken();
 
   const issueRes = await apiFetch(`/issues/${issueId}`);
 
@@ -19,6 +36,10 @@ export default async function IssueDetailPage({
   }
 
   const issue: Issue = await issueRes.json();
+  const [reporterName, assigneeName] = await Promise.all([
+    resolveName(issue.reporterId, token),
+    resolveName(issue.assigneeId, token),
+  ]);
 
   return (
     <main className="mx-auto flex max-w-2xl flex-col gap-4 p-6">
@@ -29,23 +50,35 @@ export default async function IssueDetailPage({
         Back to project
       </Link>
       <Card>
-        <div className="flex items-center gap-2">
-          <h1 className="text-xl font-semibold">
-            {issue.key}: {issue.title}
-          </h1>
+        <div className="mb-2 flex items-center justify-between">
+          <h1 className="text-xl font-semibold">{issue.title}</h1>
           <StatusBadge status={issue.status} />
         </div>
-        <p className="mt-2 text-gray-700 dark:text-gray-300">
+        <IssueEditPanel
+          issue={issue}
+          basePath={`/workspaces/${id}/projects/${projectId}`}
+          fields={[
+            { key: "title", label: "Title", type: "text" },
+            { key: "description", label: "Description", type: "text" },
+            {
+              key: "status",
+              label: "Status",
+              type: "select",
+              options: [
+                { value: "todo", label: "To do" },
+                { value: "in_progress", label: "In progress" },
+                { value: "review", label: "Review" },
+                { value: "done", label: "Done" },
+              ],
+            },
+          ]}
+        />
+        <p className="text-sm text-gray-500 dark:text-gray-400">
           {issue.description}
         </p>
         <div className="mt-4 flex gap-6 text-sm text-gray-500 dark:text-gray-400">
-          <span>Reporter: user #{issue.reporterId}</span>
-          <span>
-            Assignee:{" "}
-            {issue.assigneeId === null
-              ? "unassigned"
-              : `user #${issue.assigneeId}`}
-          </span>
+          <span>Reporter: {reporterName ?? "unknown"}</span>
+          <span>Assignee: {assigneeName ?? "unassigned"}</span>
         </div>
       </Card>
     </main>
