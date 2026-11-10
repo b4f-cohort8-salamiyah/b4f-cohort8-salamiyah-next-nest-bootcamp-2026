@@ -1,6 +1,13 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-import { IsInt, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import {
+  IsIn,
+  IsInt,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  Min,
+} from 'class-validator';
 
 export class CreateIssueDto {
   @ApiProperty({ example: 1 })
@@ -27,4 +34,23 @@ export class CreateIssueDto {
   @IsString()
   @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
   description?: string;
+
+  @ApiPropertyOptional({
+    example: 'high',
+    enum: ['low', 'medium', 'high', 'urgent'],
+  })
+  @IsOptional()
+  @IsIn(['low', 'medium', 'high', 'urgent'])
+  priority?: string;
+
+  @ApiPropertyOptional({ example: 3, nullable: true })
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  storyPoints?: number | null;
+
+  @ApiPropertyOptional({ example: 1, nullable: true })
+  @IsOptional()
+  @IsInt()
+  sprintId?: number | null;
 }

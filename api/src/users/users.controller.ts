@@ -35,6 +35,28 @@ export class UsersController {
 
   @ApiOperation({
     summary:
+      'List issues assigned to the signed-in user across current workspace memberships',
+  })
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Get('me/issues')
+  myIssues(@CurrentUser() currentUser: JwtPayload) {
+    return this.usersService.myIssues(currentUser.sub);
+  }
+
+  @ApiOperation({
+    summary:
+      "List recent activity across the signed-in user's current workspaces",
+  })
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Get('me/activity')
+  myActivity(@CurrentUser() currentUser: JwtPayload) {
+    return this.usersService.myActivity(currentUser.sub);
+  }
+
+  @ApiOperation({
+    summary:
       'Resolve a user id into its public identity (id/name only -- never email or the password hash)',
   })
   @ApiBearerAuth()
