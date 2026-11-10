@@ -5,6 +5,7 @@ import { requireSessionToken } from "@/lib/session";
 import type { Issue } from "@/lib/types";
 import { Card } from "@/components/ui/Card";
 import { StatusBadge } from "@/components/ui/Badge";
+import { IssueEditPanel } from "@/components/issues/IssueEditPanel";
 
 // Resolving a real id into a real name needs GET /users/:id, which requires auth -- not
 // available until this session. A missing/removed user (reporterId/assigneeId still points at
@@ -53,6 +54,25 @@ export default async function IssueDetailPage({
           <h1 className="text-xl font-semibold">{issue.title}</h1>
           <StatusBadge status={issue.status} />
         </div>
+        <IssueEditPanel
+          issue={issue}
+          basePath={`/workspaces/${id}/projects/${projectId}`}
+          fields={[
+            { key: "title", label: "Title", type: "text" },
+            { key: "description", label: "Description", type: "text" },
+            {
+              key: "status",
+              label: "Status",
+              type: "select",
+              options: [
+                { value: "todo", label: "To do" },
+                { value: "in_progress", label: "In progress" },
+                { value: "review", label: "Review" },
+                { value: "done", label: "Done" },
+              ],
+            },
+          ]}
+        />
         <p className="text-sm text-gray-500 dark:text-gray-400">
           {issue.description}
         </p>
