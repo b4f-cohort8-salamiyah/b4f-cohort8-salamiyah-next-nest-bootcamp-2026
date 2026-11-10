@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { loginAction, type FormState } from "@/lib/actions/auth";
+import Link from "next/link";
 
 const initialState: FormState = {};
 
@@ -36,6 +37,15 @@ export function LoginForm() {
       <button type="submit" disabled={pending}>
         {pending ? "Logging in..." : "Log in"}
       </button>
+      <p className="text-sm text-gray-500 dark:text-gray-400">
+        New here?{" "}
+        <Link
+          href="/register"
+          className="text-blue-600 hover:underline dark:text-blue-400"
+        >
+          Create an account
+        </Link>
+      </p>
     </form>
   );
 }

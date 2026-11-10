@@ -23,10 +23,15 @@ enum ActivityAction {
   ISSUE_CREATED
   COMMENTED
   MENTIONED
+  MEMBER_ADDED
+  MEMBER_REMOVED
+  MEMBER_ROLE_CHANGED
 }
 
 enum NotificationType {
   MENTION
+  MEMBER_ADDED
+  WORKSPACE_ROLE_CHANGED
 }
 
 model User {
