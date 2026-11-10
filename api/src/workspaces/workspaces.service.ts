@@ -8,12 +8,12 @@ import {
 import { UpdateWorkspaceDto } from './dto/update-workspace.dto';
 import { CreateWorkspaceDto } from './dto/create-workspace.dto';
 import { FindWorkspacesQueryDto } from './dto/find-workspaces-query.dto';
-import { WorkspaceMembersService } from 'src/workspace-members/workspace-members.service';
-import { AddMemberDto } from 'src/workspace-members/dto/add-member.dto';
-import { UpdateMemberRoleDto } from 'src/workspace-members/dto/update-member-role.dto';
-import { PrismaService } from 'src/prisma/prisma.service';
-import { ActivityService } from 'src/activity/activity.service';
-import { NotificationsService } from 'src/notifications/notifications.service';
+import { WorkspaceMembersService } from '../workspace-members/workspace-members.service';
+import { AddMemberDto } from '../workspace-members/dto/add-member.dto';
+import { UpdateMemberRoleDto } from '../workspace-members/dto/update-member-role.dto';
+import { PrismaService } from '../prisma/prisma.service';
+import { ActivityService } from '../activity/activity.service';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class WorkspacesService {

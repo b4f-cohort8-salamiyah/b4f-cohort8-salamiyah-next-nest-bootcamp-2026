@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { UsersController } from './users.controller';
-import { WorkspaceMembersModule } from 'src/workspace-members/workspace-members.module';
+import { WorkspaceMembersModule } from '../workspace-members/workspace-members.module';
 
 @Module({
   imports: [WorkspaceMembersModule],

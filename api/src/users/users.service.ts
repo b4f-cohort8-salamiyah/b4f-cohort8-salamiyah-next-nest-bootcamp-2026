@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from 'src/prisma/prisma.service';
-import { WorkspaceMembersService } from 'src/workspace-members/workspace-members.service';
+import { PrismaService } from '../prisma/prisma.service';
+import { WorkspaceMembersService } from '../workspace-members/workspace-members.service';
 import { SearchUsersDto } from './dto/search-users.dto';
 
 export interface SafeUser {
