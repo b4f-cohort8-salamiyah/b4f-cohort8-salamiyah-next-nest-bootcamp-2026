@@ -1,7 +1,8 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { apiFetch } from "@/lib/api";
-import type { Issue, Project } from "@/lib/types";
-import Link from "next/link";
+import { requireSessionToken } from "@/lib/session";
+import type { Issue, Project, Sprint } from "@/lib/types";
 import { Board } from "@/components/board/Board";
 
 export default async function BoardPage({
@@ -10,6 +11,7 @@ export default async function BoardPage({
   params: Promise<{ id: string; projectId: string }>;
 }) {
   const { id, projectId } = await params;
+  const token = await requireSessionToken();
 
   const projectRes = await apiFetch(`/projects/${projectId}`);
   if (!projectRes.ok) {
@@ -19,6 +21,12 @@ export default async function BoardPage({
 
   const issuesRes = await apiFetch(`/issues?projectId=${project.id}`);
   const issues: Issue[] = await issuesRes.json();
+  const sprintsRes = await apiFetch(`/projects/${project.id}/sprints`, { token });
+  const sprints: Sprint[] = await sprintsRes.json();
+  const activeSprint = sprints.find((sprint) => sprint.status === "active");
+  const boardIssues = activeSprint
+    ? issues.filter((issue) => issue.sprintId === activeSprint.id)
+    : [];
 
   return (
     <main className="mx-auto flex max-w-4xl flex-col gap-4 p-6">
@@ -31,7 +39,18 @@ export default async function BoardPage({
       <h1 className="text-xl font-semibold">
         {project.key} -- Board
       </h1>
-      <Board issues={issues} basePath={`/workspaces/${id}/projects/${project.id}`} />
+      {activeSprint ? (
+        <>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            Active sprint: {activeSprint.name}
+          </p>
+          <Board issues={boardIssues} basePath={`/workspaces/${id}/projects/${project.id}`} />
+        </>
+      ) : (
+        <p className="text-sm text-gray-500 dark:text-gray-400">
+          No active sprint. Move backlog issues into a sprint, then start it.
+        </p>
+      )}
     </main>
   );
 }

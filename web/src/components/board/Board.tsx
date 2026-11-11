@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { DndContext, type DragEndEvent } from "@dnd-kit/core";
 import type { Issue } from "@/lib/types";
-import { BoardColumn } from "./BoardColumn";
 import { updateIssueAction } from "@/lib/actions/issues";
+import { BoardColumn } from "./BoardColumn";
 
 const COLUMNS: { status: string; label: string }[] = [
   { status: "todo", label: "To do" },
@@ -20,6 +20,8 @@ export function Board({
   issues: Issue[];
   basePath: string;
 }) {
+  // A real local, optimistic copy of the server's own list -- moved immediately on drop, rolled
+  // back if the real PATCH fails. The server list itself is never mutated directly.
   const [issues, setIssues] = useState(serverIssues);
 
   function handleDragEnd(event: DragEndEvent) {
@@ -37,6 +39,9 @@ export function Board({
     );
 
     updateIssueAction(issueId, basePath, { status: newStatus }).catch(() => {
+      // The real backend rejected this move (e.g. a real 403 -- not this issue's own reporter/
+      // assignee/admin/owner) -- the optimistic move is reverted, never left showing a status
+      // the server never actually accepted.
       setIssues(previousIssues);
     });
   }

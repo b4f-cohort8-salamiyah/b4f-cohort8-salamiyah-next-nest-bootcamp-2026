@@ -1,7 +1,7 @@
 "use client";
 
-import { Issue } from "@/lib/types";
 import { useDroppable } from "@dnd-kit/core";
+import type { Issue } from "@/lib/types";
 import { IssueCard } from "./IssueCard";
 
 export function BoardColumn({
@@ -15,6 +15,8 @@ export function BoardColumn({
   issues: Issue[];
   basePath: string;
 }) {
+  // The column itself is the real drop zone, id'd by its own status so onDragEnd can read the
+  // new status directly off `over.id` -- no separate id-to-status lookup table needed.
   const { setNodeRef, isOver } = useDroppable({ id: status });
 
   return (
@@ -29,11 +31,7 @@ export function BoardColumn({
         }`}
       >
         {issues.map((issue) => (
-          <IssueCard
-            key={issue.id}
-            issue={issue}
-            href={`${basePath}/issues/${issue.id}`}
-          />
+          <IssueCard key={issue.id} issue={issue} href={`${basePath}/issues/${issue.id}`} />
         ))}
         {issues.length === 0 && (
           <p className="rounded-md border border-dashed border-gray-200 p-3 text-center text-xs text-gray-400 dark:border-gray-800">

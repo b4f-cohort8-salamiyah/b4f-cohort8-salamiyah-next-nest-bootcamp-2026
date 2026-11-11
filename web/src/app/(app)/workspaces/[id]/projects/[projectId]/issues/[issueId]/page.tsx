@@ -2,10 +2,12 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { apiFetch } from "@/lib/api";
 import { requireSessionToken } from "@/lib/session";
-import type { Issue } from "@/lib/types";
+import type { Issue, Project } from "@/lib/types";
 import { Card } from "@/components/ui/Card";
-import { StatusBadge } from "@/components/ui/Badge";
 import { IssueEditPanel } from "@/components/issues/IssueEditPanel";
+import { DeleteIssueButton } from "./DeleteIssueButton";
+
+type Member = { userId: number; role: string; user: { id: number; name: string } };
 
 // Resolving a real id into a real name needs GET /users/:id, which requires auth -- not
 // available until this session. A missing/removed user (reporterId/assigneeId still points at
@@ -36,10 +38,15 @@ export default async function IssueDetailPage({
   }
 
   const issue: Issue = await issueRes.json();
-  const [reporterName, assigneeName] = await Promise.all([
-    resolveName(issue.reporterId, token),
-    resolveName(issue.assigneeId, token),
-  ]);
+  const reporterName = await resolveName(issue.reporterId, token);
+
+  // The real assignee options are this issue's own real workspace's real members -- the
+  // identical real membership list Workspace Settings (Session 25) already fetches, reused here
+  // rather than a second, separate "who can be assigned" lookup.
+  const projectRes = await apiFetch(`/projects/${projectId}`, { token });
+  const project: Project = await projectRes.json();
+  const membersRes = await apiFetch(`/workspaces/${project.workspaceId}/members`, { token });
+  const members: Member[] = await membersRes.json();
 
   return (
     <main className="mx-auto flex max-w-2xl flex-col gap-4 p-6">
@@ -50,16 +57,11 @@ export default async function IssueDetailPage({
         Back to project
       </Link>
       <Card>
-        <div className="mb-2 flex items-center justify-between">
-          <h1 className="text-xl font-semibold">{issue.title}</h1>
-          <StatusBadge status={issue.status} />
-        </div>
         <IssueEditPanel
           issue={issue}
           basePath={`/workspaces/${id}/projects/${projectId}`}
           fields={[
             { key: "title", label: "Title", type: "text" },
-            { key: "description", label: "Description", type: "text" },
             {
               key: "status",
               label: "Status",
@@ -71,14 +73,42 @@ export default async function IssueDetailPage({
                 { value: "done", label: "Done" },
               ],
             },
+            {
+              key: "priority",
+              label: "Priority",
+              type: "select",
+              options: [
+                { value: "low", label: "Low" },
+                { value: "medium", label: "Medium" },
+                { value: "high", label: "High" },
+                { value: "urgent", label: "Urgent" },
+              ],
+            },
+            {
+              key: "assigneeId",
+              label: "Assignee",
+              type: "select",
+              numeric: true,
+              options: [
+                { value: "", label: "Unassigned" },
+                ...members.map((m) => ({
+                  value: String(m.userId),
+                  label: m.user.name,
+                })),
+              ],
+            },
+            { key: "storyPoints", label: "Story points", type: "number" },
           ]}
         />
-        <p className="text-sm text-gray-500 dark:text-gray-400">
+        <p className="mt-3 text-sm text-gray-500 dark:text-gray-400">
           {issue.description}
         </p>
-        <div className="mt-4 flex gap-6 text-sm text-gray-500 dark:text-gray-400">
+        <div className="mt-4 flex items-center justify-between gap-6 text-sm text-gray-500 dark:text-gray-400">
           <span>Reporter: {reporterName ?? "unknown"}</span>
-          <span>Assignee: {assigneeName ?? "unassigned"}</span>
+          <DeleteIssueButton
+            issueId={issue.id}
+            basePath={`/workspaces/${id}/projects/${projectId}`}
+          />
         </div>
       </Card>
     </main>

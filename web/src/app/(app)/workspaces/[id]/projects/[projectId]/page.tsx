@@ -30,9 +30,7 @@ export default async function ProjectDetailPage({
   // over whatever the backend already filtered (see SortableIssueList).
   const statusQuery = status ? `&status=${status}` : "";
   const titleQuery = title ? `&title=${title}` : "";
-  const issuesRes = await apiFetch(
-    `/issues?projectId=${project.id}${statusQuery}${titleQuery}`,
-  );
+  const issuesRes = await apiFetch(`/issues?projectId=${project.id}${statusQuery}${titleQuery}`);
   const issues: Issue[] = await issuesRes.json();
 
   return (
@@ -60,12 +58,25 @@ export default async function ProjectDetailPage({
           Board
         </Link>
         <Link
+          href={`/workspaces/${id}/projects/${project.id}/sprints`}
+          className="text-blue-600 hover:underline dark:text-blue-400"
+        >
+          Sprints
+        </Link>
+        <Link
+          href={`/workspaces/${id}/projects/${project.id}/backlog`}
+          className="text-blue-600 hover:underline dark:text-blue-400"
+        >
+          Backlog
+        </Link>
+        <Link
           href={`/workspaces/${id}/projects/${project.id}/issues/new`}
           className="text-blue-600 hover:underline dark:text-blue-400"
         >
           + New issue
         </Link>
       </div>
+
       <h2 className="text-sm font-semibold uppercase text-gray-500 dark:text-gray-400">
         Issues
       </h2>
@@ -73,10 +84,7 @@ export default async function ProjectDetailPage({
         <StatusFilter />
         <TitleSearch />
       </div>
-      <SortableIssueList
-        issues={issues}
-        basePath={`/workspaces/${id}/projects/${project.id}`}
-      />
+      <SortableIssueList issues={issues} basePath={`/workspaces/${id}/projects/${project.id}`} />
     </main>
   );
 }
