@@ -1,9 +1,11 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   ParseIntPipe,
+  Patch,
   Post,
   UseGuards,
 } from '@nestjs/common';
@@ -61,5 +63,32 @@ export class CommentsController {
     @CurrentUser() currentUser: JwtPayload,
   ) {
     return this.commentsService.create(issueId, currentUser.sub, dto);
+  }
+}
+
+@ApiTags('comments')
+@Controller('comments')
+export class CommentMutationsController {
+  constructor(private readonly commentsService: CommentsService) {}
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Patch(':id')
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: CreateCommentDto,
+    @CurrentUser() currentUser: JwtPayload,
+  ) {
+    return this.commentsService.update(id, currentUser.sub, dto);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Delete(':id')
+  remove(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() currentUser: JwtPayload,
+  ) {
+    return this.commentsService.remove(id, currentUser.sub);
   }
 }

@@ -85,6 +85,50 @@ export class UsersService {
     });
   }
 
+  myIssues(userId: number) {
+    return this.prisma.issue.findMany({
+      where: {
+        assigneeId: userId,
+        project: {
+          workspace: {
+            members: { some: { userId } },
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+      include: {
+        project: {
+          select: {
+            id: true,
+            key: true,
+            name: true,
+            workspaceId: true,
+          },
+        },
+      },
+    });
+  }
+
+  async myActivity(userId: number) {
+    const memberships = await this.prisma.workspaceMember.findMany({
+      where: { userId },
+      select: { workspaceId: true },
+    });
+    const workspaceIds = memberships.map((entry) => entry.workspaceId);
+    if (workspaceIds.length === 0) return [];
+
+    return this.prisma.activityLog.findMany({
+      where: { workspaceId: { in: workspaceIds } },
+      orderBy: { createdAt: 'desc' },
+      take: 50,
+      include: {
+        actor: { select: { id: true, name: true } },
+        issue: { select: { id: true, key: true, title: true } },
+        workspace: { select: { id: true, name: true, slug: true } },
+      },
+    });
+  }
+
   toSafeUser(user: {
     id: number;
     name: string;
