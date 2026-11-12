@@ -2,12 +2,18 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { apiFetch } from "@/lib/api";
 import { requireSessionToken } from "@/lib/session";
-import type { Issue, Project } from "@/lib/types";
+import type { Issue, Project, Comment } from "@/lib/types";
 import { Card } from "@/components/ui/Card";
 import { IssueEditPanel } from "@/components/issues/IssueEditPanel";
 import { DeleteIssueButton } from "./DeleteIssueButton";
+import { CommentForm } from "./CommentForm";
+import { CommentList } from "./CommentList";
 
-type Member = { userId: number; role: string; user: { id: number; name: string } };
+type Member = {
+  userId: number;
+  role: string;
+  user: { id: number; name: string };
+};
 
 // Resolving a real id into a real name needs GET /users/:id, which requires auth -- not
 // available until this session. A missing/removed user (reporterId/assigneeId still points at
@@ -45,8 +51,14 @@ export default async function IssueDetailPage({
   // rather than a second, separate "who can be assigned" lookup.
   const projectRes = await apiFetch(`/projects/${projectId}`, { token });
   const project: Project = await projectRes.json();
-  const membersRes = await apiFetch(`/workspaces/${project.workspaceId}/members`, { token });
+  const membersRes = await apiFetch(
+    `/workspaces/${project.workspaceId}/members`,
+    { token },
+  );
   const members: Member[] = await membersRes.json();
+
+  const commentsRes = await apiFetch(`/issues/${issue.id}/comments`, { token });
+  const comments: Comment[] = await commentsRes.json();
 
   return (
     <main className="mx-auto flex max-w-2xl flex-col gap-4 p-6">
@@ -111,6 +123,12 @@ export default async function IssueDetailPage({
           />
         </div>
       </Card>
+      <CommentList comments={comments} />
+      <CommentForm
+        issueId={issue.id}
+        workspaceId={project.workspaceId}
+        basePath={`/workspaces/${id}/projects/${projectId}/issues/${issueId}`}
+      />
     </main>
   );
 }
