@@ -10,11 +10,16 @@ export interface MemberFormState {
 
 // Called directly from the Client Component below (not bound to a <form>) -- a real
 // user-search-as-you-type needs a plain async call, not a form submission.
-export async function searchUsersAction(workspaceId: number, q: string) {
+export async function searchUsersAction(
+  workspaceId: number,
+  q: string,
+  membersOnly = false,
+) {
   if (q.trim().length < 2) return [];
   const token = await requireSessionToken();
+  const membersOnlyQuery = membersOnly ? "&membersOnly=true" : "";
   const res = await apiFetch(
-    `/users/search?q=${encodeURIComponent(q)}&workspaceId=${workspaceId}`,
+    `/users/search?q=${encodeURIComponent(q)}&workspaceId=${workspaceId}${membersOnlyQuery}`,
     { token },
   );
   if (!res.ok) return [];

@@ -48,3 +48,12 @@ export type Sprint = {
     completionPercent: number;
   };
 };
+
+export type Comment = {
+  id: number;
+  issueId: number;
+  authorId: number | null;
+  body: string;
+  createdAt: string;
+  author: { id: number; name: string } | null;
+};

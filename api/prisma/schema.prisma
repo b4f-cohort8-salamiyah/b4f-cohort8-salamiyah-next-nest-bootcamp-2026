@@ -26,12 +26,21 @@ enum ActivityAction {
   MEMBER_ADDED
   MEMBER_REMOVED
   MEMBER_ROLE_CHANGED
+  ISSUE_UPDATED
+  STATUS_CHANGED
+  ASSIGNED
+  SPRINT_STARTED
+  SPRINT_COMPLETED
 }
 
 enum NotificationType {
   MENTION
   MEMBER_ADDED
   WORKSPACE_ROLE_CHANGED
+  ISSUE_ASSIGNED
+  COMMENT_ON_REPORTED_OR_ASSIGNED_ISSUE
+  SPRINT_STARTED
+  SPRINT_COMPLETED
 }
 
 model User {
@@ -94,8 +103,38 @@ model Project {
 
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   issues    Issue[]
+  sprints   Sprint[]
 
   @@map("projects")
+}
+
+// Minimal agile-planning layer (Session 26, instructor-provided before 01-session-start).
+// Real rules, stated explicitly, mirroring final-preview/b4f-board's own documented design:
+//   1. Creating/starting/completing a sprint is Admin/Owner-only (same governance level as
+//      creating a Project).
+//   2. At most one ACTIVE sprint per project at a time -- enforced in the service layer, in a
+//      transaction, the same real convention this codebase already uses for its other business
+//      rules (e.g. "the workspace owner cannot be removed"), never a DB constraint.
+//   3. A sprint only ever moves planned -> active -> completed, one step at a time, forward
+//      only. A completed sprint can never become active again.
+//   4. A completed sprint's name/goal can no longer be edited -- its history is closed once
+//      finished.
+model Sprint {
+  id          Int       @id @default(autoincrement())
+  projectId   Int       @map("project_id")
+  name        String
+  goal        String    @default("")
+  status      String    @default("planned")
+  startedAt   DateTime? @map("started_at")
+  completedAt DateTime? @map("completed_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  // onDelete: SetNull, never Cascade -- deleting a sprint returns its issues to the Backlog
+  // (sprintId null), never deletes them.
+  issues  Issue[]
+
+  @@map("sprints")
 }
 
 model Issue {
@@ -105,11 +144,17 @@ model Issue {
   title       String
   description String   @default("")
   status      String   @default("todo")
+  // Plain validated strings, the identical real convention `status` above already uses --
+  // never a second Prisma enum concept introduced just for this field.
+  priority    String   @default("medium") @map("priority")
+  storyPoints Int?     @map("story_points")
+  sprintId    Int?     @map("sprint_id")
   assigneeId  Int?     @map("assignee_id")
   reporterId  Int?     @map("reporter_id")
   createdAt   DateTime @default(now()) @map("created_at")
 
   project       Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  sprint        Sprint?        @relation(fields: [sprintId], references: [id], onDelete: SetNull)
   assignee      User?          @relation("IssueAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
   reporter      User?          @relation("IssueReporter", fields: [reporterId], references: [id], onDelete: SetNull)
   comments      Comment[]
@@ -117,6 +162,7 @@ model Issue {
   notifications Notification[]
 
   @@unique([projectId, key])
+  @@index([sprintId])
   @@map("issues")
 }
 

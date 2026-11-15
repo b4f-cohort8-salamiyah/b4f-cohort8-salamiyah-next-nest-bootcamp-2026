@@ -1,8 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useDraggable } from "@dnd-kit/core";
 import type { Issue } from "@/lib/types";
-import Link from "next/link";
 
 export function IssueCard({ issue, href }: { issue: Issue; href: string }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
@@ -26,10 +26,20 @@ export function IssueCard({ issue, href }: { issue: Issue; href: string }) {
       <Link
         href={href}
         className="font-medium hover:underline"
+        // A drag handle and a real link don't mix under dnd-kit's pointer sensor -- stop the
+        // pointer event here so clicking the title navigates instead of starting a drag.
         onPointerDown={(e) => e.stopPropagation()}
       >
         <span className="text-gray-400">{issue.key}</span> {issue.title}
       </Link>
+      {issue.storyPoints !== null && (
+        <span
+          title="Story points"
+          className="w-fit rounded-full bg-gray-100 px-1.5 py-0.5 text-xs font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-300"
+        >
+          {issue.storyPoints}
+        </span>
+      )}
     </div>
   );
 }
