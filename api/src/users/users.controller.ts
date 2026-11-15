@@ -4,16 +4,56 @@ import {
   NotFoundException,
   Param,
   ParseIntPipe,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from 'src/common/filters/guards/jwt-auth.guard';
+import { CurrentUser } from 'src/auth/current-user.decorator';
+import { JwtPayload } from 'src/auth/jwt-payload.interface';
+import { SearchUsersDto } from './dto/search-users.dto';
 
 @ApiTags('users')
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
+
+  @ApiOperation({
+    summary:
+      'INSTRUCTOR-PROVIDED PRODUCT SUPPORT (Session 25) -- search real users by name/email, scoped to a real workspace membership direction (add-member vs. @mention).',
+  })
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Get('search')
+  search(
+    @Query() query: SearchUsersDto,
+    @CurrentUser() currentUser: JwtPayload,
+  ) {
+    return this.usersService.search(currentUser.sub, query);
+  }
+
+  @ApiOperation({
+    summary:
+      'List issues assigned to the signed-in user across current workspace memberships',
+  })
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Get('me/issues')
+  myIssues(@CurrentUser() currentUser: JwtPayload) {
+    return this.usersService.myIssues(currentUser.sub);
+  }
+
+  @ApiOperation({
+    summary:
+      "List recent activity across the signed-in user's current workspaces",
+  })
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Get('me/activity')
+  myActivity(@CurrentUser() currentUser: JwtPayload) {
+    return this.usersService.myActivity(currentUser.sub);
+  }
 
   @ApiOperation({
     summary:

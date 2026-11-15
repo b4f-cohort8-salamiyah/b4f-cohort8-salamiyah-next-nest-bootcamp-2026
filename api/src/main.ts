@@ -20,7 +20,7 @@ async function bootstrap() {
   const swaggerConfig = new DocumentBuilder()
     .setTitle('B4F Board API')
     .setDescription(
-      'B4F Board: Users, Workspaces, Projects, Issues, Comments/@mentions, and Activity History, backed by PostgreSQL/Prisma.',
+      'B4F Board: Users, Workspaces, Projects, Issues, Comments/@mentions, Activity History, and Notifications, backed by PostgreSQL/Prisma.',
     )
     .addBearerAuth()
     .setVersion('1.0')

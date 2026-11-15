@@ -1,0 +1,60 @@
+"use client";
+
+import { useActionState } from "react";
+import {
+  createWorkspaceAction,
+  type WorkspaceFormState,
+} from "@/lib/actions/workspaces";
+
+const initialState: WorkspaceFormState = {};
+
+export function CreateWorkspaceForm() {
+  const [state, formAction, pending] = useActionState(
+    createWorkspaceAction,
+    initialState,
+  );
+
+  return (
+    <form action={formAction} className="flex flex-col gap-3">
+      {state.error && (
+        <p className="text-sm text-red-600 dark:text-red-400">
+          {state.error}
+        </p>
+      )}
+      <label className="flex flex-col gap-1 text-sm">
+        Name
+        <input
+          name="name"
+          type="text"
+          required
+          className="rounded-md border border-gray-300 px-3 py-1 text-sm dark:border-gray-600 dark:bg-gray-800"
+        />
+      </label>
+      <label className="flex flex-col gap-1 text-sm">
+        Slug
+        <input
+          name="slug"
+          type="text"
+          required
+          placeholder="acme-robotics"
+          className="rounded-md border border-gray-300 px-3 py-1 text-sm dark:border-gray-600 dark:bg-gray-800"
+        />
+      </label>
+      <label className="flex flex-col gap-1 text-sm">
+        Description (optional)
+        <input
+          name="description"
+          type="text"
+          className="rounded-md border border-gray-300 px-3 py-1 text-sm dark:border-gray-600 dark:bg-gray-800"
+        />
+      </label>
+      <button
+        type="submit"
+        disabled={pending}
+        className="rounded-md border border-blue-600 bg-blue-600 px-3 py-1 text-sm font-medium text-white disabled:opacity-50"
+      >
+        {pending ? "Creating..." : "Create workspace"}
+      </button>
+    </form>
+  );
+}

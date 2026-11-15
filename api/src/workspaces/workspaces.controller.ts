@@ -25,6 +25,8 @@ import { CurrentUser } from 'src/auth/current-user.decorator';
 import { JwtPayload } from 'src/auth/jwt-payload.interface';
 import { WorkspaceRoleGuard } from 'src/common/filters/guards/workspace-role.guard';
 import { RequireWorkspaceRole } from 'src/common/decorators/require-workspace-role.decorator';
+import { AddMemberDto } from 'src/workspace-members/dto/add-member.dto';
+import { UpdateMemberRoleDto } from 'src/workspace-members/dto/update-member-role.dto';
 @ApiTags('workspaces')
 @Controller('workspaces')
 export class WorkspacesController {
@@ -109,6 +111,60 @@ export class WorkspacesController {
     @CurrentUser() currentUser: JwtPayload,
   ) {
     return this.workspacesService.findMembers(id, currentUser.sub);
+  }
+
+  @ApiOperation({
+    summary:
+      'INSTRUCTOR-PROVIDED PRODUCT SUPPORT (Session 25) -- add a real member (requires admin/owner).',
+  })
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, WorkspaceRoleGuard)
+  @RequireWorkspaceRole(['admin', 'owner'], 'workspaceParam')
+  @Post(':id/members')
+  addMember(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: AddMemberDto,
+    @CurrentUser() currentUser: JwtPayload,
+  ) {
+    return this.workspacesService.addMember(id, currentUser.sub, dto);
+  }
+
+  @ApiOperation({
+    summary:
+      'INSTRUCTOR-PROVIDED PRODUCT SUPPORT (Session 25) -- change a real member role (requires admin/owner; never the owner).',
+  })
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, WorkspaceRoleGuard)
+  @RequireWorkspaceRole(['admin', 'owner'], 'workspaceParam')
+  @Patch(':id/members/:userId')
+  updateMemberRole(
+    @Param('id', ParseIntPipe) id: number,
+    @Param('userId', ParseIntPipe) userId: number,
+    @Body() dto: UpdateMemberRoleDto,
+    @CurrentUser() currentUser: JwtPayload,
+  ) {
+    return this.workspacesService.updateMemberRole(
+      id,
+      userId,
+      currentUser.sub,
+      dto,
+    );
+  }
+
+  @ApiOperation({
+    summary:
+      'INSTRUCTOR-PROVIDED PRODUCT SUPPORT (Session 25) -- remove a real member (requires admin/owner; never the owner).',
+  })
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, WorkspaceRoleGuard)
+  @RequireWorkspaceRole(['admin', 'owner'], 'workspaceParam')
+  @Delete(':id/members/:userId')
+  removeMember(
+    @Param('id', ParseIntPipe) id: number,
+    @Param('userId', ParseIntPipe) userId: number,
+    @CurrentUser() currentUser: JwtPayload,
+  ) {
+    return this.workspacesService.removeMember(id, userId, currentUser.sub);
   }
 
   @ApiOperation({ summary: 'Delete a workspace (requires a signed-in user)' })
